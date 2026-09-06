@@ -76,6 +76,44 @@ class MultiAgent:
                 print(f"--- {name} ---")
                 w.print_trace()
 
+    def run_detailed(self, user_input: str) -> dict:
+        """完整流程，但返回结构化数据（供 Web 前端展示朝堂过程）。
+
+        Returns:
+            dict: {
+                'expert': 选择的专家名,
+                'answer': 最终答案,
+                'router_trace': Router 轨迹步骤列表,
+                'expert_trace': 专家轨迹步骤列表,
+                'usage': {token统计},
+            }
+        """
+        expert = self._route(user_input)
+        worker = self.experts[expert]
+        worker.reset()
+        answer = worker.run(user_input)
+
+        def steps_to_list(agent):
+            return [
+                {
+                    "type": s.type,
+                    "detail": s.detail,
+                    "tool": s.tool,
+                    "args": s.args,
+                    "result": s.result,
+                    "duration_ms": s.duration_ms,
+                }
+                for s in agent.tracer.steps
+            ]
+
+        return {
+            "expert": expert,
+            "answer": answer,
+            "router_trace": steps_to_list(self.router),
+            "expert_trace": steps_to_list(worker),
+            "usage": worker.usage,
+        }
+
 
 def main():
     ma = MultiAgent()

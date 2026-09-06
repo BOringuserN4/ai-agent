@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>金銮殿 · 百官议事</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #c8a95a;
+            --gold-light: #e0c88a;
+            --ink: #2c2418;
+            --paper: #f5ecd7;
+            --paper-dark: #e8dcc0;
+            --red: #8b1a1a;
+            --wood: #4a3423;
+            --amber-glow: rgba(200, 169, 90, 0.25);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Noto Serif SC', 'STKaiti', 'KaiTi', serif;
+            background:
+                radial-gradient(circle at 50% -10%, var(--amber-glow), transparent 60%),
+                linear-gradient(180deg, #2b1f16 0%, #3a2a1c 40%, #2b1f16 100%);
+            color: var(--ink);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        /* ===== 顶部牌匾 ===== */
+        header {
+            text-align: center;
+            padding: 26px 16px 10px;
+            position: relative;
+            z-index: 5;
+        }
+        .plaque {
+            display: inline-block;
+            padding: 10px 42px;
+            background: linear-gradient(180deg, #6b1f1f, #8b1a1a);
+            border: 3px solid var(--gold);
+            border-radius: 8px;
+            color: var(--gold-light);
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: 12px;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .subtitle {
+            margin-top: 8px;
+            color: #b9a06a;
+            font-size: 14px;
+            letter-spacing: 4px;
+            opacity: 0.85;
+        }
+        /* ===== 朝堂主区 ===== */
+        .throne-hall {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 20px 30px;
+            position: relative;
+            z-index: 2;
+        }
+        /* 皇帝御座（用户输入） */
+        .emperor {
+            width: max-content;
+            max-width: 90%;
+            text-align: center;
+            margin-bottom: auto;
+            margin-top: 12px;
+        }
+        .emperor-seat {
+            position: relative;
+            margin: 0 auto;
+            width: 120px;
+            height: 100px;
+        }
+        .emperor-seat .dragon {
+            font-size: 64px;
+            line-height: 1;
+            display: block;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));
+        }
+        .emperor-seat::after {
+            content: "御 座";
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: var(--gold-light);
+            letter-spacing: 4px;
+            white-space: nowrap;
+        }
+        .imperial-bubble {
+            margin-top: 26px;
+            background: linear-gradient(180deg, #8b1a1a, #6b1f1f);
+            color: #f5ecd7;
+            border: 2px solid var(--gold);
+            border-radius: 18px 18px 18px 4px;
+            padding: 12px 22px;
+            font-size: 17px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+            position: relative;
+        }
+        .imperial-bubble .label {
+            display: block;
+            font-size: 11px;
+            color: var(--gold-light);
+            letter-spacing: 3px;
+            margin-bottom: 4px;
+            opacity: 0.9;
+        }
+        /* 大臣朝列 */
+        .ministers {
+            display: flex;
+            gap: 28px;
+            justify-content: center;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            padding: 30px 0 0;
+        }
+        .minister-card {
+            width: 176px;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(.2,.8,.2,1);
+            position: relative;
+            text-align: center;
+        }
+        .minister-card:hover { transform: translateY(-6px); }
+        .minister-card.active {
+            transform: translateY(-14px) scale(1.06);
+            filter: drop-shadow(0 0 18px var(--amber-glow));
+        }
+        .minister-card.active .minister-portrait {
+            box-shadow: 0 0 0 3px var(--gold), 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .minister-portrait {
+            width: 132px;
+            height: 132px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 30%, #fdf7ea, var(--paper));
+            border: 3px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 58px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+            position: relative;
+        }
+        .minister-portrait::after {
+            content: "";
+            position: absolute;
+            bottom: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .minister-card.active .minister-portrait::after {
+            border-top: 14px solid var(--gold);
+            opacity: 1;
+        }
+        .minister-name {
+            margin-top: 24px;
+            font-weight: 700;
+            font-size: 17px;
+            color: #f0dcae;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .minister-title {
+            font-size: 11px;
+            color: #b9a06a;
+            margin-top: 3px;
+            letter-spacing: 1px;
+        }
+        .minister-desc {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #d8c9a3;
+            line-height: 1.5;
+            opacity: 0.85;
+            max-width: 160px;
+        }
+        /* 大臣回禀气泡 */
+        .minister-reply {
+            margin-top: 12px;
+            background: linear-gradient(180deg, #fdf7ea, var(--paper));
+            border: 1px solid var(--gold);
+            border-radius: 14px 14px 4px 14px;
+            padding: 10px 14px;
+            font-size: 14px;
+            line-height: 1.6;
+            text-align: left;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+            display: none;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .minister-reply.show { display: block; }
+        .minister-reply .who {
+            color: var(--red);
+            font-weight: 700;
+            font-size: 12px;
+            margin-bottom: 4px;
+            display: block;
+            text-align: center;
+        }
+        /* 状态横幅 */
+        .court-status {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 15px;
+            color: var(--gold-light);
+            letter-spacing: 3px;
+            min-height: 22px;
+            min-width: 260px;
+        }
+        .court-status .throne-progress {
+            display: inline-block;
+            animation: pulse 1.2s infinite;
+        }
+        @keyframes pulse {
+            0%,100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        /* 输入区 */
+        .input-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(200,169,90,0.5);
+            border-radius: 40px;
+            padding: 8px 8px 8px 22px;
+            max-width: 720px;
+            width: 100%;
+            margin: 0 auto;
+            backdrop-filter: blur(6px);
+        }
+        .input-bar input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #f5ecd7;
+            font-size: 16px;
+            font-family: inherit;
+        }
+        .input-bar input::placeholder { color: #9c8a63; }
+        .input-bar button {
+            background: linear-gradient(180deg, var(--gold-light), var(--gold));
+            border: none;
+            color: #3a2500;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 10px 22px;
+            border-radius: 32px;
+            cursor: pointer;
+            font-family: inherit;
+            letter-spacing: 2px;
+            transition: transform 0.15s;
+        }
+        .input-bar button:hover { transform: scale(1.04); }
+        .input-bar button:disabled { opacity: 0.5; cursor: not-allowed; }
+        /* 拟人化说明 */
+        .hint {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 12px;
+            color: #8a7753;
+            letter-spacing: 1px;
+        }
+        .loading-bubble {
+            font-size: 13px;
+            color: var(--gold-light);
+            letter-spacing: 2px;
+        }
+        .trace-collapse {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #b9a06a;
+            cursor: pointer;
+            text-align: center;
+        }
+        .trace-box {
+            display: none;
+            margin-top: 8px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(200,169,90,0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #d8c9a3;
+            text-align: left;
+            max-height: 160px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .trace-box.show { display: block; }
+        /* 转场动画 */
+        .fade-in { animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        @media (max-width: 640px) {
+            .ministers { gap: 14px; }
+            .minister-card { width: 120px; }
+            .minister-portrait { width: 96px; height: 96px; font-size: 42px; }
+            .minister-desc { display: none; }
+            .plaque { font-size: 22px; letter-spacing: 7px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="plaque">金 銮 殿</div>
+        <div class="subtitle">皇帝临朝 · 百官议事 · Multi-Agent 拟人</div>
+    </header>
+
+    <div class="throne-hall" id="hall">
+        <!-- 皇帝御座 -->
+        <div class="emperor" id="emperor">
+            <div class="emperor-seat">
+                <span class="dragon">👑</span>
+            </div>
+            <div class="imperial-bubble" id="emperor-bubble">
+                <span class="label">朕 · 圣谕</span>
+                <span id="emperor-text">爱卿且慢叙话，有事速速奏来。</span>
+            </div>
+        </div>
+
+        <!-- 朝堂大臣 -->
+        <div class="ministers" id="ministers"></div>
+
+        <!-- 状态横幅 -->
+        <div class="court-status" id="status"></div>
+    </div>
+
+    <!-- 输入区 -->
+    <div class="input-bar">
+        <input type="text" id="user-input" placeholder="启奏陛下：臣有事禀奏…" />
+        <button id="send-btn">奏 上</button>
+    </div>
+    <div class="hint">帝发圣谕 → 百官听旨 → 奉旨出列 → 回禀</div>
+
+    <script>
+        const experts = {{ experts | tojson }};
+        const hall = document.getElementById('hall');
+        const ministersEl = document.getElementById('ministers');
+        const statusEl = document.getElementById('status');
+        const emperorText = document.getElementById('emperor-text');
+        const input = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        // 渲染大臣
+        function renderMinisters() {
+            ministersEl.innerHTML = '';
+            Object.entries(experts).forEach(([key, expert]) => {
+                const card = document.createElement('div');
+                card.className = 'minister-card';
+                card.id = 'expert-' + key;
+                card.innerHTML = `
+                    <div class="minister-portrait">${expert.emoji}</div>
+                    <div class="minister-name">${expert.name}</div>
+                    <div class="minister-title">${expert.title}</div>
+                    <div class="minister-desc">${expert.desc}</div>
+                    <div class="minister-reply" id="reply-${key}"><span class="who">${expert.name}</span><span id="reply-text-${key}"></span></div>
+                `;
+                ministersEl.appendChild(card);
+            });
+        }
+
+        function clearReplies() {
+            document.querySelectorAll('.minister-reply').forEach(el => el.classList.remove('show'));
+            document.querySelectorAll('.minister-card').forEach(el => el.classList.remove('active'));
+        }
+
+        function setStatus(text, loading) {
+            statusEl.innerHTML = text;
+            if (loading) {
+                const badge = document.createElement('span');
+                badge.className = 'throne-progress';
+                badge.textContent = ' ◉ ';
+                statusEl.prepend(badge);
+                statusEl.append(' · 百官正在廷议…');
+            }
+        }
+
+        async function sendMessage() {
+            const message = input.value.trim();
+            if (!message) return;
+            input.value = '';
+            sendBtn.disabled = true;
+            emperorText.textContent = message;
+            clearReplies();
+            setStatus('', true);
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: message})
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showResult(data);
+                } else {
+                    setStatus('⚠️ 出错了：' + (data.error || '未知错误'), false);
+                    emperorText.textContent = '出错了…';
+                }
+            } catch (err) {
+                setStatus('⚠️ 网络/服务错误', false);
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+
+        function showResult(data) {
+            const key = data.expert;
+            const card = document.getElementById('expert-' + key);
+            const replyBox = document.getElementById('reply-' + key);
+            const replyText = document.getElementById('reply-text-' + key);
+
+            // 高亮该大臣、弹出回禀
+            card.classList.add('active', 'fade-in');
+            replyBox.classList.add('show');
+            replyText.textContent = data.answer;
+
+            // 状态：显示路由与token
+            setStatus('奉旨者：「' + experts[key].name + '」· 已回禀', false);
+
+            // 在回禀框下加个小「查看廷议过程」
+            let traceBtn = replyBox.querySelector('.trace-collapse');
+            if (!traceBtn) {
+                traceBtn = document.createElement('div');
+                traceBtn.className = 'trace-collapse';
+                traceBtn.textContent = '▶ 查看廷议过程（轨迹）';
+                replyBox.appendChild(traceBtn);
+                const traceBox = document.createElement('div');
+                traceBox.className = 'trace-box';
+                replyBox.appendChild(traceBox);
+                traceBtn.onclick = () => traceBox.classList.toggle('show');
+                // 填充轨迹
+                const allSteps = [...(data.router_trace||[]), ...(data.expert_trace||[])];
+                traceBox.innerHTML = allSteps.map(s => {
+                    const icon = {reason:'🤔', tool_call:'🛠️', tool_result:'📦', answer:'🤖'}[s.type] || '·';
+                    let line = icon + ' ' + s.detail;
+                    if (s.tool) line += ' → ' + s.tool;
+                    return line;
+                }).join('\n');
+                if (data.usage) {
+                    traceBox.innerHTML += '\n📊 tokens: ' + (data.usage.total_tokens || '?');
+                }
+            }
+        }
+
+        renderMinisters();
+        setStatus('陛下有旨，大臣候旨。', false);
+
+        sendBtn.addEventListener('click', sendMessage);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
