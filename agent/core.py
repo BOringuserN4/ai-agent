@@ -1,21 +1,25 @@
 # -*- coding: utf-8 -*-
 """
-agent/core.py — Agent 核心引擎
+agent/core.py — Agent 核心引擎（第4步：加追踪 + 上下文控制）
 
 职责：
 - 管理对话历史（多轮聊天）。
 - 把「模型 + 工具声明 + 工具执行」串成 ReAct 循环。
-- 封装成简单接口，供上层（如 CLI、未来的可视化界面）调用。
+- 用 Tracer 记录每一步（可观测性）。
+- 记录 token 用量（成本核算）。
+- 加上下文预算控制，防止 history 无限膨胀。
 
 设计原则：
-- 工具声明与真实函数都来自 agent.tools，模块化。
+- 工具声明与真实函数来自 agent.tools，模块化。
 - 支持多轮对话：持续把历史追加进 messages。
 - ReAct 循环有 max_steps 兜底，防止死循环。
 """
 import json
+import time
 from openai import OpenAI
 from dotenv import load_dotenv
 from agent.tools import get_tools_spec, get_tool_registry
+from agent.tracing import Tracer
 
 load_dotenv()
 
@@ -27,25 +31,57 @@ def get_api_key():
 
 class Agent:
     def __init__(self, system_prompt="你是一个乐于助人的 AI 助手。"):
-        self.client = OpenAI(
-            api_key=get_api_key(),
-            base_url="https://api.deepseek.com",
-        )
+        key = get_api_key()
+        if not key or len(key) < 10:
+            raise SystemExit("❌ 请先配置 .env 里的 DEEPSEEK_API_KEY")
+        self.client = OpenAI(api_key=key, base_url="https://api.deepseek.com")
         self.tools_spec = get_tools_spec()
         self.tool_registry = get_tool_registry()
         # 对话历史：开头放系统提示
         self.history = [{"role": "system", "content": system_prompt}]
+        # 追踪器：记录本轮运行足迹
+        self.tracer = Tracer()
+        # 用量统计：本轮累计 token
+        self.usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
 
     def reset(self):
         """清空对话历史，但保留系统提示。"""
         self.history = [self.history[0]]
 
-    def run(self, user_input: str, max_steps=8):
-        """处理一轮用户输入，返回最终回复（含可能的工具调用过程日志）。"""
+    # ---- 上下文预算控制 ----
+    def trim_history(self, max_tokens: int = 6000):
+        """当历史太长时，精简掉旧消息，只保留最近若干条 + 系统提示。
+
+        简单策略：若估计 token 超过上限，就丢弃中间较旧的轮次。
+        生产级会用更智能的压缩/摘要，这里先做基础版。
+        """
+        # 粗略估计 token 数（中文约 1 字≈1 token，英文约 4 字符≈1 token）
+        def est_tokens(text: str) -> int:
+            return max(1, len(text) // 2)  # 保守估算
+
+        while len(self.history) > 2:  # 至少保留 system + 最近1条
+            total = sum(est_tokens(m.get("content", "") or "") for m in self.history)
+            if total <= max_tokens:
+                break
+            # 删掉最早的一条非 system 消息
+            for i, m in enumerate(self.history):
+                if m["role"] != "system":
+                    self.history.pop(i)
+                    break
+        self.tracer.log(f"上下文已精简（预算 {max_tokens} tokens）")
+
+    # ---- 主循环 ----
+    def run(self, user_input: str, max_steps=8, max_tokens: int = 6000):
+        """处理一轮用户输入，返回最终回复，并记录轨迹。"""
+        self.tracer = Tracer()  # 每轮一个新的追踪器
         self.history.append({"role": "user", "content": user_input})
         print(f"\n🧑 用户：{user_input}")
+        start_all = time.time()
 
         for _ in range(max_steps):
+            # 发送前先控制上下文长度
+            self.trim_history(max_tokens)
+
             response = self.client.chat.completions.create(
                 model="deepseek-chat",
                 messages=self.history,
@@ -53,12 +89,20 @@ class Agent:
                 tool_choice="auto",
                 temperature=0.3,
             )
+            # 记录 token 用量
+            u = response.usage
+            if u:
+                self.usage["prompt_tokens"] += u.prompt_tokens
+                self.usage["completion_tokens"] += u.completion_tokens
+                self.usage["total_tokens"] += u.total_tokens
+
             msg = response.choices[0].message
 
             # 情况 A：模型没有调用工具 -> 给出最终回答
             if not msg.tool_calls:
-                # 把助手回答追加进历史（为了多轮记忆）
                 self.history.append({"role": "assistant", "content": msg.content})
+                self.tracer.add(type="answer", detail=msg.content,
+                                duration_ms=round((time.time() - start_all) * 1000, 1))
                 print(f"🤖 助手：{msg.content}")
                 return msg.content
 
@@ -71,23 +115,28 @@ class Agent:
                 }
                 for tc in msg.tool_calls
             ]
-            # 记录模型的调用请求（必须，否则工具结果无法对位）
             self.history.append({
                 "role": "assistant",
                 "content": msg.content,
                 "tool_calls": tool_calls_spec,
             })
 
-            # 执行工具，把结果回填
+            # 执行工具，把结果回填，并记录到轨迹
             for tc in msg.tool_calls:
                 name = tc.function.name
                 args = json.loads(tc.function.arguments)
                 fn = self.tool_registry.get(name)
+                t0 = time.time()
                 if fn is None:
                     result = f"❌ 未找到工具: {name}"
                 else:
                     result = fn(**args)
+                took_ms = round((time.time() - t0) * 1000, 1)
                 print(f"🛠️  调用 {name}({args}) -> {result}")
+                self.tracer.add(type="tool_call", detail=f"调用 {name}", tool=name,
+                                args=args, duration_ms=took_ms)
+                self.tracer.add(type="tool_result", detail=f"{name} 返回", tool=name,
+                                result=result)
                 self.history.append({
                     "role": "tool",
                     "tool_call_id": tc.id,
@@ -97,25 +146,46 @@ class Agent:
         print("⚠️ 达到最大循环次数，强制结束。")
         return "已超过最大处理轮数。"
 
+    def print_trace(self):
+        """打印本轮运行轨迹。"""
+        print(self.tracer.show())
+
+    def print_usage(self):
+        """打印 token 用量。"""
+        u = self.usage
+        print(f"📊 用量：输入 {u['prompt_tokens']} 输出 {u['completion_tokens']} "
+              f"总计 {u['total_tokens']} tokens")
+
 
 def main():
-    import os
-    if not get_api_key() or len(get_api_key()) < 10:
-        raise SystemExit("❌ 请先配置 .env 里的 DEEPSEEK_API_KEY")
     agent = Agent()
-    print("🤖 Agent 已启动。输入你的问题，输入 /exit 退出。\n")
+    print("🤖 Agent 已启动（带追踪）。输入问题，/exit 退出，/trace 看轨迹，/usage 看用量，/clear 清空。")
     while True:
         try:
-            user_input = input("你：").strip()
+            user_input = input("\n你：").strip()
         except (EOFError, KeyboardInterrupt):
             print("\n再见！")
             break
         if not user_input:
             continue
-        if user_input.lower() in ("/exit", "/quit", "退出", "exit"):
+        low = user_input.lower()
+        if low in ("/exit", "/quit", "退出", "exit"):
             print("再见！")
             break
+        if low in ("/clear", "清空"):
+            agent.reset()
+            print("(已清空对话历史)")
+            continue
+        if low == "/trace":
+            agent.print_trace()
+            continue
+        if low == "/usage":
+            agent.print_usage()
+            continue
         agent.run(user_input)
+        # 每轮结束后自动展示轨迹（教学演示用，生产可关）
+        agent.print_trace()
+        agent.print_usage()
 
 
 if __name__ == "__main__":
