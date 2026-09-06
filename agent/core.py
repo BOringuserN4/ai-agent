@@ -30,19 +30,38 @@ def get_api_key():
 
 
 class Agent:
-    def __init__(self, system_prompt="你是一个乐于助人的 AI 助手。"):
+    def __init__(self, system_prompt="你是一个乐于助人的 AI 助手。", tools=None):
+        """
+        Args:
+            system_prompt: 这个 Agent 的人格/角色说明。
+            tools: 可选。限定这个 Agent 能用哪些工具，如 ("calculator",
+                   "get_weather")。不传则默认用全部工具。
+        """
         key = get_api_key()
         if not key or len(key) < 10:
             raise SystemExit("❌ 请先配置 .env 里的 DEEPSEEK_API_KEY")
         self.client = OpenAI(api_key=key, base_url="https://api.deepseek.com")
-        self.tools_spec = get_tools_spec()
-        self.tool_registry = get_tool_registry()
+        self.tools = set(tools) if tools else None  # None=全部
+        self.tools_spec = self._filter_spec(get_tools_spec())
+        self.tool_registry = self._filter_registry(get_tool_registry())
         # 对话历史：开头放系统提示
         self.history = [{"role": "system", "content": system_prompt}]
         # 追踪器：记录本轮运行足迹
         self.tracer = Tracer()
         # 用量统计：本轮累计 token
         self.usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+
+    def _filter_spec(self, spec):
+        """按 self.tools 限定，只保留允许的工具声明。"""
+        if not self.tools:
+            return spec
+        return [s for s in spec if s["function"]["name"] in self.tools]
+
+    def _filter_registry(self, registry):
+        """按 self.tools 限定，只保留允许的工具执行函数。"""
+        if not self.tools:
+            return registry
+        return {k: v for k, v in registry.items() if k in self.tools}
 
     def reset(self):
         """清空对话历史，但保留系统提示。"""
