@@ -1,0 +1,4 @@
+# 第 0 步：连接 DeepSeek 所需的最小依赖
+# DeepSeek 官方 API 兼容 OpenAI SDK，所以用 openai 库
+openai>=1.0.0
+python-dotenv>=1.0.0

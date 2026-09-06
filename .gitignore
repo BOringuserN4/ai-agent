@@ -1,0 +1,20 @@
+# 依赖与虚拟环境
+.venv/
+venv/
+
+# 密钥——绝对不要提交！(真实 key 在 .env，git 只认 .env.example)
+.env
+*.env
+!*.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# IDE / 系统
+.idea/
+.vscode/
+.DS_Store
