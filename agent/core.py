@@ -125,6 +125,14 @@ class Agent:
         messages.extend(self.history[1:])  # history[0] 是原始 system，跳过
 
         for _ in range(max_steps):
+            # 【修复】每轮都重新构建 messages，保证模型能看到最新历史（含上一步工具结果）
+            # 之前 messages 在循环外只构建了一次，导致模型每轮看到的上下文相同，
+            # 看不到工具已返回，于是反复调用同一工具。
+            messages = [{"role": "system", "content": self._base_system}]
+            if memory_context:
+                messages[0]["content"] += "\n\n" + memory_context
+            messages.extend(self.history[1:])  # history[0] 是原始 system，跳过
+
             # 发送前先控制上下文长度
             self.trim_history(max_tokens)
 
@@ -167,7 +175,7 @@ class Agent:
             ]
             self.history.append({
                 "role": "assistant",
-                "content": msg.content,
+                "content": msg.content or "",  # 【修复】防止 content=null 干扰模型
                 "tool_calls": tool_calls_spec,
             })
 
