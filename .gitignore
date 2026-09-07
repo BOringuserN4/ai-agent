@@ -7,6 +7,15 @@ venv/
 *.env
 !*.env.example
 
+# 日志与运行产物
+server.log
+*.log
+nohup.out
+
+# Flask / 运行时
+instance/
+*.pyc
+
 # Python
 __pycache__/
 *.py[cod]
