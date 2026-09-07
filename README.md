@@ -72,6 +72,8 @@ ai-agent/
 ├── main.py               # 统一命令行入口
 ├── LICENSE               # MIT
 ├── README.md
+├── docs/
+│   └── ai-agent-curriculum.md  # 进阶教学大纲（12 周路线 + 选型/度量/自检）
 └── agent/
     ├── __init__.py
     ├── core.py           # Agent 引擎（模型+工具+ReAct循环+上下文控制+记忆抽取接入）
@@ -137,6 +139,20 @@ ai-agent/
 - MCP 工具生态
 - 更复杂编排（Pipeline / 层级 / Debate）
 - 可视化界面（金銮殿等）
+
+---
+
+## 八、进阶教材
+
+主体代码完成后，下一步推荐读 [`docs/ai-agent-curriculum.md`](docs/ai-agent-curriculum.md) ——这是一份**12 周进阶路线**：
+
+- 10 种多 Agent 编排模式（Router / Pipeline / Evaluator-Critic / Fan-out …）
+- 资源/成本选型对比（DeepSeek / DashScope / LangGraph / Qdrant …）
+- 4 象限度量体系（效果/效率/成本/可靠性）
+- 6 条 2026 趋势研判
+- 学习路径自检清单（避坑 + 敏感操作分级）
+
+适合完成主体学习后进阶时配合实操使用。
 
 ---
 
