@@ -31,7 +31,7 @@ cd ai-agent
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env        # 填入 DEEPSEEK_API_KEY
+cp .env.example .env        # 填入 DEEPSEEK_API_KEY + DASHSCOPE_API_KEY
 ```
 
 ---
