@@ -1,4 +1,7 @@
-# 第 0 步：连接 DeepSeek 所需的最小依赖
-# DeepSeek 官方 API 兼容 OpenAI SDK，所以用 openai 库
+# 连接 DeepSeek（DeepSeek 兼容 OpenAI SDK）
 openai>=1.0.0
 python-dotenv>=1.0.0
+
+# 长期记忆（RAG）：本地 embedding 向量化
+sentence-transformers>=3.0.0
+# 依赖：transformers / torch 由 sentence-transformers 自动带入

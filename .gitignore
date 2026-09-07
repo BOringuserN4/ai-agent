@@ -12,6 +12,9 @@ server.log
 *.log
 nohup.out
 
+# 长期记忆数据（运行时生成，含用户信息，不入库）
+memory_store.json
+
 # Flask / 运行时
 instance/
 *.pyc

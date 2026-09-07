@@ -18,10 +18,16 @@ agent/multi_agent.py — 多 Agent 调度器（Router + Worker 架构）
 import json
 from agent.core import Agent
 from agent.roles import ROLE_FACTORIES
+from agent.memory import MemoryStore
 
 
 class MultiAgent:
-    def __init__(self):
+    def __init__(self, use_memory=True):
+        # 长期记忆库：所有专家共享，跨会话记住用户信息
+        self.memory = MemoryStore() if use_memory else None
+        if self.memory:
+            print(f"🧠 长期记忆已启用，当前已有 {self.memory.count()} 条记忆")
+
         # Router：一个轻量 Agent，只负责判断去哪，不执行任务
         self.router = Agent(
             system_prompt=(
@@ -35,7 +41,13 @@ class MultiAgent:
         # 专家 Worker 们（懒加载，复用同一份配置）
         self.experts = {}
         for name, factory in ROLE_FACTORIES.items():
-            self.experts[name] = factory()
+            # 给专家接入共享的记忆库
+            if self.memory:
+                agent_obj = factory()
+                agent_obj.memory = self.memory
+                self.experts[name] = agent_obj
+            else:
+                self.experts[name] = factory()
 
     def _route(self, user_input: str) -> str:
         """让 Router 判断该交给谁，解析出 expert 名字。"""
