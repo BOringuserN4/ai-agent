@@ -5,8 +5,8 @@ agent/memory.py — 长期记忆（LTM）模块（RAG 实现）
 核心思路：
   - 记忆不塞进对话 history（否则上下文会爆炸），而是「外置存储 + 按需检索」。
   - 每条记忆 = 文本片段 + 语义向量 + 元数据。
-  - 写入：对话产生的重要信息，向量化后存入本地 JSON。
-  - 检索：用户提问时，用 embedding 语义搜索，取最相关的几条记忆注入上下文。
+  - 写入：对话产生的重要信息，通过远程 embedding 生成向量后存入本地 JSON。
+  - 检索：用户提问时，用远程 embedding 生成查询向量，与库内向量计算余弦相似度，取 top-k 注入上下文。
 
 技术栈：
   - 阿里云 DashScope text-embedding-v3：远程 embedding API（OpenAI 兼容，中文友好，速度快）。

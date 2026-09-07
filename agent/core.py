@@ -160,7 +160,7 @@ class Agent:
                                 duration_ms=round((time.time() - start_all) * 1000, 1))
                 print(f"🤖 助手：{msg.content}")
                 # 【长期记忆】回答后：把本轮对话沉淀为记忆。
-                # 用后台线程执行，避免首次加载 embedding 模型阻塞主流程、
+                # 用后台线程执行，避免首次远程调用 embedding/抽取器阻塞主流程、
                 # 导致回复后迟迟不回到「你：」提示符。
                 # 重要：不再无脑存全部对话，而是用 LLM 过滤出「值得长期记」的信息。
                 if self.memory:
