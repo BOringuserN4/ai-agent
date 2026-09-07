@@ -162,11 +162,26 @@ class Agent:
                 # 【长期记忆】回答后：把本轮对话沉淀为记忆。
                 # 用后台线程执行，避免首次加载 embedding 模型阻塞主流程、
                 # 导致回复后迟迟不回到「你：」提示符。
+                # 重要：不再无脑存全部对话，而是用 LLM 过滤出「值得长期记」的信息。
                 if self.memory:
                     def _persist():
                         try:
-                            self.memory.add(f"用户问：{user_input}", meta={"type": "user", "time": time.time()})
-                            self.memory.add(f"助手答：{msg.content}", meta={"type": "assistant", "time": time.time()})
+                            from agent.extractor import MemoryExtractor
+                            extractor = MemoryExtractor()
+                            result = extractor.extract(user_input, msg.content)
+                            if result["keep"] and result["text"]:
+                                tags = result.get("tags", [])
+                                tag_prefix = f"[{','.join(tags)}] " if tags else ""
+                                meta = {
+                                    "type": "extracted",
+                                    "tags": tags,
+                                    "time": time.time(),
+                                }
+                                self.memory.add(f"{tag_prefix}{result['text']}", meta=meta)
+                                self.tracer.log(f"记忆抽取：keep=True, tags={tags}, text='{result['text'][:30]}'")
+                            else:
+                                reason = result.get("_error", "filtered_out")
+                                self.tracer.log(f"记忆抽取：keep=False ({reason})")
                         except Exception:
                             pass  # 记忆沉淀失败不影响本次对话
                     threading.Thread(target=_persist, daemon=True).start()

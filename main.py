@@ -30,6 +30,7 @@ def print_help():
   /trace    → 查看本轮运行轨迹
   /usage    → 查看 token 用量
   /memory   → 查看长期记忆（跨会话）
+  /memory_extra → 查看带标签+时间的记忆详情
   /mem_clear→ 清空长期记忆
   /clear    → 清空对话历史（不删长期记忆）
   /exit     → 退出
@@ -88,6 +89,18 @@ def main():
         if low == "/mem_clear":
             ma.memory.clear()
             print("(长期记忆已清空)")
+            continue
+        if low == "/memory_extra":
+            print(f"🧠 长期记忆详细（共 {ma.memory.count()} 条，含标签+时间）：")
+            for i, item in enumerate(ma.memory.items, 1):
+                text = item.get("text", "")
+                tags = item.get("meta", {}).get("tags", [])
+                type_ = item.get("meta", {}).get("type", "?")
+                ts = item.get("meta", {}).get("time", 0)
+                import datetime
+                tstr = datetime.datetime.fromtimestamp(ts).strftime("%H:%M:%S") if ts else "-"
+                tag_str = f"tags={tags}" if tags else "no-tags"
+                print(f"  {i}. [{tstr}] [{type_}] {tag_str}\n     {text[:80]}")
             continue
         ma.run(user_input)
 
