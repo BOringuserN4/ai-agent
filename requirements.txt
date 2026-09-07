@@ -2,6 +2,6 @@
 openai>=1.0.0
 python-dotenv>=1.0.0
 
-# 长期记忆（RAG）：本地 embedding 向量化
-sentence-transformers>=3.0.0
-# 依赖：transformers / torch 由 sentence-transformers 自动带入
+# 长期记忆（RAG）：远程 embedding 向量化
+# 使用阿里云 DashScope text-embedding-v3（OpenAI 兼容接口），
+# 复用上面的 openai SDK 即可，无需本地模型。
