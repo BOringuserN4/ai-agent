@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-agent/core.py — Agent 核心引擎（第4步：加追踪 + 上下文控制）
+agent/core.py — Agent 核心引擎
 
-职责：
+主语：
 - 管理对话历史（多轮聊天）。
 - 把「模型 + 工具声明 + 工具执行」串成 ReAct 循环。
 - 用 Tracer 记录每一步（可观测性）。
@@ -174,38 +174,3 @@ class Agent:
         u = self.usage
         print(f"📊 用量：输入 {u['prompt_tokens']} 输出 {u['completion_tokens']} "
               f"总计 {u['total_tokens']} tokens")
-
-
-def main():
-    agent = Agent()
-    print("🤖 Agent 已启动（带追踪）。输入问题，/exit 退出，/trace 看轨迹，/usage 看用量，/clear 清空。")
-    while True:
-        try:
-            user_input = input("\n你：").strip()
-        except (EOFError, KeyboardInterrupt):
-            print("\n再见！")
-            break
-        if not user_input:
-            continue
-        low = user_input.lower()
-        if low in ("/exit", "/quit", "退出", "exit"):
-            print("再见！")
-            break
-        if low in ("/clear", "清空"):
-            agent.reset()
-            print("(已清空对话历史)")
-            continue
-        if low == "/trace":
-            agent.print_trace()
-            continue
-        if low == "/usage":
-            agent.print_usage()
-            continue
-        agent.run(user_input)
-        # 每轮结束后自动展示轨迹（教学演示用，生产可关）
-        agent.print_trace()
-        agent.print_usage()
-
-
-if __name__ == "__main__":
-    main()
