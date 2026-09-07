@@ -16,6 +16,7 @@ agent/core.py — Agent 核心引擎
 """
 import json
 import time
+import threading
 from openai import OpenAI
 from dotenv import load_dotenv
 from agent.tools import get_tools_spec, get_tool_registry
@@ -158,10 +159,17 @@ class Agent:
                 self.tracer.add(type="answer", detail=msg.content,
                                 duration_ms=round((time.time() - start_all) * 1000, 1))
                 print(f"🤖 助手：{msg.content}")
-                # 【长期记忆】回答后：把本轮对话沉淀为记忆（重要信息）
+                # 【长期记忆】回答后：把本轮对话沉淀为记忆。
+                # 用后台线程执行，避免首次加载 embedding 模型阻塞主流程、
+                # 导致回复后迟迟不回到「你：」提示符。
                 if self.memory:
-                    self.memory.add(f"用户问：{user_input}", meta={"type": "user", "time": time.time()})
-                    self.memory.add(f"助手答：{msg.content}", meta={"type": "assistant", "time": time.time()})
+                    def _persist():
+                        try:
+                            self.memory.add(f"用户问：{user_input}", meta={"type": "user", "time": time.time()})
+                            self.memory.add(f"助手答：{msg.content}", meta={"type": "assistant", "time": time.time()})
+                        except Exception:
+                            pass  # 记忆沉淀失败不影响本次对话
+                    threading.Thread(target=_persist, daemon=True).start()
                 return msg.content
 
             # 情况 B：模型要调用工具
