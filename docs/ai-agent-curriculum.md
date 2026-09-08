@@ -202,7 +202,7 @@ Plan → Act → Reflect → Replan
 ### 5.4 阶段三·实战与产品化（9-12 周）
 
 **任务清单**：
-- [ ] **第 9 周**：选 Chromadb 或 pgvector 替换 numpy 检索
+- [x] **第 9 周**：选 Chromadb 或 pgvector 替换 numpy 检索（✅ 已完成：ChromaDB 1.5.9 + DashScope embedding，memory.py 已重构）
 - [ ] **第 10 周**：接入 Langfuse（自部署可观测性工具）
 - [ ] **第 11 周**：实现评测框架（golden set + LLM-as-judge）
 - [ ] **第 12 周**：写一份完整学习总结文档

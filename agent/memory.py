@@ -1,23 +1,29 @@
 # -*- coding: utf-8 -*-
 """
-agent/memory.py — 长期记忆（LTM）模块（RAG 实现）
+agent/memory.py — 长期记忆（LTM）模块（RAG 实现，ChromaDB 版本）
 
 核心思路：
   - 记忆不塞进对话 history（否则上下文会爆炸），而是「外置存储 + 按需检索」。
   - 每条记忆 = 文本片段 + 语义向量 + 元数据。
-  - 写入：对话产生的重要信息，通过远程 embedding 生成向量后存入本地 JSON。
-  - 检索：用户提问时，用远程 embedding 生成查询向量，与库内向量计算余弦相似度，取 top-k 注入上下文。
+  - 写入：对话产生的重要信息，通过远程 embedding 生成向量后存入 ChromaDB。
+  - 检索：用户提问时，用远程 embedding 生成查询向量，交给 ChromaDB 做近似最近邻（HNSW）检索，取 top-k 注入上下文。
 
 技术栈：
   - 阿里云 DashScope text-embedding-v3：远程 embedding API（OpenAI 兼容，中文友好，速度快）。
-  - 纯 Python 向量检索（点积/余弦相似度），N=较小的记忆规模时足够，无需重型向量库。
+  - ChromaDB：本地向量数据库（PersistentClient 持久化），内置 HNSW 索引，
+    把之前的「numpy 暴力点积检索（O(N)）」升级为「索引近似最近邻（O(log N)）」。
 
 价值：
   - 跨会话记住用户偏好、历史事实。
   - 不占上下文窗口：只取相关片段，而非全量携带。
+  - 规模化：记忆条目增长到几千/几万条时，检索依然快速，不再线性遍历。
+
+对外 API（与旧版完全一致，core.py / multi_agent.py 无需改动）：
+  - add(text, meta)   写入一条记忆（文本哈希去重）
+  - search(query, top_k) 语义检索，返回 [{text, score, meta}]
+  - count() / clear() / all_texts()
 """
 import os
-import json
 import hashlib
 import numpy as np
 from dotenv import load_dotenv
@@ -30,7 +36,10 @@ DEFAULT_MODEL = "text-embedding-v3"
 DASHSCOPE_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 # 默认输出维度（支持 Matryoshka：可动态调小省存储，用默认 1024）
 EMBED_DIM = 1024
-MEMORY_FILE = os.path.join(os.path.dirname(__file__), "..", "memory_store.json")
+
+# ChromaDB 持久化目录（运行时生成，含用户信息，不入库）
+CHROMA_DIR = os.path.join(os.path.dirname(__file__), "..", "chroma_data")
+COLLECTION_NAME = "memory_store"
 
 
 def _get_dashscope_key():
@@ -39,14 +48,30 @@ def _get_dashscope_key():
 
 
 class MemoryStore:
-    """一个简单的长期记忆仓库：JSON 持久化 + 语义检索。"""
+    """基于 ChromaDB 的长期记忆仓库：持久化 + HNSW 语义检索。"""
 
     def __init__(self, model_name=DEFAULT_MODEL, top_k=4):
         self.top_k = top_k
-        self.client = None  # 懒加载 OpenAI 兼容客户端（首次使用才建，省启动时间）
         self.model_name = model_name
-        self.items = []   # 记忆条目：[{text, vector, meta}]
-        self._load()
+        self.client = None  # 懒加载 OpenAI 兼容客户端（首次使用才建，省启动时间）
+        self._ensure_chroma()
+        self.collection = self._collection()
+
+    # ---- ChromaDB 持久化 ----
+    def _ensure_chroma(self):
+        """初始化 ChromaDB 客户端 + 集合（首次使用时创建）。"""
+        import chromadb
+        # PersistentClient：数据写到磁盘，跨进程重启后还在。
+        self._chroma = chromadb.PersistentClient(path=CHROMA_DIR)
+        # 用 cosine 距离（等价于余弦相似度，向量已归一化）。
+        # get_or_create_collection 已存在则复用，避免重建丢数据。
+        self.collection = self._chroma.get_or_create_collection(
+            name=COLLECTION_NAME,
+            metadata={"hnsw:space": "cosine"},
+        )
+
+    def _collection(self):
+        return self.collection
 
     # ---- embedding 客户端（懒加载）----
     def _ensure_client(self):
@@ -83,38 +108,26 @@ class MemoryStore:
             return vecs[0]
         return vecs
 
-    # ---- 持久化 ----
-    def _load(self):
-        try:
-            with open(MEMORY_FILE, "r", encoding="utf-8") as f:
-                self.items = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            self.items = []
-
-    def _save(self):
-        os.makedirs(os.path.dirname(MEMORY_FILE), exist_ok=True)
-        with open(MEMORY_FILE, "w", encoding="utf-8") as f:
-            json.dump(self.items, f, ensure_ascii=False, indent=2)
-
     # ---- 写入记忆 ----
     def add(self, text: str, meta: dict = None):
         """添加一条记忆：向量化 + 存储。使用文本哈希去重。"""
         text = text.strip()
         if not text:
             return
-        # 去重：同文本不重复存
+        # 去重：同文本不重复存（用 md5 作为唯一 id）
         digest = hashlib.md5(text.encode()).hexdigest()
-        if any(it.get("digest") == digest for it in self.items):
+        # 先查 id 是否已存在，避免重复写入导致的重复检索
+        exists = self.collection.get(ids=[digest])
+        if exists and exists.get("ids"):
             return
         # 向量化（单条，str）
         vec = self._embed(text)
-        self.items.append({
-            "text": text,
-            "vector": vec.tolist(),
-            "meta": meta or {},
-            "digest": digest,
-        })
-        self._save()
+        self.collection.add(
+            ids=[digest],
+            documents=[text],
+            embeddings=[vec.tolist()],
+            metadatas=[meta or {"type": "manual"}],
+        )
 
     # ---- 检索记忆 ----
     def search(self, query: str, top_k: int = None):
@@ -122,35 +135,42 @@ class MemoryStore:
         语义检索：返回最相关的若干条记忆。
         Returns: list of {text, score, meta}
         """
-        if not self.items:
+        if self.collection.count() == 0:
             return []
         top_k = top_k or self.top_k
         q_vec = self._embed(query)  # str 单条
-        # 对每条记忆算点积（余弦相似度，因为向量已归一化）
-        best = []
-        for it in self.items:
-            score = float(np.dot(q_vec, np.asarray(it["vector"], dtype=np.float32)))
-            best.append((score, it))
-        best.sort(key=lambda x: x[0], reverse=True)
+        # ChromaDB query：返回最近的 top_k 条，带 distance。
+        res = self.collection.query(
+            query_embeddings=[q_vec.tolist()],
+            n_results=top_k,
+        )
+        # 取第一个 query 的结果
+        docs = res.get("documents") or [[]]
+        metas = res.get("metadatas") or [[]]
+        dists = res.get("distances") or [[]]
         result = []
-        for score, it in best[:top_k]:
+        for doc, meta, dist in zip(docs[0], metas[0], dists[0]):
+            # cosine 距离越小越相似；转成相似度分数 score = 1 - distance
+            score = 1.0 - float(dist) if dist is not None else 0.0
             result.append({
-                "text": it["text"],
+                "text": doc,
                 "score": round(score, 4),
-                "meta": it.get("meta", {}),
+                "meta": meta or {},
             })
         return result
 
     # ---- 工具方法 ----
     def count(self) -> int:
-        return len(self.items)
+        return self.collection.count()
 
     def clear(self):
-        self.items = []
-        self._save()
+        self.collection.delete(where={})  # 清空全部
+        # 上面的 delete where={} 在部分版本可能不生效，稳妥起见：
+        self.collection.delete(ids=self.collection.get().get("ids", []))
 
     def all_texts(self) -> list:
-        return [it["text"] for it in self.items]
+        res = self.collection.get()
+        return res.get("documents", []) if res else []
 
 
 def format_context(memories: list) -> str:

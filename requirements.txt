@@ -5,3 +5,6 @@ python-dotenv>=1.0.0
 # 长期记忆（RAG）：远程 embedding 向量化
 # 使用阿里云 DashScope text-embedding-v3（OpenAI 兼容接口），
 # 复用上面的 openai SDK 即可，无需本地模型。
+
+# 向量数据库（本地持久化，替代 numpy 暴力检索）
+chromadb>=0.5.0  # ChromaDB 本地向量数据库，内置 HNSW 索引
