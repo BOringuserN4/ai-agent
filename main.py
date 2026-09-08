@@ -33,6 +33,8 @@ def print_help():
   直接输入    → 与多 Agent 对话（自动路由）
   /json <schema> <问题> → 结构化 JSON 输出（math/weather/summary）
   /json list  → 查看可用 schema
+  /pipe <场景> <问题> → Pipeline 模式（math_to_summary/research_to_report）
+  /pipe list  → 查看可用场景
   /trace      → 查看本轮运行轨迹
   /usage      → 查看 token 用量
   /memory     → 查看长期记忆（跨会话）
@@ -130,6 +132,45 @@ def main():
             except ValueError as e:
                 print(f"⚠️ {e}")
                 print("  用 /json list 查看可用 schema")
+            continue
+        # 【Pipeline 模式】 /pipe list | /pipe <场景> <问题>
+        if user_input.startswith("/pipe"):
+            rest = user_input[len("/pipe"):].strip()
+            if rest == "list" or rest == "":
+                print("📦 可用 Pipeline 场景:")
+                print("  - math_to_summary : 数学计算 → 一句话总结")
+                print("  - research_to_report : 调研 → 报告")
+                continue
+            parts = rest.split(maxsplit=1)
+            scene = parts[0]
+            question = parts[1] if len(parts) > 1 else ""
+            if not question:
+                print("⚠️ 请提供问题。例如：/pipe math_to_summary 99的平方")
+                continue
+            from agent.pipeline import build_math_to_summary_pipeline, build_research_to_report_pipeline
+            try:
+                if scene == "math_to_summary":
+                    pl = build_math_to_summary_pipeline(ma)
+                elif scene == "research_to_report":
+                    pl = build_research_to_report_pipeline(ma)
+                else:
+                    print(f"⚠️ 未知场景: {scene}")
+                    print("  用 /pipe list 查看可用场景")
+                    continue
+                # 重置 router 和专家的 history（让两个 agent 独立对话）
+                ma.router.reset()
+                for w in ma.experts.values():
+                    w.reset()
+                state = pl.run(question)
+                print("📋 Pipeline 最终状态:")
+                for k, v in state.items():
+                    if k == "_initial_input":
+                        continue
+                    print(f"  • {k}: {v}")
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                print(f"⚠️ Pipeline 失败: {e}")
             continue
         ma.run(user_input)
 

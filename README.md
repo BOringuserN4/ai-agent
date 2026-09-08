@@ -51,6 +51,7 @@ python3 main.py
 - `/mem_clear` → 清空长期记忆
 - `/clear` → 清空对话历史（不删长期记忆）
 - `/json <schema> <问题>` → 结构化 JSON 输出（math/weather/summary，/json list 查看）
+- `/pipe <场景> <问题>` → Pipeline 模式（math_to_summary/research_to_report，/pipe list 查看）
 - `/exit` → 退出
 
 ### 示例
@@ -84,7 +85,8 @@ ai-agent/
     ├── multi_agent.py    # Multi-Agent 调度器（Router+Worker）
     ├── memory.py         # 长期记忆 RAG（DashScope 远程 embedding）
     ├── extractor.py      # 记忆重要性过滤器（LLM 决策版）
-    └── json_mode.py      # 结构化 JSON 输出（schema-as-prompt）
+    ├── json_mode.py      # 结构化 JSON 输出（schema-as-prompt）
+    └── pipeline.py       # Pipeline 模式（Agent 串联：上一步输出=下一步输入）
 ```
 
 ---
@@ -138,6 +140,7 @@ ai-agent/
 - ~~长期记忆（向量库 RAG）~~ ✅ 已完成（DashScope 远程 embedding）
 - ~~智能记忆抽取（LLM 过滤）~~ ✅ 已完成（extractor.py）
 - ~~结构化 JSON 输出~~ ✅ 已完成（json_mode.py：/json <schema> <问题> 触发）
+- ~~Pipeline 模式~~ ✅ 已完成（pipeline.py：/pipe math_to_summary/research_to_report）
 - 真实工具（web 搜索 / 读网页 / 接数据库）
 - MCP 工具生态
 - 更复杂编排（Pipeline / 层级 / Debate）
