@@ -164,10 +164,9 @@ class MemoryStore:
         return self.collection.count()
 
     def clear(self):
-        # ChromaDB 1.5+ 不接受空 where={}，直接取所有 id 批量删除
-        all_ids = self.collection.get().get("ids", [])
-        if all_ids:
-            self.collection.delete(ids=all_ids)
+        self.collection.delete(where={})  # 清空全部
+        # 上面的 delete where={} 在部分版本可能不生效，稳妥起见：
+        self.collection.delete(ids=self.collection.get().get("ids", []))
 
     def all_texts(self) -> list:
         res = self.collection.get()
