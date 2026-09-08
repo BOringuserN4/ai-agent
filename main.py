@@ -17,23 +17,29 @@ main.py — 统一命令行入口（Multi-Agent + 长期记忆）
 说明：
     本版本已启用长期记忆（RAG）。Agent 会在回答前检索相关历史记忆、回答后沉淀重要信息，
     实现跨会话记住用户信息，且不占用对话上下文窗口。
+
+    新增结构化 JSON 输出：/json <schema> <问题> 触发 JSON 模式。
+    可用 schema：math / weather / summary。查看可用 /json list。
 """
 import os
 from dotenv import load_dotenv
 from agent.multi_agent import MultiAgent
+from agent.json_mode import list_schemas, run_json_mode
 
 
 def print_help():
     print("""
 📖 指令一览：
-  直接输入  → 与多 Agent 对话（自动路由到对应专家）
-  /trace    → 查看本轮运行轨迹
-  /usage    → 查看 token 用量
-  /memory   → 查看长期记忆（跨会话）
+  直接输入    → 与多 Agent 对话（自动路由）
+  /json <schema> <问题> → 结构化 JSON 输出（math/weather/summary）
+  /json list  → 查看可用 schema
+  /trace      → 查看本轮运行轨迹
+  /usage      → 查看 token 用量
+  /memory     → 查看长期记忆（跨会话）
   /memory_extra → 查看带标签+时间的记忆详情
-  /mem_clear→ 清空长期记忆
-  /clear    → 清空对话历史（不删长期记忆）
-  /exit     → 退出
+  /mem_clear  → 清空长期记忆
+  /clear      → 清空对话历史（不删长期记忆）
+  /exit       → 退出
 """)
 
 
@@ -101,6 +107,29 @@ def main():
                 tstr = datetime.datetime.fromtimestamp(ts).strftime("%H:%M:%S") if ts else "-"
                 tag_str = f"tags={tags}" if tags else "no-tags"
                 print(f"  {i}. [{tstr}] [{type_}] {tag_str}\n     {text[:80]}")
+            continue
+        # 【结构化 JSON 模式】 /json list | /json <schema> <问题>
+        if user_input.startswith("/json"):
+            rest = user_input[len("/json"):].strip()
+            if rest == "list" or rest == "":
+                print("📐 可用 JSON schema:")
+                for name, desc in list_schemas():
+                    print(f"  - {name}: {desc}")
+                continue
+            parts = rest.split(maxsplit=1)
+            schema_name = parts[0]
+            question = parts[1] if len(parts) > 1 else ""
+            if not question:
+                print("⚠️ 请提供问题。例如：/json math 帮我算 99 的平方")
+                continue
+            try:
+                # 重置 router（让 JSON 模式不走原来的 Router 委派）
+                ma.router.reset()
+                result = run_json_mode(ma.router, question, schema_name)
+                print(f"\n📋 解析结果：{result}")
+            except ValueError as e:
+                print(f"⚠️ {e}")
+                print("  用 /json list 查看可用 schema")
             continue
         ma.run(user_input)
 

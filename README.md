@@ -50,6 +50,7 @@ python3 main.py
 - `/memory_extra` → 查看带标签+时间的记忆详情
 - `/mem_clear` → 清空长期记忆
 - `/clear` → 清空对话历史（不删长期记忆）
+- `/json <schema> <问题>` → 结构化 JSON 输出（math/weather/summary，/json list 查看）
 - `/exit` → 退出
 
 ### 示例
@@ -82,7 +83,8 @@ ai-agent/
     ├── roles.py          # 多专家角色定义
     ├── multi_agent.py    # Multi-Agent 调度器（Router+Worker）
     ├── memory.py         # 长期记忆 RAG（DashScope 远程 embedding）
-    └── extractor.py      # 记忆重要性过滤器（LLM 决策版）
+    ├── extractor.py      # 记忆重要性过滤器（LLM 决策版）
+    └── json_mode.py      # 结构化 JSON 输出（schema-as-prompt）
 ```
 
 ---
@@ -135,6 +137,7 @@ ai-agent/
 
 - ~~长期记忆（向量库 RAG）~~ ✅ 已完成（DashScope 远程 embedding）
 - ~~智能记忆抽取（LLM 过滤）~~ ✅ 已完成（extractor.py）
+- ~~结构化 JSON 输出~~ ✅ 已完成（json_mode.py：/json <schema> <问题> 触发）
 - 真实工具（web 搜索 / 读网页 / 接数据库）
 - MCP 工具生态
 - 更复杂编排（Pipeline / 层级 / Debate）
