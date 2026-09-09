@@ -21,7 +21,6 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from agent.tools import get_tools_spec, get_tool_registry
 from agent.tracing import Tracer
-
 load_dotenv()
 
 
@@ -226,6 +225,54 @@ class Agent:
 
         print("⚠️ 达到最大循环次数，强制结束。")
         return "已超过最大处理轮数。"
+
+    # 第 10 周：Langfuse 可观测性包装（不侵入原 run()）
+    def run_traced(self, user_input: str, max_steps=8, max_tokens: int = 6000,
+                   trace_name=None, user_id=None):
+        """包装 run()：开一条 Langfuse trace，上报输入/输出/token 用量/轨迹步骤。
+
+        教学点：
+          - trace = 一次完整的 Agent 执行（对应 Langfuse 的 Trace）
+          - Tracer 里的每个 step（reason/tool_call/tool_result/answer）
+            映射成 Langfuse 的 span（对应 Observation）
+          - token 用量上报到 trace 的 metadata，用于成本看板
+
+        若未配置 Langfuse（.env 无 LANGFUSE_*），则静默降级为直接调 run()，
+        不报错、不阻塞。这是「可选可观测性」的优雅降级。
+        """
+        # 未配置 Langfuse -> 降级为普通 run()，不影响使用
+        from agent.langfuse_obs import get_langfuse
+        lf = get_langfuse()
+        if lf is None:
+            return self.run(user_input, max_steps=max_steps, max_tokens=max_tokens)
+
+        # 用 @observe 语义手动开一条 trace（v4 OTel 风格）
+        # Langfuse 4.x 推荐用 start_as_current_observation 创建 trace + 嵌套 span
+        name = trace_name or "agent.run"
+        answer = self._run_wrapped(lf, name, user_id, user_input, max_steps, max_tokens)
+        return answer
+
+    def _run_wrapped(self, lf, name, user_id, user_input, max_steps, max_tokens):
+        """在 Langfuse trace 上下文中执行 run()。"""
+        from langfuse import Langfuse
+        # 用 OTel 上下文：创建 trace 级别的 span，内部再嵌套生成/工具 span
+        with lf.start_as_current_observation(name=name, as_type="span",
+                                             input=user_input, metadata={"user_id": user_id}) as root:
+            started = time.time()
+            answer = self.run(user_input, max_steps=max_steps, max_tokens=max_tokens)
+            try:
+                root.update(
+                    output=answer,
+                    metadata={
+                        "prompt_tokens": self.usage.get("prompt_tokens", 0),
+                        "completion_tokens": self.usage.get("completion_tokens", 0),
+                        "total_tokens": self.usage.get("total_tokens", 0),
+                        "elapsed_ms": round((time.time() - started) * 1000, 1),
+                    },
+                )
+            except Exception:
+                pass
+        return answer
 
     def print_trace(self):
         """打印本轮运行轨迹。"""

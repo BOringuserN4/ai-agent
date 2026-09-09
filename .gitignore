@@ -32,3 +32,4 @@ dist/
 .idea/
 .vscode/
 .DS_Store
+*.bak

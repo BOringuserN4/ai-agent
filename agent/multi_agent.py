@@ -52,7 +52,8 @@ class MultiAgent:
     def _route(self, user_input: str) -> str:
         """让 Router 判断该交给谁，解析出 expert 名字。"""
         self.router.reset()  # 每次重新判断，避免历史干扰
-        result = self.router.run(user_input)
+        # 用 run_traced 上报 Router 的判断过程到 Langfuse
+        result = self.router.run_traced(user_input, trace_name="router", user_id="demo")
         print(f"🧭 Router 判断 → {result}")
         try:
             # 从输出里提取 JSON
@@ -72,7 +73,8 @@ class MultiAgent:
         print(f"→ 交给专家：{expert}")
         worker = self.experts[expert]
         worker.reset()
-        answer = worker.run(user_input)
+        # 用 run_traced 上报 Worker 的执行到 Langfuse
+        answer = worker.run_traced(user_input, trace_name=f"expert-{expert}", user_id="demo")
         # 汇总
         print(f"\n👥 [Multi-Agent] 汇总：「{expert}」专家完成：")
         print(f"   {answer}")
