@@ -5,7 +5,7 @@
 > - 本项目（`~/ai-agent`）从 0 到 1 的实操经验
 > - 大明王朝 multi-agent 协作产出（JJC-20260906-001，五部堂官）
 > **面向**：已完成本项目主体学习的开发者，希望系统进阶 Multi-Agent 工程化
-> **预计学习周期**：12 周
+> **组织形式**：12 个章节（按主题划分，不按周推进）
 
 ---
 
@@ -170,14 +170,14 @@ Plan → Act → Reflect → Replan
 
 ---
 
-## 第 5 节：12 周学习路线（实操版）
+## 第 5 节：学习路线（章节版）
 
 ### 5.1 总览
 
-**总投入**：12 周（每周 6-12 小时）
+**章节规模**：12 章（每章约 6-12 小时）
 **三段式**：基础 → 进阶 → 实战
 
-### 5.2 阶段一·基础巩固（1-4 周）
+### 5.2 阶段一·基础巩固
 > 你已具备此阶段大部分能力，主要任务是**查漏补缺**
 
 **任务清单**：
@@ -189,42 +189,44 @@ Plan → Act → Reflect → Replan
 
 **验收**：能向别人讲清本项目的每个模块为什么这样设计
 
-### 5.3 阶段二·Multi-Agent 进阶（5-8 周）
+### 5.3 阶段二·Multi-Agent 进阶
 
 **任务清单**：
-- [ ] **第 5 周**：在你的 multi_agent.py 上加 Pipeline 模式（数学→总结）（已完成：`pipeline.py`，2026/09/08）
-- [ ] **第 6 周**：加 Evaluator-Critic 模式（生成→评分→重做）
-- [ ] **第 7 周**：加 Fan-out/Fan-in（多源搜索+汇总）
-- [ ] **第 8 周**：学习 MCP 协议基础，跑通一个 MCP server demo
+- [x] **编排章 · Pipeline**：在 multi_agent.py 上加 Pipeline 模式（数学→总结）（✅ 已完成 2026/09/08：`pipeline.py`）
+- [ ] **编排章 · Evaluator-Critic**：生成→评分→重做
+- [x] **编排章 · Fan-out / Fan-in**：跨域任务切分与汇总（✅ 已完成 2026/09/10：`multi_agent.py` 真 Fan-out；当前为串行，真并行待做）
+- [ ] **协议章 · MCP 基础**：跑通一个 MCP server demo
 
 **验收**：本项目能演示 4 种编排模式（Router + Pipeline + Evaluator-Critic + Fan-out）
 
-### 5.4 阶段三·实战与产品化（9-12 周）
+### 5.4 阶段三·实战与产品化
 
 **任务清单**：
-- [x] **第 9 周**：选 Chromadb 或 pgvector 替换 numpy 检索（✅ 已完成 2026/09/08：ChromaDB 1.5.9 + DashScope embedding，memory.py 已重构）
-- [x] **第 10 周**：接入 Langfuse（自部署可观测性工具）（✅ 已完成 2026/09/09：自部署 + run_traced 上报 trace）
-- [ ] **第 11 周**：实现评测框架（golden set + LLM-as-judge）（⏳ 进行中 2026/09/10：golden_set.py + judge.py 已完成）
-- [ ] **第 12 周**：写一份完整学习总结文档
+- [x] **实战章 · 向量记忆**：选 Chromadb 或 pgvector 替换 numpy 检索（✅ 已完成 2026/09/08：ChromaDB 1.5.9 + DashScope embedding，memory.py 已重构）
+- [x] **实战章 · 可观测性**：接入 Langfuse（自部署）（✅ 已完成 2026/09/09：自部署 + run_traced 上报 trace）
+- [x] **实战章 · 评测框架**：golden set + LLM-as-judge（✅ 已完成 2026/09/10：`golden_set.py` + `judge.py` + `eval_runner.py`）
+- [ ] **收尾章 · 学习总结文档**
 
 **验收**：本项目达到"可上线"水平（监控/告警/回退）
 
-### 5.4.1 「周」→ 实际完成日期 对照（按天学习口径）
+### 5.4.1 章节 ↔ 完成日期 对照
 
-> 本项目按「天」推进，不按「周」。下表把大纲的周编号锚定到真实完成日期，
+> 本项目按主题分「章」推进，不用周次编号。下表把章节锚定到真实完成日期，
 > 便于以后回看代码时对齐（代码注释已同步为日期口径）。
 
-| 大纲周次 | 主题 | 实际完成日期 | 相关文件 |
-|---------|------|------------|---------|
-| 第 3 周 | 结构化 JSON 输出 | 2026/09/08 | `agent/json_mode.py` |
-| 第 9 周 | ChromaDB 记忆升级 | 2026/09/08 | `agent/memory.py` |
-| 第 10 周 | Langfuse 可观测性 | 2026/09/09 | `agent/langfuse_obs.py`、`agent/core.py` |
-| 第 11 周 | 评测框架 | 2026/09/10（进行中） | `agent/golden_set.py`、`agent/judge.py`、`eval_runner.py` |
+| 章节 | 主题 | 完成日期 | 相关文件 |
+|------|------|---------|---------|
+| 基础章 | 结构化 JSON 输出 | 2026/09/08 | `agent/json_mode.py` |
+| 编排章 | Pipeline 模式 | 2026/09/08 | `pipeline.py` |
+| 实战章 | 向量记忆（ChromaDB）| 2026/09/08 | `agent/memory.py` |
+| 实战章 | 可观测性（Langfuse）| 2026/09/09 | `agent/langfuse_obs.py`、`agent/core.py` |
+| 编排章 | Fan-out（跨域任务切分）| 2026/09/10 | `agent/multi_agent.py` |
+| 实战章 | 评测框架 | 2026/09/10 | `agent/golden_set.py`、`agent/judge.py`、`eval_runner.py` |
 
 
-### 5.5 周时间投入参考
+### 5.5 时间投入参考
 
-| 学习者类型 | 周投入 | 节奏 |
+| 学习者类型 | 每周可投入 | 节奏 |
 |-----------|--------|------|
 | 在职初级 | 6-8 小时 | 周末集中 + 工作日 1 小时 |
 | 在职中级 | 4-6 小时 | 周末 2 次 × 2-3 小时 |
@@ -410,7 +412,7 @@ Plan → Act → Reflect → Replan
 | 第 2 节：Multi-Agent 入门 | ✅ Router + Worker | 缺：去中心化协商 demo |
 | 第 3 节：10 种编排 | 🟡 仅 Router | 缺：Pipeline / Evaluator-Critic / Fan-out |
 | 第 4 节：协作机制 | ✅ 记忆分层已实现 | 缺：MCP 协议、结构化 JSON 消息 |
-| 第 5 节：12 周路线 | ✅ 你正在按此推进 | - |
+| 第 5 节：学习路线 | ✅ 你正在按此推进 | - |
 | 第 6 节：选型成本 | ✅ 已用 DashScope 远程 | - |
 | 第 7 节：度量体系 | ✅ Tracer + token 统计 | 缺：LLM-as-Judge 评测框架 |
 | 第 8 节：趋势 | ✅ 远程 embedding 契合趋势 4 | - |
@@ -418,7 +420,7 @@ Plan → Act → Reflect → Replan
 | 第 10 节：误区 | ✅ 已避开多个 | - |
 | 第 11 节：安全红线 | ✅ 红线已写入 SOUL/AGENTS | - |
 
-**总结**：本项目已完成约 **60%** 大纲要求。后续 4-6 周内补完 Pipeline / Evaluator-Critic / MCP 即可达到"可演示进阶架构"水平。
+**总结**：本项目已完成约 **60%** 大纲要求。后续补完 Evaluator-Critic / MCP 等章节即可达到“可演示进阶架构”水平。
 
 ---
 
