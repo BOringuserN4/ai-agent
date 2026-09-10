@@ -17,6 +17,9 @@ memory_store.json
 # ChromaDB 持久化数据（运行时生成，含用户记忆，不入库）
 chroma_data/
 
+# 评测跑批报告（运行时生成，带时间戳，不入库；需要时本地查看）
+eval_reports/
+
 # Flask / 运行时
 instance/
 *.pyc

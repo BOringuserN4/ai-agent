@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-agent/langfuse_obs.py — Langfuse 可观测性封装（第 10 周）
+agent/langfuse_obs.py — Langfuse 可观测性封装（2026/09/09）
 
 作用：把项目现有的「自实现 Tracer（只打印到终端）」升级为
       「Langfuse 平台级可观测性（网页看板：追踪/成本/提示词）」。

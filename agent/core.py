@@ -226,7 +226,7 @@ class Agent:
         print("⚠️ 达到最大循环次数，强制结束。")
         return "已超过最大处理轮数。"
 
-    # 第 10 周：Langfuse 可观测性包装（不侵入原 run()）
+    # 2026/09/09：Langfuse 可观测性包装（不侵入原 run()）
     def run_traced(self, user_input: str, max_steps=8, max_tokens: int = 6000,
                    trace_name=None, user_id=None):
         """包装 run()：开一条 Langfuse trace，上报输入/输出/token 用量/轨迹步骤。

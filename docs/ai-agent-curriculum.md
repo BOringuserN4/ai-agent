@@ -192,7 +192,7 @@ Plan → Act → Reflect → Replan
 ### 5.3 阶段二·Multi-Agent 进阶（5-8 周）
 
 **任务清单**：
-- [ ] **第 5 周**：在你的 multi_agent.py 上加 Pipeline 模式（数学→总结）
+- [ ] **第 5 周**：在你的 multi_agent.py 上加 Pipeline 模式（数学→总结）（已完成：`pipeline.py`，2026/09/08）
 - [ ] **第 6 周**：加 Evaluator-Critic 模式（生成→评分→重做）
 - [ ] **第 7 周**：加 Fan-out/Fan-in（多源搜索+汇总）
 - [ ] **第 8 周**：学习 MCP 协议基础，跑通一个 MCP server demo
@@ -202,12 +202,25 @@ Plan → Act → Reflect → Replan
 ### 5.4 阶段三·实战与产品化（9-12 周）
 
 **任务清单**：
-- [x] **第 9 周**：选 Chromadb 或 pgvector 替换 numpy 检索（✅ 已完成：ChromaDB 1.5.9 + DashScope embedding，memory.py 已重构）
-- [x] **第 10 周**：接入 Langfuse（自部署可观测性工具）（✅ 已完成：自部署 + run_traced 上报 trace）
-- [ ] **第 11 周**：实现评测框架（golden set + LLM-as-judge）
+- [x] **第 9 周**：选 Chromadb 或 pgvector 替换 numpy 检索（✅ 已完成 2026/09/08：ChromaDB 1.5.9 + DashScope embedding，memory.py 已重构）
+- [x] **第 10 周**：接入 Langfuse（自部署可观测性工具）（✅ 已完成 2026/09/09：自部署 + run_traced 上报 trace）
+- [ ] **第 11 周**：实现评测框架（golden set + LLM-as-judge）（⏳ 进行中 2026/09/10：golden_set.py + judge.py 已完成）
 - [ ] **第 12 周**：写一份完整学习总结文档
 
 **验收**：本项目达到"可上线"水平（监控/告警/回退）
+
+### 5.4.1 「周」→ 实际完成日期 对照（按天学习口径）
+
+> 本项目按「天」推进，不按「周」。下表把大纲的周编号锚定到真实完成日期，
+> 便于以后回看代码时对齐（代码注释已同步为日期口径）。
+
+| 大纲周次 | 主题 | 实际完成日期 | 相关文件 |
+|---------|------|------------|---------|
+| 第 3 周 | 结构化 JSON 输出 | 2026/09/08 | `agent/json_mode.py` |
+| 第 9 周 | ChromaDB 记忆升级 | 2026/09/08 | `agent/memory.py` |
+| 第 10 周 | Langfuse 可观测性 | 2026/09/09 | `agent/langfuse_obs.py`、`agent/core.py` |
+| 第 11 周 | 评测框架 | 2026/09/10（进行中） | `agent/golden_set.py`、`agent/judge.py`、`eval_runner.py` |
+
 
 ### 5.5 周时间投入参考
 
