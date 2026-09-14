@@ -22,7 +22,7 @@
 |---|---|
 | Python | 3.12+ |
 | 依赖 | `openai`（连 DeepSeek）、`python-dotenv` |
-| 模型 | DeepSeek `deepseek-chat`（V3） |
+| 模型 | DeepSeek `deepseek-flash`（V3） |
 | API Key | 存于 `.env`（**已 gitignore，绝不入库**） |
 
 ### 安装

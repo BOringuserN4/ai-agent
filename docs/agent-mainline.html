@@ -1,0 +1,217 @@
+<!doctype html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Agent 主线图</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f8fafc;
+    --fg: #172033;
+    --muted: #5b6475;
+    --line: #64748b;
+    --neutral: #e2e8f0;
+    --input: #bfdbfe;
+    --process: #c7d2fe;
+    --storage: #99f6e4;
+    --external: #fde68a;
+    --risk: #fecaca;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f172a;
+      --fg: #e5e7eb;
+      --muted: #a3adbd;
+      --line: #94a3b8;
+      --neutral: #334155;
+      --input: #1d4ed8;
+      --process: #4338ca;
+      --storage: #0f766e;
+      --external: #92400e;
+      --risk: #991b1b;
+    }
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font:
+      14px/1.4 ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
+  main {
+    max-width: 1280px;
+    margin: 32px auto;
+    padding: 0 20px;
+  }
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .title {
+    font-size: 21px;
+    font-weight: 700;
+    fill: var(--fg);
+  }
+  .subtitle {
+    font-size: 13px;
+    fill: var(--muted);
+  }
+  .label {
+    font-size: 14px;
+    font-weight: 650;
+    fill: var(--fg);
+  }
+  .label-s {
+    font-size: 13px;
+    font-weight: 650;
+    fill: var(--fg);
+  }
+  .small {
+    font-size: 11.5px;
+    fill: var(--muted);
+  }
+  .note {
+    font-size: 12px;
+    fill: var(--muted);
+  }
+  .node {
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+  .neutral { fill: var(--neutral); }
+  .input { fill: var(--input); }
+  .process { fill: var(--process); }
+  .storage { fill: var(--storage); }
+  .external { fill: var(--external); }
+  .risk { fill: var(--risk); }
+  .edge {
+    stroke: var(--line);
+    stroke-width: 1.5;
+    fill: none;
+  }
+  .zone {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1;
+    stroke-dasharray: 6 5;
+    opacity: 0.8;
+  }
+</style>
+<main>
+  <svg viewBox="0 0 1240 662" role="img" aria-label="AI Agent 主线图：每加一层，闭合一个回路">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--line)" />
+      </marker>
+    </defs>
+
+    <!-- title -->
+    <text class="title" x="56" y="44">AI Agent 主线图 · 每加一层，闭合一个回路</text>
+    <text class="subtitle" x="56" y="70">会说 → 能动手 → 能看结果 → 能跨轮记 → 能改自己：上一版敞开的回路，由下一层闭合</text>
+
+    <!-- ===== connectors (drawn before nodes) ===== -->
+    <path class="edge" d="M 264 148 L 284 148" marker-end="url(#arrow)" />
+    <path class="edge" d="M 494 148 L 514 148" marker-end="url(#arrow)" />
+    <path class="edge" d="M 724 148 L 744 148" marker-end="url(#arrow)" />
+    <path class="edge" d="M 954 148 L 974 148" marker-end="url(#arrow)" />
+
+    <path class="edge" d="M 160 196 L 160 234" marker-end="url(#arrow)" />
+    <path class="edge" d="M 390 196 L 390 234" marker-end="url(#arrow)" />
+    <path class="edge" d="M 620 196 L 620 234" marker-end="url(#arrow)" />
+    <path class="edge" d="M 850 196 L 850 234" marker-end="url(#arrow)" />
+    <path class="edge" d="M 1080 196 L 1080 234" marker-end="url(#arrow)" />
+
+    <!-- ===== stage row (y=100 h=96) ===== -->
+    <g>
+      <rect class="node process" x="56" y="100" width="208" height="96" rx="10" />
+      <text class="label" x="160" y="132" text-anchor="middle">① 会说</text>
+      <text class="small" x="160" y="156" text-anchor="middle">开环 · 只有文本</text>
+      <text class="small" x="160" y="176" text-anchor="middle">LLM 原生的样子</text>
+    </g>
+    <g>
+      <rect class="node process" x="286" y="100" width="208" height="96" rx="10" />
+      <text class="label" x="390" y="132" text-anchor="middle">② 能动手</text>
+      <text class="small" x="390" y="156" text-anchor="middle">闭合「输出」回路</text>
+      <text class="small" x="390" y="176" text-anchor="middle">让话变成动作</text>
+    </g>
+    <g>
+      <rect class="node process" x="516" y="100" width="208" height="96" rx="10" />
+      <text class="label" x="620" y="132" text-anchor="middle">③ 能看结果</text>
+      <text class="small" x="620" y="156" text-anchor="middle">闭合「反馈」回路</text>
+      <text class="small" x="620" y="176" text-anchor="middle">结果回流 → 下一步</text>
+    </g>
+    <g>
+      <rect class="node process" x="746" y="100" width="208" height="96" rx="10" />
+      <text class="label" x="850" y="132" text-anchor="middle">④ 能跨轮记</text>
+      <text class="small" x="850" y="156" text-anchor="middle">闭合「记忆」回路</text>
+      <text class="small" x="850" y="176" text-anchor="middle">跨会话不失忆</text>
+    </g>
+    <g>
+      <rect class="node process" x="976" y="100" width="208" height="96" rx="10" />
+      <text class="label" x="1080" y="132" text-anchor="middle">⑤ 能改自己</text>
+      <text class="small" x="1080" y="156" text-anchor="middle">闭合「优化」回路</text>
+      <text class="small" x="1080" y="176" text-anchor="middle">评估 → 迭代</text>
+    </g>
+
+    <!-- ===== discipline row (y=236 h=74) ===== -->
+    <g>
+      <rect class="node storage" x="56" y="236" width="208" height="74" rx="10" />
+      <text class="label-s" x="160" y="266" text-anchor="middle">Prompt 工程</text>
+      <text class="small" x="160" y="289" text-anchor="middle">指令 · 格式 · 角色</text>
+    </g>
+    <g>
+      <rect class="node storage" x="286" y="236" width="208" height="74" rx="10" />
+      <text class="label-s" x="390" y="266" text-anchor="middle">工具 / 协议工程</text>
+      <text class="small" x="390" y="289" text-anchor="middle">function call · MCP</text>
+    </g>
+    <g>
+      <rect class="node storage" x="516" y="236" width="208" height="74" rx="10" />
+      <text class="label-s" x="620" y="266" text-anchor="middle">编排工程</text>
+      <text class="small" x="620" y="289" text-anchor="middle">单 Agent 循环 · 多 Agent</text>
+    </g>
+    <g>
+      <rect class="node storage" x="746" y="236" width="208" height="74" rx="10" />
+      <text class="label-s" x="850" y="266" text-anchor="middle">记忆工程</text>
+      <text class="small" x="850" y="289" text-anchor="middle">短期 · 长期 · 技能 · 经验</text>
+    </g>
+    <g>
+      <rect class="node storage" x="976" y="236" width="208" height="74" rx="10" />
+      <text class="label-s" x="1080" y="266" text-anchor="middle">评测 + 可观测工程</text>
+      <text class="small" x="1080" y="289" text-anchor="middle">黄金集 · Langfuse</text>
+    </g>
+
+    <!-- ===== cross-cutting band: context engineering ===== -->
+    <rect class="node external" x="56" y="352" width="1128" height="62" rx="10" />
+    <text class="label-s" x="80" y="380">贯穿全局 · 上下文工程</text>
+    <text class="small" x="80" y="400">上面每一层，本质都是在为 LLM 供给「准确、够用」的上下文 —— 记忆、工具结果、指令，最终都进同一个上下文窗口。</text>
+
+    <!-- ===== cross-cutting band: guardrails ===== -->
+    <rect class="node risk" x="56" y="430" width="1128" height="62" rx="10" />
+    <text class="label-s" x="80" y="458">横切关注 · 安全护栏（易被漏掉）</text>
+    <text class="small" x="80" y="478">权限 · 防注入 · 成本与超时 · 危险动作人工确认 · 回退 —— 收尾章验收要的「监控 / 告警 / 回退」就在这里。</text>
+
+    <!-- ===== notes ===== -->
+    <text class="note" x="56" y="536">· 记忆让 LLM 跨「会话」不失忆；循环让 LLM 跨「步骤」不闭眼 —— 两件事，别混。</text>
+    <text class="note" x="56" y="558">· 编排 ≠ 多 Agent：单 Agent 的循环本身就是编排，多 Agent 只是一种实现选择（也是最好被滥用的一种）。</text>
+    <text class="note" x="56" y="580">· 「能改自己」现阶段主要是评估产信号；改 prompt / 调检索 / 换编排，多数仍需人在环内定夺。</text>
+    <text class="note" x="56" y="602">· 规划与反思（目标拆解 / 终止条件 / 失败降级）贯穿 ③ 与 ⑤ —— 别假设任务总会顺利跑完。</text>
+
+    <!-- ===== legend ===== -->
+    <g>
+      <rect class="node process" x="56" y="630" width="14" height="14" rx="3" />
+      <text class="small" x="76" y="641">演进阶段</text>
+      <rect class="node storage" x="176" y="630" width="14" height="14" rx="3" />
+      <text class="small" x="196" y="641">对应的工程</text>
+      <rect class="node external" x="306" y="630" width="14" height="14" rx="3" />
+      <text class="small" x="326" y="641">贯穿</text>
+      <rect class="node risk" x="396" y="630" width="14" height="14" rx="3" />
+      <text class="small" x="416" y="641">护栏</text>
+    </g>
+  </svg>
+</main>

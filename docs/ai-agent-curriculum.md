@@ -44,7 +44,7 @@
 **实现范式**：ReAct（Reasoning + Acting）—— 边想边做，边做边想。
 
 ### 1.4 本项目对照（你已经掌握）
-- ✅ LLM（DeepSeek deepseek-chat）
+- ✅ LLM（DeepSeek deepseek-flash）
 - ✅ 工具调用（calculator / get_weather / current_time）
 - ✅ 记忆（短期 `self.history` + 长期 MemoryStore 远程 embedding）
 - ✅ ReAct 主循环 + `max_steps` 兜底

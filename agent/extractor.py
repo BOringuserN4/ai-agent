@@ -41,7 +41,7 @@ SYSTEM_PROMPT = """你是「记忆过滤器」。判断当前对话中是否有�
 class MemoryExtractor:
     """让 LLM 决定"这轮对话是否值得长期记"的过滤器。"""
 
-    def __init__(self, model="deepseek-chat", client=None):
+    def __init__(self, model="deepseek-flash", client=None):
         self.model = model
         self.client = client  # 懒加载：调用时才建
 

@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 810" width="960" height="810" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="960" height="810" fill="#f8fafc"/>
+
+  <text x="90" y="46" font-size="20" font-weight="650" fill="#172033">Agent 主线图 · 每加一层，闭合上一版敞开的回路</text>
+  <text x="90" y="72" font-size="13" fill="#5b6475">从「只会说」到「保得住」，每一层都在补上一条之前断掉的回路</text>
+
+  <text x="360" y="102" font-size="12" font-weight="600" fill="#5b6475" text-anchor="middle">能力层（加了什么）</text>
+  <text x="790" y="102" font-size="12" font-weight="600" fill="#5b6475" text-anchor="middle">闭合的回路（得到什么）</text>
+
+  <!-- connectors drawn first -->
+  <!-- row -> loop arrows -->
+  <path d="M 630 154 H 668" class="edge" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 630 258 H 668" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 630 362 H 668" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 630 466 H 668" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 630 570 H 668" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 630 674 H 668" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- between-row down arrows -->
+  <path d="M 360 198 V 210" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 360 302 V 314" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 360 406 V 418" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 360 510 V 522" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 360 614 V 626" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- outer feedback loop -->
+  <path d="M 90 674 H 52 V 154 H 86" stroke="#dc2626" stroke-width="1.8" fill="none" marker-end="url(#arrowRed)"/>
+  <text x="38" y="414" font-size="12.5" fill="#dc2626" text-anchor="middle" transform="rotate(-90 38 414)">评测给信号 → 人改 prompt / 记忆 / 编排</text>
+
+  <!-- rows -->
+  <g>
+    <rect x="90" y="110" width="540" height="88" rx="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="7 5"/>
+    <text x="110" y="146" font-size="17" font-weight="650" fill="#172033">「只会说」</text>
+    <text x="110" y="174" font-size="12.5" fill="#5b6475">起点：LLM 只会对话，无状态、无手</text>
+
+    <rect x="90" y="214" width="540" height="88" rx="10" fill="#c7d2fe" stroke="#64748b" stroke-width="1"/>
+    <text x="110" y="250" font-size="17" font-weight="650" fill="#172033">「能动手」</text>
+    <text x="110" y="278" font-size="12.5" fill="#312e81">加：工具 / function call / MCP</text>
+
+    <rect x="90" y="318" width="540" height="88" rx="10" fill="#c7d2fe" stroke="#64748b" stroke-width="1"/>
+    <text x="110" y="354" font-size="17" font-weight="650" fill="#172033">「能看结果」</text>
+    <text x="110" y="382" font-size="12.5" fill="#312e81">加：循环（ReAct）+ 规划 / 终止条件</text>
+
+    <rect x="90" y="422" width="540" height="88" rx="10" fill="#c7d2fe" stroke="#64748b" stroke-width="1"/>
+    <text x="110" y="458" font-size="17" font-weight="650" fill="#172033">「能跨轮记」</text>
+    <text x="110" y="486" font-size="12.5" fill="#312e81">加：记忆工程（短期 / 长期 / skill / 经验）</text>
+
+    <rect x="90" y="526" width="540" height="88" rx="10" fill="#c7d2fe" stroke="#64748b" stroke-width="1"/>
+    <text x="110" y="562" font-size="17" font-weight="650" fill="#172033">「能改自己」</text>
+    <text x="110" y="590" font-size="12.5" fill="#312e81">加：评测 + 可观测（Langfuse）</text>
+
+    <rect x="90" y="630" width="540" height="88" rx="10" fill="#c7d2fe" stroke="#64748b" stroke-width="1"/>
+    <text x="110" y="666" font-size="17" font-weight="650" fill="#172033">「保得住」</text>
+    <text x="110" y="694" font-size="12.5" fill="#312e81">加：安全护栏 / 回退</text>
+  </g>
+
+  <!-- loop boxes -->
+  <g>
+    <rect x="670" y="110" width="240" height="88" rx="10" fill="#99f6e4" stroke="#64748b" stroke-width="1"/>
+    <text x="790" y="160" font-size="13" fill="#134e4a" text-anchor="middle">无回路 · 开环</text>
+
+    <rect x="670" y="214" width="240" height="88" rx="10" fill="#99f6e4" stroke="#64748b" stroke-width="1"/>
+    <text x="790" y="264" font-size="13" fill="#134e4a" text-anchor="middle">输出到世界</text>
+
+    <rect x="670" y="318" width="240" height="88" rx="10" fill="#99f6e4" stroke="#64748b" stroke-width="1"/>
+    <text x="790" y="354" font-size="13" fill="#134e4a" text-anchor="middle">结果回流上下文</text>
+    <text x="790" y="378" font-size="13" fill="#134e4a" text-anchor="middle">（跨「步骤」不闭眼）</text>
+
+    <rect x="670" y="422" width="240" height="88" rx="10" fill="#99f6e4" stroke="#64748b" stroke-width="1"/>
+    <text x="790" y="472" font-size="13" fill="#134e4a" text-anchor="middle">跨「会话」不失忆</text>
+
+    <rect x="670" y="526" width="240" height="88" rx="10" fill="#99f6e4" stroke="#64748b" stroke-width="1"/>
+    <text x="790" y="562" font-size="13" fill="#134e4a" text-anchor="middle">产出信号（谁好谁差）</text>
+    <text x="790" y="586" font-size="13" fill="#134e4a" text-anchor="middle">人来做优化</text>
+
+    <rect x="670" y="630" width="240" height="88" rx="10" fill="#99f6e4" stroke="#64748b" stroke-width="1"/>
+    <text x="790" y="666" font-size="13" fill="#134e4a" text-anchor="middle">权限 / 超时 / 降级</text>
+    <text x="790" y="690" font-size="13" fill="#134e4a" text-anchor="middle">人工确认</text>
+  </g>
+
+  <text x="52" y="750" font-size="12" fill="#dc2626">红圈：外层回路 —— 评测只产信号，优化仍由人拍板（human-in-the-loop），不是 agent 自己变强。</text>
+  <text x="52" y="774" font-size="12" fill="#5b6475">prompt 工程贯穿每一层：它决定每层「喂给 LLM 什么上下文」。编排 = 把这些回路串起来的方式；多 agent 只是其中一种选择，不是必需。</text>
+  <text x="52" y="798" font-size="12" fill="#5b6475">记忆让 LLM 跨「会话」不失忆；循环让 LLM 跨「步骤」不闭眼 —— 两件事，别混。</text>
+</svg>

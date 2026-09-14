@@ -17,6 +17,7 @@ agent/core.py — Agent 核心引擎
 import json
 import time
 import threading
+import contextlib
 from openai import OpenAI
 from dotenv import load_dotenv
 from agent.tools import get_tools_spec, get_tool_registry
@@ -27,6 +28,51 @@ load_dotenv()
 def get_api_key():
     import os
     return os.getenv("DEEPSEEK_API_KEY", "")
+
+
+# ---- Langfuse 客户端（2026/09/14：自 langfuse_obs.py 合并过来）----
+# 原先的 agent/langfuse_obs.py 基于 langfuse 3.x 的 lf.trace() 写，
+# 而本项目已升级到 langfuse 4.15.1（v4 已移除 lf.trace()），该文件已成死代码，故删除，
+# 只把仍被使用的 get_langfuse() 收编到此处。埋点实际在 Agent.run()/_run_wrapped() 内完成。
+_LANGFUSE_REQUIRED = ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY")
+
+
+def _langfuse_host() -> str:
+    """Langfuse 服务地址。兼容 LANGFUSE_BASE_URL / LANGFUSE_HOST，默认本地。"""
+    import os
+    return (os.getenv("LANGFUSE_BASE_URL")
+            or os.getenv("LANGFUSE_HOST")
+            or "http://localhost:3000")
+
+
+def _langfuse_ready() -> bool:
+    """.env 里是否配好了 Langfuse 三要素（公钥/私钥/host）。未配置返回 False。"""
+    import os
+    vals = [os.getenv(k) for k in _LANGFUSE_REQUIRED]
+    return all(v and v not in ("", "your_...") for v in vals)
+
+
+def get_langfuse():
+    """惰性初始化 Langfuse 客户端。
+
+    - 已配置：返回 Langfuse 实例。
+    - 未配置或初始化失败：返回 None（调用方据此优雅降级，不影响主流程）。
+
+    关键：v4 需要 x-langfuse-ingestion-version 头，OTel span 才能实时转成 traces。
+    """
+    import os
+    if not _langfuse_ready():
+        return None
+    try:
+        from langfuse import Langfuse
+        return Langfuse(
+            public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
+            secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
+            host=_langfuse_host(),
+            additional_headers={"x-langfuse-ingestion-version": "4"},
+        )
+    except Exception:
+        return None
 
 
 class Agent:
@@ -51,8 +97,10 @@ class Agent:
         self._base_system = system_prompt
         # 对话历史：开头放系统提示
         self.history = [{"role": "system", "content": system_prompt}]
-        # 追踪器：记录本轮运行足迹
+        # 追踪器：记录本轮运行足迹（终端打印用）
         self.tracer = Tracer()
+        # Langfuse 客户端：由 run_traced() 注入；直接调 run() 时为 None（埋点自动降级）
+        self._lf = None
         # 用量统计：本轮累计 token
         self.usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
 
@@ -136,19 +184,34 @@ class Agent:
             # 发送前先控制上下文长度
             self.trim_history(max_tokens)
 
-            response = self.client.chat.completions.create(
-                model="deepseek-chat",
-                messages=messages,
-                tools=self.tools_spec,
-                tool_choice="auto",
-                temperature=0.3,
-            )
-            # 记录 token 用量
-            u = response.usage
-            if u:
-                self.usage["prompt_tokens"] += u.prompt_tokens
-                self.usage["completion_tokens"] += u.completion_tokens
-                self.usage["total_tokens"] += u.total_tokens
+            # 【Langfuse 埋点】每次 LLM 调用 = 一个 generation 子 span（自动挂在本轮 trace 下）
+            # 位置在循环内：Agent 会多轮提问，每一轮都要有自己的节点，否则只看到「整轮」看不到「哪一步」。
+            llm_ctx = (self._lf.start_as_current_observation(
+                name="llm", as_type="generation", model="deepseek-flash",
+                input={"n_messages": len(messages),
+                       "last_message": str(messages[-1].get("content") or "")[:500]},
+            ) if self._lf else contextlib.nullcontext())
+            with llm_ctx as gen:
+                response = self.client.chat.completions.create(
+                    model="deepseek-flash",
+                    messages=messages,
+                    tools=self.tools_spec,
+                    tool_choice="auto",
+                    temperature=0.3,
+                )
+                # 记录 token 用量
+                u = response.usage
+                if u:
+                    self.usage["prompt_tokens"] += u.prompt_tokens
+                    self.usage["completion_tokens"] += u.completion_tokens
+                    self.usage["total_tokens"] += u.total_tokens
+                    if gen is not None:
+                        # 每次调用的 token 记到「这一轮」上，成本才能归因到具体步骤
+                        gen.update(usage_details={
+                            "input": u.prompt_tokens,
+                            "output": u.completion_tokens,
+                            "total": u.total_tokens,
+                        })
 
             msg = response.choices[0].message
 
@@ -207,10 +270,26 @@ class Agent:
                 args = json.loads(tc.function.arguments)
                 fn = self.tool_registry.get(name)
                 t0 = time.time()
-                if fn is None:
-                    result = f"❌ 未找到工具: {name}"
-                else:
-                    result = fn(**args)
+                # 【Langfuse 埋点】每次工具调用 = 一个 tool 子 span；失败也记录（不再静默）
+                tool_ctx = (self._lf.start_as_current_observation(
+                    name=name, as_type="tool", input=args,
+                ) if self._lf else contextlib.nullcontext())
+                with tool_ctx as tspan:
+                    try:
+                        if fn is None:
+                            result = f"❌ 未找到工具: {name}"
+                            if tspan is not None:
+                                tspan.update(level="ERROR", status_message=f"未找到工具: {name}",
+                                             output=result)
+                        else:
+                            result = fn(**args)
+                            if tspan is not None:
+                                tspan.update(output=result)
+                    except Exception as e:
+                        result = f"❌ 工具执行失败: {e}"
+                        if tspan is not None:
+                            tspan.update(level="ERROR", status_message=f"{type(e).__name__}: {e}",
+                                         output=result)
                 took_ms = round((time.time() - t0) * 1000, 1)
                 print(f"🛠️  调用 {name}({args}) -> {result}")
                 self.tracer.add(type="tool_call", detail=f"调用 {name}", tool=name,
@@ -241,7 +320,6 @@ class Agent:
         不报错、不阻塞。这是「可选可观测性」的优雅降级。
         """
         # 未配置 Langfuse -> 降级为普通 run()，不影响使用
-        from agent.langfuse_obs import get_langfuse
         lf = get_langfuse()
         if lf is None:
             return self.run(user_input, max_steps=max_steps, max_tokens=max_tokens)
@@ -253,26 +331,40 @@ class Agent:
         return answer
 
     def _run_wrapped(self, lf, name, user_id, user_input, max_steps, max_tokens):
-        """在 Langfuse trace 上下文中执行 run()。"""
-        from langfuse import Langfuse
-        # 用 OTel 上下文：创建 trace 级别的 span，内部再嵌套生成/工具 span
-        with lf.start_as_current_observation(name=name, as_type="span",
-                                             input=user_input, metadata={"user_id": user_id}) as root:
-            started = time.time()
-            answer = self.run(user_input, max_steps=max_steps, max_tokens=max_tokens)
-            try:
+        """在 Langfuse trace 上下文中执行 run()。
+
+        职责：
+          1. 把 lf 注入 self._lf，让 run() 内部的循环知道要埋子 span；
+          2. 开一条 trace 级根 span，run() 里的 LLM/工具子 span 自动挂到它下面；
+          3. 失败时必须可见——把异常记到根 span 上，而不是静默吞掉。
+        """
+        self._lf = lf
+        base_meta = {"user_id": user_id}
+        try:
+            # 用 OTel 上下文：创建 trace 级别的 span，内部再嵌套生成/工具 span
+            with lf.start_as_current_observation(name=name, as_type="span",
+                                                 input=user_input, metadata=base_meta) as root:
+                started = time.time()
+                try:
+                    answer = self.run(user_input, max_steps=max_steps, max_tokens=max_tokens)
+                except Exception as e:
+                    # 失败不可见是最贵的盲区：先记录，再抛出
+                    root.update(level="ERROR", status_message=f"{type(e).__name__}: {e}")
+                    raise
                 root.update(
                     output=answer,
                     metadata={
+                        **base_meta,   # 显式带上 user_id，避免 update 覆盖语义分歧
                         "prompt_tokens": self.usage.get("prompt_tokens", 0),
                         "completion_tokens": self.usage.get("completion_tokens", 0),
                         "total_tokens": self.usage.get("total_tokens", 0),
                         "elapsed_ms": round((time.time() - started) * 1000, 1),
                     },
                 )
-            except Exception:
-                pass
-        return answer
+            return answer
+        finally:
+            # 用完就撤，避免残留客户端影响下一次「无埋点」调用
+            self._lf = None
 
     def print_trace(self):
         """打印本轮运行轨迹。"""

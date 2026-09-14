@@ -50,7 +50,7 @@ def _get_dashscope_key():
 class MemoryStore:
     """基于 ChromaDB 的长期记忆仓库：持久化 + HNSW 语义检索。"""
 
-    def __init__(self, model_name=DEFAULT_MODEL, top_k=4):
+    def __init__(self, model_name=DEFAULT_MODEL, top_k=8):
         self.top_k = top_k
         self.model_name = model_name
         self.client = None  # 懒加载 OpenAI 兼容客户端（首次使用才建，省启动时间）
@@ -130,7 +130,7 @@ class MemoryStore:
         )
 
     # ---- 检索记忆 ----
-    def search(self, query: str, top_k: int = None):
+    def search(self, query: str, top_k: int = None, min_score: float = 0.6):
         """
         语义检索：返回最相关的若干条记忆。
         Returns: list of {text, score, meta}
@@ -152,6 +152,8 @@ class MemoryStore:
         for doc, meta, dist in zip(docs[0], metas[0], dists[0]):
             # cosine 距离越小越相似；转成相似度分数 score = 1 - distance
             score = 1.0 - float(dist) if dist is not None else 0.0
+            if score < min_score:
+                continue
             result.append({
                 "text": doc,
                 "score": round(score, 4),
@@ -164,9 +166,12 @@ class MemoryStore:
         return self.collection.count()
 
     def clear(self):
-        self.collection.delete(where={})  # 清空全部
-        # 上面的 delete where={} 在部分版本可能不生效，稳妥起见：
-        self.collection.delete(ids=self.collection.get().get("ids", []))
+        """清空全部记忆。ChromaDB 1.5+ 的 delete(where={}) 会抛 ValueError，
+        改为「先取全部 id，再按 id 删除」，兼容性好。
+        """
+        ids = self.collection.get().get("ids", [])
+        if ids:
+            self.collection.delete(ids=ids)
 
     def all_texts(self) -> list:
         res = self.collection.get()

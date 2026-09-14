@@ -157,7 +157,7 @@ def run_json_mode(agent, user_input: str, schema_name: str, max_steps=8) -> dict
         agent.trim_history()
         try:
             response = json_agent.client.chat.completions.create(
-                model="deepseek-chat",
+                model="deepseek-flash",
                 messages=messages,
                 tools=json_agent.tools_spec,
                 tool_choice="auto",
@@ -168,7 +168,7 @@ def run_json_mode(agent, user_input: str, schema_name: str, max_steps=8) -> dict
             # 极少数 API 不支持 response_format 时降级
             if "response_format" in str(e):
                 response = json_agent.client.chat.completions.create(
-                    model="deepseek-chat",
+                    model="deepseek-flash",
                     messages=messages,
                     tools=json_agent.tools_spec,
                     tool_choice="auto",

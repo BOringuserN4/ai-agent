@@ -86,7 +86,7 @@ _JUDGE_SYSTEM = (
 
 
 class Judge:
-    def __init__(self, model="deepseek-chat"):
+    def __init__(self, model="deepseek-flash"):
         key = os.getenv("DEEPSEEK_API_KEY", "")
         if not key or len(key) < 10:
             raise SystemExit("❌ 请先配置 .env 里的 DEEPSEEK_API_KEY")

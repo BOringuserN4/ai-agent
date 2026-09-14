@@ -271,7 +271,7 @@ def run_local(limit=None, do_langfuse=False, max_attempts=2):
 
 def _push_to_langfuse(results):
     """把本次评测同步到 Langfuse（Dataset + Experiment），在 UI 看板查看。"""
-    from agent.langfuse_obs import get_langfuse
+    from agent.core import get_langfuse
     lf = get_langfuse()
     if lf is None:
         print("ℹ️ 未配置 Langfuse，跳过上报（本地报告已保存）")
