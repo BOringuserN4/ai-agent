@@ -156,14 +156,6 @@ GOLDEN_SET = [
 ]
 
 
-def get_case(case_id: str):
-    """按 id 取一条样例，找不到返回 None。"""
-    for c in GOLDEN_SET:
-        if c["id"] == case_id:
-            return c
-    return None
-
-
 def categorize():
     """返回 {category: [case, ...]}，便于按类别统计。"""
     out = {}

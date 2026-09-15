@@ -147,7 +147,10 @@ def main():
             if not question:
                 print("⚠️ 请提供问题。例如：/pipe math_to_summary 99的平方")
                 continue
-            from agent.pipeline import build_math_to_summary_pipeline, build_research_to_report_pipeline
+            from agent.pipeline import (
+                build_math_to_summary_pipeline,
+                build_research_to_report_pipeline,
+            )
             try:
                 if scene == "math_to_summary":
                     pl = build_math_to_summary_pipeline(ma)

@@ -43,11 +43,6 @@ class Tracer:
         """记录一条纯文字日志（思考/说明用）。"""
         self.add(type=type, detail=msg)
 
-    def duration(self, start: float, **kwargs) -> TraceStep:
-        """记录一个带耗时的步骤（start 为 time.time() 起点）。"""
-        step = self.add(duration_ms=round((time.time() - start) * 1000, 1), **kwargs)
-        return step
-
     def show(self):
         """把整条轨迹打印成人类可读文本。"""
         lines = ["\n════════ 运行轨迹 Trajectory ════════"]
@@ -60,13 +55,3 @@ class Tracer:
             lines.append(line)
         lines.append("══════════════════════════════════")
         return "\n".join(lines)
-
-    def summary(self) -> dict:
-        """汇总：调用了几次工具、总耗时等。"""
-        tool_calls = [s for s in self.steps if s.type == "tool_call"]
-        total_ms = sum(s.duration_ms or 0 for s in self.steps)
-        return {
-            "steps": len(self.steps),
-            "tool_calls": len(tool_calls),
-            "total_ms": round(total_ms, 1),
-        }

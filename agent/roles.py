@@ -7,7 +7,6 @@ agent/roles.py — 专业 Agent 角色定义
 
 每个角色是一个 dict / 可复用配置。实际运行由 core.Agent 执行。
 """
-from agent.tools import get_tools_spec, get_tool_registry
 from agent.core import Agent
 
 

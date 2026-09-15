@@ -240,7 +240,8 @@ class Agent:
                                     "time": time.time(),
                                 }
                                 self.memory.add(f"{tag_prefix}{result['text']}", meta=meta)
-                                self.tracer.log(f"记忆抽取：keep=True, tags={tags}, text='{result['text'][:30]}'")
+                                preview = result["text"][:30]
+                                self.tracer.log(f"记忆抽取：keep=True, tags={tags}, text='{preview}'")
                             else:
                                 reason = result.get("_error", "filtered_out")
                                 self.tracer.log(f"记忆抽取：keep=False ({reason})")

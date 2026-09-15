@@ -162,59 +162,6 @@ class MultiAgent:
                 print(f"--- {name} ---")
                 w.print_trace()
 
-    def run_detailed(self, user_input: str) -> dict:
-        """完整流程，但返回结构化数据（供 Web 前端展示过程）。
-
-        Returns:
-            dict: {
-                'expert': 主专家名（首个，兼容旧字段）,
-                'experts': 选中的全部专家名列表,
-                'answer': 最终答案,
-                'router_trace': Router 轨迹步骤列表,
-                'expert_trace': 专家轨迹步骤列表,
-                'usage': {token统计},
-            }
-        """
-        tasks = self._plan(user_input)
-        experts = [t["expert"] for t in tasks]
-        all_steps = []
-        usage_total = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
-        parts = []
-        for t in tasks:
-            expert, subtask = t["expert"], t["subtask"]
-            worker = self.experts[expert]
-            worker.reset()
-            ans = worker.run(subtask if len(tasks) > 1 else user_input)
-            parts.append((expert, subtask, ans))
-            all_steps.extend(worker.tracer.steps)
-            for k in usage_total:
-                usage_total[k] += worker.usage.get(k, 0)
-        answer = (self._merge(user_input, parts) if len(tasks) > 1
-                  else parts[0][2])
-
-        def steps_to_list(agent_steps):
-            return [
-                {
-                    "type": s.type,
-                    "detail": s.detail,
-                    "tool": s.tool,
-                    "args": s.args,
-                    "result": s.result,
-                    "duration_ms": s.duration_ms,
-                }
-                for s in agent_steps
-            ]
-
-        return {
-            "expert": experts[0],       # 兼容旧字段（主专家）
-            "experts": experts,
-            "answer": answer,
-            "router_trace": steps_to_list(self.router.tracer.steps),
-            "expert_trace": steps_to_list(all_steps),
-            "usage": usage_total,
-        }
-
-
 def main():
     ma = MultiAgent()
     print("=" * 50)

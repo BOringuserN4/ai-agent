@@ -223,7 +223,8 @@ def _print_summary(summary, results):
     if low:
         print("\n  🔻 最差 3 条（优先改进）：")
         for r in low:
-            print(f"    - [{r['id']}] {r['final_total']} 分 | {r['input'][:28]} | {r['final_reason'][:40]}")
+            rid, total = r["id"], r["final_total"]
+            print(f"    - [{rid}] {total} 分 | {r['input'][:28]} | {r['final_reason'][:40]}")
 
 
 def run_local(limit=None, do_langfuse=False, max_attempts=2):
@@ -330,8 +331,9 @@ def compare(path_a, path_b):
             return json.load(f)
 
     a, b = load(path_a), load(path_b)
+    name_a, name_b = os.path.basename(path_a), os.path.basename(path_b)
     print("=" * 60)
-    print(f"📈 对比：\n  A = {os.path.basename(path_a)}  ({a['timestamp']})\n  B = {os.path.basename(path_b)}  ({b['timestamp']})")
+    print(f"📈 对比：\n  A = {name_a}  ({a['timestamp']})\n  B = {name_b}  ({b['timestamp']})")
     print("=" * 60)
     print(f"  平均总分：{a['summary']['mean_total']} → {b['summary']['mean_total']}")
     print(f"  通过率  ：{a['summary']['pass_rate']}% → {b['summary']['pass_rate']}%")

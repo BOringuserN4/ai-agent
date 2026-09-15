@@ -103,11 +103,6 @@ class Pipeline:
         print(f"{'='*50}\n")
         return state
 
-    def last_output(self, state: dict) -> dict:
-        """取最后一步的输出（方便展示）。"""
-        return state[self.steps[-1].name] if self.steps else {}
-
-
 # ============ 预定义 Pipeline 场景（教学用）============
 
 
@@ -118,7 +113,6 @@ def build_math_to_summary_pipeline(ma) -> Pipeline:
       1. math agent: 算用户提的数学问题 → 输出 {answer, explanation, confidence}
       2. summary agent: 把计算结果写成一句话总结
     """
-    from agent.json_mode import JSON_SCHEMAS
     math_agent = ma.experts.get("math") or ma.router
     summary_agent = ma.experts.get("general") or ma.router
 
