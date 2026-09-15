@@ -80,8 +80,10 @@ ai-agent/
 │   ├── ai-agent-curriculum.md   # 进阶教学大纲（章节版 + 选型/度量/自检）
 │   ├── learning-summary.md      # 学习总结（主线图 + 五模块代价 + 被证伪的判断）
 │   ├── agent-mainline.html      # Agent 主线图（单文件，浏览器直接打开）
+│   ├── agent-understanding-timeline.html  # 对 Agent 的理解演进时间线（对照纠偏）
 │   └── diagrams/
-│       └── agent-mainline.svg
+│       ├── agent-mainline.svg
+│       └── agent-understanding-timeline.png
 ├── langfuse/             # Langfuse 自部署（docker-compose，.env 已 gitignore）
 └── agent/
     ├── __init__.py
