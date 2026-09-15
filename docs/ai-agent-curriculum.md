@@ -205,7 +205,7 @@ Plan → Act → Reflect → Replan
 - [x] **实战章 · 向量记忆**：选 Chromadb 或 pgvector 替换 numpy 检索（✅ 已完成 2026/09/08：ChromaDB 1.5.9 + DashScope embedding，memory.py 已重构）
 - [x] **实战章 · 可观测性**：接入 Langfuse（自部署）（✅ 已完成 2026/09/09：自部署 + run_traced 上报 trace）
 - [x] **实战章 · 评测框架**：golden set + LLM-as-judge（✅ 已完成 2026/09/10：`golden_set.py` + `judge.py` + `eval_runner.py`）
-- [ ] **收尾章 · 学习总结文档**
+- [x] **收尾章 · 学习总结文档**（✅ 已完成 2026/09/15：`docs/learning-summary.md`）
 
 **验收**：本项目达到"可上线"水平（监控/告警/回退）
 
@@ -222,6 +222,10 @@ Plan → Act → Reflect → Replan
 | 实战章 | 可观测性（Langfuse）| 2026/09/09 | `agent/langfuse_obs.py`、`agent/core.py` |
 | 编排章 | Fan-out（跨域任务切分）| 2026/09/10 | `agent/multi_agent.py` |
 | 实战章 | 评测框架 | 2026/09/10 | `agent/golden_set.py`、`agent/judge.py`、`eval_runner.py` |
+| 经验章 | 可观测埋点（Langfuse v4）| 2026/09/14 | `agent/core.py` |
+| 记忆章 | 召回质量 + 阈值 | 2026/09/14 | `agent/memory.py`、`eval_memory_recall.py` |
+| 核心章 | 多 Agent 结构（拆与不拆）| 2026/09/15 | `agent/multi_agent.py`、`agent/roles.py` |
+| 收尾章 | 学习总结文档 | 2026/09/15 | `docs/learning-summary.md` |
 
 
 ### 5.5 时间投入参考

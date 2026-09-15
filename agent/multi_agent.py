@@ -2,18 +2,18 @@
 """
 agent/multi_agent.py — 多 Agent 调度器（Router + Worker 架构）
 
-这是你的第一个 Multi-Agent 示例！思路：
-  - 一个「调度者 Router」：识别用户意图，决定交给哪个「专家 Worker」。
-  - 几个「专家 Worker」：数学、天气、通用，各司其职、各有工具。
+结构定位（2026/09/15 修正）：
+  - 谁控制流：LLM 决定（Router 自由判断拆不拆、拆几个）
+  - 信息流：分发-汇聚（Fan-out / Fan-in）
+  - 执行方式：串行（真并行待做）
 
-流程：
-  用户输入 → Router 判断该交给谁 → 委派给对应 Worker → Worker 用自己的工具
-  与人格独立处理 → 把结果返回给 Router → Router 汇总回给用户。
+核心原则：多 Agent 不是能力升级，是成本结构。每拆一个专家就多付一份
+交接损耗 + 压缩后的上下文 + token。只有「单 Agent 做不到」时才值得拆。
+跨域 ≠ 该拆；Router 默认走 solo（全能单 Agent）。
 
-用到了之前学到的：
-  - Agent 可配置不同 system_prompt（人格）和不同工具集。
-  - Tracer 记录每步，可观测。
-  - Router 本身也是一个 Agent，但它「只决策、不干活」，输出 JSON 指定交给谁。
+历史注：本模块原先写死「跨领域问题拆成多个子任务」，导致 e6 这类
+「算数 + 查天气」的题被拆给两个专才，而那两位都只有半个工具集，
+于是漏答一半。根本原因不是「跨域」，是调度策略把跨域当成了判据。
 """
 import json
 from agent.core import Agent
@@ -31,14 +31,21 @@ class MultiAgent:
         # Router：一个轻量 Agent，只负责拆任务、指派专家，不执行任务
         self.router = Agent(
             system_prompt=(
-                "你是任务调度器。请把用户问题拆成若干「子任务」，每个子任务指派一位专家。\n"
-                '只输出一个 JSON：{"tasks": [{"expert": "math|weather|general", '
-                '"subtask": "该专家只需要处理的那一部分"}]}\n'
-                "规则：\n"
-                "- 数学/计算类→math；天气气温类→weather；其他→general。\n"
-                "- 单一问题只拆一个子任务；跨领域问题拆成多个子任务。\n"
-                "- subtask 必须自包含、具体（例：'计算 (88+12)*3'、'查询广州当前天气'），\n"
-                "  不要把整道题原样丢给每个专家。\n"
+                "你是任务调度器。先判断：这道题需要拆成多个专家，还是单个全能助手就能做完？\n"
+                '只输出一个 JSON：{"reason": "一句话判断理由", '
+                '"tasks": [{"expert": "solo|math|weather|general", "subtask": "..."}]}\n'
+                "【该拆】只有满足以下任一条，才拆成多个子任务：\n"
+                "  1. 上下文隔离：两个子任务需要互相干扰的工具/知识，混在一起会误导对方；\n"
+                "  2. 真并行：子任务互相独立，且并行能显著省时间；\n"
+                "  3. 不同视角：需要互相冲突的人格（如生成 vs 批判）；\n"
+                "  4. 单 Agent 装不下：任务大到超出上下文窗口。\n"
+                "【不该拆】只是「一件小事跨了两个领域」（如既要算数又要查天气）——\n"
+                "  这类用一个全能助手顺序做完更省 token、也更连贯。\n"
+                "  此时只输出一个子任务，expert 用 solo。\n"
+                "专家说明：solo=全能助手（工具全开，默认选择）；\n"
+                "  math=只会算数；weather=只会查天气；general=只会闲聊。\n"
+                "- 不确定时，选 solo（不拆）。\n"
+                "- subtask 需自包含、具体；expert=solo 时 subtask 可为整题。\n"
                 "只输出 JSON，不要其他文字。"
             ),
             tools=None,  # 调度器不需要工具
@@ -77,10 +84,14 @@ class MultiAgent:
         result = self.router.run_traced(user_input, trace_name="router", user_id="demo")
         print(f"🧭 Router 规划 → {result}")
         tasks = []
+        reason = ""
         try:
             start = result.find("{")
             end = result.rfind("}") + 1
             data = json.loads(result[start:end])
+            reason = data.get("reason", "")
+            if reason:
+                print(f"   ↳ 理由：{reason}")
             raw = data.get("tasks")
             if raw is None and data.get("experts"):
                 raw = [{"expert": e, "subtask": user_input} for e in data["experts"]]
@@ -94,7 +105,7 @@ class MultiAgent:
         except Exception:
             pass
         if not tasks:
-            tasks = [{"expert": "general", "subtask": user_input}]
+            tasks = [{"expert": "solo", "subtask": user_input}]
         return tasks
 
     def run(self, user_input: str):

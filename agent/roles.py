@@ -45,8 +45,26 @@ def build_general_agent():
     )
 
 
+def build_solo_agent():
+    """全能 Agent（2026/09/15）：不拆任务时的默认执行者。
+
+    为什么需要它：math/weather/general 都是「专才」，各自只有部分工具。
+    一旦 Router 判定「不需要拆」，指派给任何一个专才都会漏答一半
+    （math 查不了天气、general 连计算器都没有）。所以需要一个工具全开的执行者。
+    """
+    return Agent(
+        system_prompt=(
+            "你是一个全能助手，能同时处理计算、天气、常识等各类问题。"
+            "遇到计算务必调用 calculator，遇到天气务必调用 get_weather。"
+            "用户提了多件事时，逐件办完再统一回答，不要漏掉任何一件。"
+        ),
+        tools=None,  # None = 全部工具（calculator / get_weather / current_time）
+    )
+
+
 # 供调度器查询的注册表：角色名 -> 构建函数
 ROLE_FACTORIES = {
+    "solo": build_solo_agent,     # 全能（默认）
     "math": build_math_agent,
     "weather": build_weather_agent,
     "general": build_general_agent,
