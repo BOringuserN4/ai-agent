@@ -193,11 +193,11 @@ Plan → Act → Reflect → Replan
 
 **任务清单**：
 - [x] **编排章 · Pipeline**：在 multi_agent.py 上加 Pipeline 模式（数学→总结）（✅ 已完成 2026/09/08：`pipeline.py`）
-- [ ] **编排章 · Evaluator-Critic**：生成→评分→重做
+- [x] **编排章 · Evaluator-Critic**：生成→评分→重做（✅ 已完成 2026/09/16：`agent/evaluator_critic.py`；实测见 README 第八节）
 - [x] **编排章 · Fan-out / Fan-in**：跨域任务切分与汇总（✅ 已完成 2026/09/10：`multi_agent.py` 真 Fan-out；当前为串行，真并行待做）
 - [ ] **协议章 · MCP 基础**：跑通一个 MCP server demo
 
-**验收**：本项目能演示 4 种编排模式（Router + Pipeline + Evaluator-Critic + Fan-out）
+**验收**：✅ 本项目能演示 4 种编排模式（Router + Pipeline + Evaluator-Critic + Fan-out）
 
 ### 5.4 阶段三·实战与产品化
 
@@ -219,13 +219,14 @@ Plan → Act → Reflect → Replan
 | 基础章 | 结构化 JSON 输出 | 2026/09/08 | `agent/json_mode.py` |
 | 编排章 | Pipeline 模式 | 2026/09/08 | `pipeline.py` |
 | 实战章 | 向量记忆（ChromaDB）| 2026/09/08 | `agent/memory.py` |
-| 实战章 | 可观测性（Langfuse）| 2026/09/09 | `agent/langfuse_obs.py`、`agent/core.py` |
+| 实战章 | 可观测性（Langfuse）| 2026/09/09 | `agent/core.py`（原 `langfuse_obs.py` 已于 09/14 并入删除）|
 | 编排章 | Fan-out（跨域任务切分）| 2026/09/10 | `agent/multi_agent.py` |
 | 实战章 | 评测框架 | 2026/09/10 | `agent/golden_set.py`、`agent/judge.py`、`eval_runner.py` |
 | 经验章 | 可观测埋点（Langfuse v4）| 2026/09/14 | `agent/core.py` |
 | 记忆章 | 召回质量 + 阈值 | 2026/09/14 | `agent/memory.py`、`eval_memory_recall.py` |
 | 核心章 | 多 Agent 结构（拆与不拆）| 2026/09/15 | `agent/multi_agent.py`、`agent/roles.py` |
 | 收尾章 | 学习总结文档 | 2026/09/15 | `docs/learning-summary.md` |
+| 编排章 | Evaluator-Critic（生成→批判→重做）| 2026/09/16 | `agent/evaluator_critic.py`、`eval_evaluator_critic.py` |
 
 
 ### 5.5 时间投入参考

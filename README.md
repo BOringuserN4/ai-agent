@@ -74,6 +74,7 @@ ai-agent/
 ├── main.py               # 统一命令行入口
 ├── eval_runner.py        # 评测跑批（golden set + LLM-as-judge，支持 --compare 回归对比）
 ├── eval_memory_recall.py # 召回质量迷你评测（该召回/不该召回 + 阈值扫描）
+├── eval_evaluator_critic.py # Evaluator-Critic 正反例对照实验（轮次×分数 + token 账）
 ├── LICENSE               # MIT
 ├── README.md
 ├── docs/
@@ -97,7 +98,8 @@ ai-agent/
     ├── golden_set.py     # 评测题集（14 条，含边界/跨域/能力边界）
     ├── judge.py          # LLM-as-judge（4 计权维度 + 合规红线 + 必达项否决）
     ├── json_mode.py      # 结构化 JSON 输出（schema-as-prompt）
-    └── pipeline.py       # Pipeline 模式（Agent 串联：上一步输出=下一步输入）
+    ├── pipeline.py       # Pipeline 模式（Agent 串联：上一步输出=下一步输入）
+    └── evaluator_critic.py # Evaluator-Critic 模式（生成→批判→不达标重做，代码封顶轮次）
 ```
 
 ---
@@ -181,15 +183,45 @@ ai-agent/
 - ~~评测框架（golden set + LLM-as-judge）~~ ✅ 已完成（eval_runner.py）
 - ~~召回质量评测 + 阈值闸门~~ ✅ 已完成（eval_memory_recall.py + memory.py）
 - ~~多 Agent 拆与不拆的判据~~ ✅ 已完成（multi_agent.py 重构）
+- ~~Evaluator-Critic 编排~~ ✅ 已完成（evaluator_critic.py，实测见第八节）
 - Router 成本优化（当前每条都问 LLM，约 850 token/次 → 加规则预筛）
 - 真并行 Fan-out（当前串行 `for` 循环）
 - MCP 工具生态
-- Evaluator-Critic 编排
 - 可视化界面
 
 ---
 
-## 八、进阶教材
+## 八、Evaluator-Critic 实测（2026/09/16）
+
+`agent/evaluator_critic.py` 实现了本项目第 4 种编排模式：**生成 → 批判 → 不达标重做**。
+它与前三种（Router / Pipeline / Fan-out）的结构差别在于——这是第一个「**监督关系**」：
+一个角色管另一个角色的质量，而不是平级分工。
+
+### 为什么批判者必须独立（判据③）
+让生成者自己批自己会撞上**自我确认偏差**：它刚做完推理，再让它挑错会倾向于辩护。
+所以批判者要是**另一个立场**。注意关键是「立场独立」，不是「必须两个 Agent 实体」——
+同一 Agent 换批判人格 + 清掉生成时上下文也算。
+
+### 分数怎么算（代码定规则，裁判只提供事实）
+- 硬性要求不合规 → **一票否决，封顶 59**（对应 judge.py 的 must_have 思路）；
+- 合规后，60-100 分由裁判给的三个「手艺分」（场景绑定 / 差异化 / 语感节奏，各 0-10）**加权折算**；
+- **阈值和加权都是人的决策**，裁判只负责提供事实，换题不改口径。
+
+### 实测账（`eval_evaluator_critic.py`）
+| 场景 | 轮次 | 分数轨迹 | token | 结论 |
+|---|---|---|---|---|
+| 正例 · 硬约束文案（及格线 85） | 3 | 84 → 84 → 85 | 14865 | 达标，重做确实把分数推上去了 |
+| 反例 · 缺信息（命中否决线④） | 3 | 59 → 59 → 59 | 9437 | 走平，**批了也改不动**，钱白花 |
+| 追加实拍 · 及格线拧到 90 | 3 | 84 → 87 → 59 | 24211 | **回退**：为凑手艺分把硬约束写崩 |
+
+三条结论：
+1. **否决线④是真的**：缺信息时，批判再准也无法改进，只有 token 在涨；
+2. **及格线是根旋钮**：85 能在两三轮内收敛，90 会诱发「牺牲硬约束换手艺分」的退步；
+3. **循环必须由代码封顶**：否则「不达标就重做」会一直烧钱——本实现上限 3 轮，封顶后输出历史最好的一版。
+
+---
+
+## 九、进阶教材
 
 主体代码完成后，下一步推荐读 [`docs/ai-agent-curriculum.md`](docs/ai-agent-curriculum.md) ——这是一份**章节版进阶路线**：
 

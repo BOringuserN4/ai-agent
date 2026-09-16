@@ -20,6 +20,8 @@ main.py — 统一命令行入口（Multi-Agent + 长期记忆）
 
     新增结构化 JSON 输出：/json <schema> <问题> 触发 JSON 模式。
     可用 schema：math / weather / summary。查看可用 /json list。
+
+    新增 Evaluator-Critic 模式（2026/09/16）：/ec <任务> 触发「生成→批判→重做」循环。
 """
 import os
 from dotenv import load_dotenv
@@ -35,6 +37,10 @@ def print_help():
   /json list  → 查看可用 schema
   /pipe <场景> <问题> → Pipeline 模式（math_to_summary/research_to_report）
   /pipe list  → 查看可用场景
+  /ec <任务>   → Evaluator-Critic（生成→批判→不达标重做）
+  /ec demo    → 跑内置正例（硬约束文案，能挑错也能改好）
+  /ec bad     → 跑内置反例（缺信息，命中否决线④，白烧 token）
+  /ec list    → 查看可用示例
   /trace      → 查看本轮运行轨迹
   /usage      → 查看 token 用量
   /memory     → 查看长期记忆（跨会话）
@@ -174,6 +180,26 @@ def main():
                 import traceback
                 traceback.print_exc()
                 print(f"⚠️ Pipeline 失败: {e}")
+            continue
+        # 【Evaluator-Critic 模式】 /ec demo | /ec bad | /ec <任务>
+        if user_input.startswith("/ec"):
+            from agent.evaluator_critic import (
+                EvaluatorCritic, POSITIVE_TASK, NEGATIVE_TASK,
+            )
+            rest = user_input[len("/ec"):].strip()
+            if rest == "list" or rest == "":
+                print("⚖️  Evaluator-Critic 示例:")
+                print("  /ec demo → 正例：硬约束文案（能挑错、也能改好）")
+                print("  /ec bad  → 反例：缺信息（命中否决线④，批了也没用）")
+                print("  /ec <任意任务> → 自定义任务")
+                continue
+            if rest == "demo":
+                task = POSITIVE_TASK
+            elif rest == "bad":
+                task = NEGATIVE_TASK
+            else:
+                task = rest
+            EvaluatorCritic(threshold=85, max_rounds=3).run(task)
             continue
         ma.run(user_input)
 
