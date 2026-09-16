@@ -81,6 +81,7 @@ ai-agent/
 │   ├── ai-agent-curriculum.md   # 进阶教学大纲（章节版 + 选型/度量/自检）
 │   ├── learning-summary.md      # 学习总结（主线图 + 五模块代价 + 被证伪的判断）
 │   ├── orchestration-patterns.md # 编排四模式讲义（Router/Pipeline/Fan-out/Evaluator-Critic）
+│   ├── authoring-rules.md      # 成文规矩（每章落一份讲义正文）
 │   ├── agent-mainline.html      # Agent 主线图（单文件，浏览器直接打开）
 │   ├── agent-understanding-timeline.html  # 对 Agent 的理解演进时间线（对照纠偏）
 │   └── diagrams/
