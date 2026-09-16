@@ -98,6 +98,9 @@
 
 **学习策略**：先掌握 **Router + Pipeline + Evaluator-Critic** 三种，覆盖 80% 场景。
 
+> 📘 本项目**已落地**的 4 种模式，逐个拆解（是什么/结构定位/为什么/代价/代码位置/实测账）见
+> [`docs/orchestration-patterns.md`](orchestration-patterns.md)。
+
 ### 3.1 推荐路线：模式学习顺序
 ```
 1. Router（你已经会了）
