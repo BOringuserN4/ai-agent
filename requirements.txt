@@ -12,3 +12,6 @@ numpy>=1.24       # 向量归一化（memory.py 用）
 
 # 可观测性（经验章）：Langfuse 追踪/成本/提示词管理
 langfuse>=4.0.0  # Langfuse SDK v4，用于上报 Agent 轨迹与成本
+
+# 协议章：MCP（Model Context Protocol）工具通用插座
+mcp>=2.0.0  # MCP Python SDK（v2 起 FastMCP 改名为 MCPServer）

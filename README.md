@@ -75,6 +75,10 @@ ai-agent/
 ├── eval_runner.py        # 评测跑批（golden set + LLM-as-judge，支持 --compare 回归对比）
 ├── eval_memory_recall.py # 召回质量迷你评测（该召回/不该召回 + 阈值扫描）
 ├── eval_evaluator_critic.py # Evaluator-Critic 正反例对照实验（轮次×分数 + token 账）
+├── mcp_client_weather.py # 最小 MCP 客户端（握手 → tools/list → tools/call）
+├── mcp_agent_demo.py    # MCP 对照实验（本地工具 vs MCP 工具）
+├── mcp_servers/
+│   └── weather_server.py # MCP server：把 get_weather 暴露为 MCP 工具
 ├── LICENSE               # MIT
 ├── README.md
 ├── docs/
@@ -82,6 +86,7 @@ ai-agent/
 │   ├── learning-summary.md      # 学习总结（主线图 + 五模块代价 + 被证伪的判断）
 │   ├── orchestration-patterns.md # 编排四模式讲义（Router/Pipeline/Fan-out/Evaluator-Critic）
 │   ├── authoring-rules.md      # 成文规矩（每章落一份讲义正文）
+│   ├── mcp-basics.md          # 协议章讲义（MCP：把天气工具适配成 MCP server）
 │   ├── agent-mainline.html      # Agent 主线图（单文件，浏览器直接打开）
 │   ├── agent-understanding-timeline.html  # 对 Agent 的理解演进时间线（对照纠偏）
 │   └── diagrams/
@@ -101,7 +106,8 @@ ai-agent/
     ├── judge.py          # LLM-as-judge（4 计权维度 + 合规红线 + 必达项否决）
     ├── json_mode.py      # 结构化 JSON 输出（schema-as-prompt）
     ├── pipeline.py       # Pipeline 模式（Agent 串联：上一步输出=下一步输入）
-    └── evaluator_critic.py # Evaluator-Critic 模式（生成→批判→不达标重做，代码封顶轮次）
+    ├── evaluator_critic.py # Evaluator-Critic 模式（生成→批判→不达标重做，代码封顶轮次）
+    └── mcp_bridge.py     # MCP 桥接（异步 server ↔ 同步 Agent，外挂式挂载工具）
 ```
 
 ---

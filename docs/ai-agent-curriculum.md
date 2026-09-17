@@ -198,7 +198,7 @@ Plan → Act → Reflect → Replan
 - [x] **编排章 · Pipeline**：在 multi_agent.py 上加 Pipeline 模式（数学→总结）（✅ 已完成 2026/09/08：`pipeline.py`）
 - [x] **编排章 · Evaluator-Critic**：生成→评分→重做（✅ 已完成 2026/09/16：`agent/evaluator_critic.py`；实测见 README 第八节）
 - [x] **编排章 · Fan-out / Fan-in**：跨域任务切分与汇总（✅ 已完成 2026/09/10：`multi_agent.py` 真 Fan-out；当前为串行，真并行待做）
-- [ ] **协议章 · MCP 基础**：跑通一个 MCP server demo
+- [x] **协议章 · MCP 基础**：跑通一个 MCP server demo（✅ 已完成 2026/09/17：`mcp_servers/weather_server.py`；讲义 `docs/mcp-basics.md`）
 
 **验收**：✅ 本项目能演示 4 种编排模式（Router + Pipeline + Evaluator-Critic + Fan-out）
 
@@ -230,6 +230,7 @@ Plan → Act → Reflect → Replan
 | 核心章 | 多 Agent 结构（拆与不拆）| 2026/09/15 | `agent/multi_agent.py`、`agent/roles.py` |
 | 收尾章 | 学习总结文档 | 2026/09/15 | `docs/learning-summary.md` |
 | 编排章 | Evaluator-Critic（生成→批判→重做）| 2026/09/16 | `agent/evaluator_critic.py`、`eval_evaluator_critic.py` |
+| 协议章 | MCP 基础（把天气工具适配为 MCP server）| 2026/09/17 | `mcp_servers/weather_server.py`、`agent/mcp_bridge.py` |
 
 
 ### 5.5 时间投入参考
