@@ -78,6 +78,7 @@ ai-agent/
 ├── mcp_client_weather.py # 最小 MCP 客户端（握手 → tools/list → tools/call）
 ├── mcp_agent_demo.py    # MCP 对照实验（方案 A：本地工具 vs MCP 工具）
 ├── mcp_external_demo.py # MCP 方案 B（接第三方 filesystem + schema 膨胀实验）
+├── mcp_tool_pruning_demo.py # 工具裁剪（按需挂载，实测省 42% token）
 ├── mcp_servers/
 │   ├── weather_server.py # MCP server：把 get_weather 暴露为 MCP 工具
 │   └── vendor/           # 第三方 MCP server（npm 安装，见 .gitignore）
@@ -109,7 +110,8 @@ ai-agent/
     ├── json_mode.py      # 结构化 JSON 输出（schema-as-prompt）
     ├── pipeline.py       # Pipeline 模式（Agent 串联：上一步输出=下一步输入）
     ├── evaluator_critic.py # Evaluator-Critic 模式（生成→批判→不达标重做，代码封顶轮次）
-    └── mcp_bridge.py     # MCP 桥接（异步 server ↔ 同步 Agent，外挂式挂载工具）
+    ├── mcp_bridge.py     # MCP 桥接（异步 server ↔ 同步 Agent，外挂式挂载工具）
+    └── tool_selector.py  # 工具裁剪（关键词分组，先裁后挂，省工具清单的租金）
 ```
 
 ---

@@ -232,6 +232,7 @@ Plan → Act → Reflect → Replan
 | 编排章 | Evaluator-Critic（生成→批判→重做）| 2026/09/16 | `agent/evaluator_critic.py`、`eval_evaluator_critic.py` |
 | 协议章 | MCP 基础（把天气工具适配为 MCP server）| 2026/09/17 | `mcp_servers/weather_server.py`、`agent/mcp_bridge.py` |
 | 协议章 | MCP 方案 B（接第三方 filesystem server）| 2026/09/17 | `mcp_external_demo.py`、`docs/mcp-basics.md` §8 |
+| 协议章 | 工具裁剪（按需挂载，实测省 42%）| 2026/09/17 | `agent/tool_selector.py`、`mcp_tool_pruning_demo.py` |
 
 
 ### 5.5 时间投入参考
