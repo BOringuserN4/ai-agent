@@ -46,10 +46,19 @@ class MCPToolBridge:
         bridge.stop()
     """
 
-    def __init__(self):
+    def __init__(self, namespace: str = None):
+        """
+        Args:
+            namespace: 可选命名空间前缀。传入 "fs" 时，工具对外暴露为
+                `fs__read_file`，避免与本地同名工具**静默互相覆盖**。
+                方案 A 实测过的坑：`{**local, **mcp}` 会让 MCP 工具悄悄顶掉
+                本地同名工具，排查起来极难。生产必须加前缀。
+        """
+        self.namespace = namespace
         self._servers = []          # [(name, StdioServerParameters)]
         self._tools = []            # 从 server 动态发现的工具（原始 MCP Tool 对象）
-        self._tool_to_server = {}   # 工具名 -> server 名
+        self._tool_to_server = {}   # 对外工具名 -> server 名
+        self._exposed_to_original = {}  # 对外工具名 -> server 上的原名
         self._loop = None
         self._thread = None
         self._ready = threading.Event()
@@ -103,8 +112,10 @@ class MCPToolBridge:
 
                     listed = await session.list_tools()
                     for t in (getattr(listed, "tools", []) or []):
+                        exposed = f"{self.namespace}__{t.name}" if self.namespace else t.name
                         self._tools.append(t)
-                        self._tool_to_server[t.name] = name
+                        self._tool_to_server[exposed] = name
+                        self._exposed_to_original[exposed] = t.name
                 print(f"   📋 MCP 共发现 {len(self._tools)} 个工具："
                       f"{[t.name for t in self._tools]}")
             except Exception as e:
@@ -127,10 +138,11 @@ class MCPToolBridge:
         specs = []
         for t in self._tools:
             schema = getattr(t, "input_schema", None) or getattr(t, "inputSchema", None) or {}
+            exposed = f"{self.namespace}__{t.name}" if self.namespace else t.name
             specs.append({
                 "type": "function",
                 "function": {
-                    "name": t.name,
+                    "name": exposed,
                     "description": t.description or "",
                     "parameters": schema or {"type": "object", "properties": {}},
                 },
@@ -152,7 +164,8 @@ class MCPToolBridge:
     async def _call_async(self, name: str, arguments: dict) -> str:
         server_name = self._tool_to_server[name]
         session = self._session_by_server[server_name]
-        result = await session.call_tool(name, arguments or {})
+        original = self._exposed_to_original.get(name, name)
+        result = await session.call_tool(original, arguments or {})
         parts = [getattr(i, "text", "") for i in (getattr(result, "content", None) or [])]
         text = "\n".join(p for p in parts if p)
         if getattr(result, "isError", None):
@@ -161,10 +174,17 @@ class MCPToolBridge:
 
     def to_registry(self) -> dict:
         """工具名 -> 可调用函数，供 Agent 的 tool_registry 使用。"""
-        return {t.name: (lambda _n=t.name, **kw: self.call(_n, kw)) for t in self._tools}
+        return {
+            (f"{self.namespace}__{t.name}" if self.namespace else t.name):
+                (lambda _n=(f"{self.namespace}__{t.name}" if self.namespace else t.name), **kw:
+                 self.call(_n, kw))
+            for t in self._tools
+        }
 
     @property
     def tool_names(self) -> list:
+        if self.namespace:
+            return [f"{self.namespace}__{t.name}" for t in self._tools]
         return [t.name for t in self._tools]
 
     def stop(self):
@@ -190,6 +210,6 @@ def build_weather_bridge(repo_root) -> MCPToolBridge:
     import sys
     from pathlib import Path
     server = Path(repo_root) / "mcp_servers" / "weather_server.py"
-    bridge = MCPToolBridge()
+    bridge = MCPToolBridge(namespace="weather")
     bridge.add_server("weather", sys.executable, [str(server)])
     return bridge

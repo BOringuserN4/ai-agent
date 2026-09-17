@@ -76,9 +76,11 @@ ai-agent/
 ├── eval_memory_recall.py # 召回质量迷你评测（该召回/不该召回 + 阈值扫描）
 ├── eval_evaluator_critic.py # Evaluator-Critic 正反例对照实验（轮次×分数 + token 账）
 ├── mcp_client_weather.py # 最小 MCP 客户端（握手 → tools/list → tools/call）
-├── mcp_agent_demo.py    # MCP 对照实验（本地工具 vs MCP 工具）
+├── mcp_agent_demo.py    # MCP 对照实验（方案 A：本地工具 vs MCP 工具）
+├── mcp_external_demo.py # MCP 方案 B（接第三方 filesystem + schema 膨胀实验）
 ├── mcp_servers/
-│   └── weather_server.py # MCP server：把 get_weather 暴露为 MCP 工具
+│   ├── weather_server.py # MCP server：把 get_weather 暴露为 MCP 工具
+│   └── vendor/           # 第三方 MCP server（npm 安装，见 .gitignore）
 ├── LICENSE               # MIT
 ├── README.md
 ├── docs/

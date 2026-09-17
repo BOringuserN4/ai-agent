@@ -77,14 +77,35 @@ MCP 不是免费的。实测拆成三笔账：
 
 | 代价项 | 实测值 | 说明 |
 |---|---|---|
-| **描述文本吃 token** | **+36 字符 / +21 token**（每个工具） | 动态发现带回的 schema 更啰嗦 |
+| **工具清单每轮都吃 token** | **+3571 token（+308%）** | ⚠️ **最大的代价**，见下 |
+| **描述文本更啰嗦** | **+36 字符 / +21 token**（每个工具） | 动态发现的 schema 带 `title` 等元数据 |
 | **协议层往返** | **0.69 ms** | 跨进程调用 vs 本地函数直调 |
 | **冷启动** | **≈500 ms** | 拉起子进程 + 握手 + `list_tools` |
 
+### ⚠️ 最大的一条：工具清单的「租金」
+
+同一道题、同一个答案，**只改暴露几个工具**（方案 B 实测）：
+
+| 暴露工具数 | schema 体积 | 总 token | 耗时 |
+|---|---|---|---|
+| 1 个 | 899 字符 | **1160** | 0.93s |
+| 14 个 | 8803 字符 | **4731** | 1.11s |
+| 差异 | +7904 字符 | **+3571（+308%）** | — |
+
+**任务完全一样，答案完全一样，只因为它多带了 13 个用不到的工具。**
+
+这就是「动态发现」的另一面：**省了适配代码，但工具清单每轮都在吃 token**。
+挂 14 个工具，每次调用先付 3500+ token 的「租金」，还没开始干活。
+
+> **生产做法**：工具裁剪 / 按需加载——只暴露当前任务相关的工具集，
+> 而不是把手头所有 server 的工具全量挂上去。
+> 工具越多 ≠ 能力越强，可能只是每轮更贵。
+
 **三条结论（都反直觉）：**
 
-1. **token 是会涨的，不是会省**。MCP 自动生成的 JSON Schema 带 `title` 等
-   额外元数据，比手写声明更啰嗦。凭「协议更先进」就以为更省 token 是错的。
+1. **token 是会涨的，而且可能涨得很多**。不只是 schema 更啰嗦（+36 字符/工具），
+   更致命的是**工具数量本身**——14 个工具每轮 +3571 token（+308%）。
+   凭「协议更先进」就以为更省 token 是错的。
 2. **协议往返便宜到可以忽略**（0.69 ms）。相比一次 LLM 调用（约 1 秒）、
    一次联网查询（约 1.2 秒），0.69 ms 是噪声。**「协议层很贵」是错觉。**
 3. **真正的新开销在别处**：
@@ -106,7 +127,8 @@ MCP 不是免费的。实测拆成三笔账：
 | `mcp_servers/weather_server.py` | **Server** | 把 `get_weather` + `ping` 暴露为 MCP 工具 |
 | `mcp_client_weather.py` | **Client（最小）** | 独立验证脚本：握手 → `tools/list` → `tools/call` |
 | `agent/mcp_bridge.py` | **Client（生产形态）** | 把 MCP 工具桥接进同步 Agent |
-| `mcp_agent_demo.py` | **对照实验** | 本地工具 vs MCP 工具 |
+| `mcp_agent_demo.py` | **对照实验（方案 A）** | 本地工具 vs MCP 工具 |
+| `mcp_external_demo.py` | **方案 B 演示** | 接第三方 filesystem server + schema 膨胀实验 |
 
 ### 异步 / 同步的桥接（本项目的关键实现）
 
@@ -136,8 +158,17 @@ MCP 工具就与本地工具共存。协议层的引入是「**外挂式**」的
 # ① 最小客户端：看协议本身（不接 Agent）
 .venv/bin/python mcp_client_weather.py 上海
 
-# ② 对照实验：本地工具 vs MCP 工具
+# ② 对照实验：本地工具 vs MCP 工具（方案 A）
 .venv/bin/python mcp_agent_demo.py
+
+# ③ 方案 B：接第三方 filesystem server + schema 膨胀实验
+.venv/bin/python mcp_external_demo.py
+```
+
+第三方 server 的本地安装（一次性）：
+```bash
+cd mcp_servers/vendor
+npm install @modelcontextprotocol/server-filesystem
 ```
 
 `mcp_client_weather.py` 的输出会依次显示：
@@ -148,7 +179,7 @@ MCP 工具就与本地工具共存。协议层的引入是「**外挂式**」的
 
 ## 7. 实测账（2026/09/17）
 
-### 对照实验：同一问题「杭州现在天气怎么样？」
+### 方案 A 对照实验：同一问题「杭州现在天气怎么样？」
 
 工具集严格对齐（两组都只有 **1 个** get_weather 工具），各跑 3 次取平均：
 
@@ -175,7 +206,66 @@ MCP 工具就与本地工具共存。协议层的引入是「**外挂式**」的
 
 ---
 
-## 8. 踩过的坑（mcp 1.x → 2.x 的 API 变更）
+## 8. 方案 B：接一个**别人写的** server
+
+方案 A 是「自己的工具搬出去」（自己 → 别人）；
+方案 B 是反方向（别人 → 自己）：**一行适配代码不写**，直接插上第三方 server。
+
+本次接的是官方 `@modelcontextprotocol/server-filesystem`（**Node 写的**，我们项目是 Python）。
+
+### 桥接代码有多少？
+
+```python
+bridge = MCPToolBridge(namespace="fs")
+bridge.add_server("filesystem", str(VENDOR_BIN), [SANDBOX])
+```
+
+**两行。** 然后 14 个文件操作工具就全能用：
+
+```
+fs__read_text_file / fs__write_file / fs__edit_file / fs__create_directory
+fs__list_directory / fs__list_directory_with_sizes / fs__directory_tree
+fs__move_file / fs__search_files / fs__get_file_info
+fs__read_media_file / fs__read_multiple_files / fs__read_file
+fs__list_allowed_directories
+```
+
+**注意语言**：server 是 Node 写的，我们是 Python——**跨语言毫无障碍**。
+因为解耦发生在**进程边界 + 协议**上，跟实现语言无关。这是方案 A 时讲过的道理，这里得到验证。
+
+### 真干活
+
+```
+任务：读 /tmp/mcp_sandbox/notes.txt 数行数，再读 readme.txt
+实际调用：fs__read_text_file × 2
+结果：正确（3 行，alpha/beta/gamma）｜ 4936 token ｜ 2.13s
+```
+
+### 甜头与代价
+
+| | 方案 A（自己的工具） | 方案 B（别人的工具） |
+|---|---|---|
+| 适配代码 | 要写 server | **0 行** |
+| 工具数量 | 2 个 | **14 个** |
+| schema 体积 | 291 字符 | **8803 字符** |
+| 代价 | 协议往返 | **每轮 3500+ token 的「租金」** |
+
+**「不写适配」不等于「没有成本」**——成本从「写代码」转移到了
+「**每轮都付的 token**」上。见 §4 的锋利实验。
+
+### 方案 B 特有的风险
+
+1. **看不见实现**：这些工具是别人写的，你不知道 `read_text_file` 内部干了什么；
+2. **注入通道**：工具的描述文本和返回值都是**外部内容**，
+   server 若被投毒，返回的文本可以直接指挥你的 Agent（提示注入）；
+3. **权限面**：本次给的是 `/tmp/mcp_sandbox`，但很多 server 默认能碰更大范围。
+   本次实测的安全机制：server 启动时打印
+   `using allowed directories: [ ... ]`，**只允许访问声明的目录**。
+   选第三方 server 时，**先看它要什么权限**。
+
+---
+
+## 9. 踩过的坑（mcp 1.x → 2.x 的 API 变更）
 
 本次用的是 `mcp 2.2.0`，与网上大量 1.x 教程**不兼容**：
 
@@ -189,20 +279,25 @@ MCP 工具就与本地工具共存。协议层的引入是「**外挂式**」的
 **教训**：装完包先跑一遍 `dir()` / `inspect.signature()` 确认真实 API，
 **别照抄教程**。本次就是因为直接照 1.x 写法写，连撞两次 `AttributeError`。
 
-### 另一个坑：工具名撞车
+### 另一个坑：工具名撞车（已在方案 B 中修复）
 
 MCP 工具也叫 `get_weather`，挂载时**覆盖**了本地同名工具
 （`{**local_registry, **mcp_registry}`）。
 
-本 demo 里两者行为一致所以无害，但**生产环境必须处理**：
-给 MCP 工具加命名空间前缀（如 `weather__get_weather`），否则
+方案 A 里两者行为一致所以无害，但**生产环境必须处理**：
 「本地同名工具被静默替换」这种 bug 极难排查。
+
+**方案 B 已修**：`MCPToolBridge(namespace="fs")` 会给所有工具加前缀
+（`fs__read_text_file`），并在调用时映射回原名。
+现在天气 server 的工具是 `weather__get_weather` / `weather__ping`，
+filesystem 的是 `fs__*`，**再也不会与本地工具撞名**。
 
 ---
 
-## 9. 下一步
+## 10. 下一步
 
-- **方案 B**：接一个**别人写好的** MCP server（如官方 filesystem），
-  体会「别人的工具我能直接插进来用」——本次只做了自己的工具搬出去。
-- **命名空间**：为 MCP 工具加前缀，解决上面的撞车问题。
+- ~~**方案 B**：接一个别人写好的 MCP server~~ ✅ 本次已完成（官方 filesystem）
+- ~~**命名空间**：为 MCP 工具加前缀~~ ✅ 本次已完成（`namespace="fs"`）
+- **工具裁剪 / 按需加载**：既然全量挂载每轮要付 3500+ token 的租金，
+  下一步该做的是「按任务只挂相关工具」——这是 §4 那条最大代价的直接解法。
 - **Resources / Prompts**：本次只用了 Tools，另两种原语未碰。
