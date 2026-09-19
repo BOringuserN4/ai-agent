@@ -41,9 +41,21 @@ SYSTEM_PROMPT = """你是「记忆过滤器」。判断当前对话中是否有�
 class MemoryExtractor:
     """让 LLM 决定"这轮对话是否值得长期记"的过滤器。"""
 
-    def __init__(self, model="deepseek-flash", client=None):
+    def __init__(self, model="deepseek-flash", client=None, reasoning_effort=None,
+                 max_tokens=200):
+        """
+        Args:
+            model: 模型名。
+            client: 可选的 OpenAI 兼容客户端（本地模型/自定义端点时传入）。
+            reasoning_effort: 传给模型（None=不传）。**本地小模型强烈建议设 "none"**：
+                实测 gemma4-e4b 在思考模式下会把 max_tokens 预算全烧在推理上，
+                正文返回空字符串，导致抽取器兜底为 keep=False（等于「什么都不记」）。
+            max_tokens: 输出上限。思考模式会吃掉它，故本地模型可适当调大。
+        """
         self.model = model
         self.client = client  # 懒加载：调用时才建
+        self.reasoning_effort = reasoning_effort
+        self.max_tokens = max_tokens
 
     def _ensure_client(self):
         if self.client is None:
@@ -61,17 +73,20 @@ class MemoryExtractor:
             dict: {keep: bool, text: str, tags: list[str], _error?: str}
         """
         client = self._ensure_client()
+        kwargs = dict(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content":
+                    f"用户说：{user_input}\n助手答：{assistant_reply}\n\n请判断是否值得长期记。"}
+            ],
+            temperature=0,
+            max_tokens=self.max_tokens,
+        )
+        if self.reasoning_effort:
+            kwargs["reasoning_effort"] = self.reasoning_effort
         try:
-            resp = client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content":
-                        f"用户说：{user_input}\n助手答：{assistant_reply}\n\n请判断是否值得长期记。"}
-                ],
-                temperature=0,
-                max_tokens=200,
-            )
+            resp = client.chat.completions.create(**kwargs)
             content = resp.choices[0].message.content.strip()
         except Exception as e:
             # API 失败：兜底为不记（避免污染记忆库）

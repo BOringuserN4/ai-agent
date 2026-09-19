@@ -234,6 +234,7 @@ Plan → Act → Reflect → Replan
 | 协议章 | MCP 方案 B（接第三方 filesystem server）| 2026/09/17 | `mcp_external_demo.py`、`docs/mcp-basics.md` §8 |
 | 协议章 | 工具裁剪（按需挂载，实测省 42%）| 2026/09/17 | `agent/tool_selector.py`、`mcp_tool_pruning_demo.py` |
 | 延伸 | 本地推理（embedding 挪到局域网主机）| 2026/09/19 | `agent/embedding_backends.py`、`eval_embedding_compare.py`、`docs/local-inference.md` |
+| 延伸 | 记忆抽取评测 + 本地化评估 | 2026/09/19 | `eval_memory_extract.py`、`docs/memory-extraction.md` |
 
 
 ### 5.5 时间投入参考

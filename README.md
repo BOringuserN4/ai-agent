@@ -76,6 +76,7 @@ ai-agent/
 ├── eval_memory_recall.py # 召回质量迷你评测（该召回/不该召回 + 阈值扫描）
 ├── eval_evaluator_critic.py # Evaluator-Critic 正反例对照实验（轮次×分数 + token 账）
 ├── eval_embedding_compare.py # 云端/本地 embedding 的 A/B 对比（召回质量 + 延迟）
+├── eval_memory_extract.py # 记忆抽取质量评测（12 用例 × 3 维度，确定性判分）
 ├── scripts/
 │   ├── win_ollama_setup.ps1     # Windows 主机：Ollama 局域网服务一键配置
 │   └── check_local_llm_host.py  # Mac 侧：分 5 步诊断主机连通性
@@ -95,6 +96,7 @@ ai-agent/
 │   ├── authoring-rules.md      # 成文规矩（每章落一份讲义正文）
 │   ├── mcp-basics.md          # 协议章讲义（MCP：把天气工具适配成 MCP server）
 │   ├── local-inference.md     # 本地推理讲义（embedding 挪到局域网 Windows 主机）
+│   ├── memory-extraction.md   # 记忆抽取讲义（评测 + 云端基线 + 本地模型对比）
 │   ├── agent-mainline.html      # Agent 主线图（单文件，浏览器直接打开）
 │   ├── agent-understanding-timeline.html  # 对 Agent 的理解演进时间线（对照纠偏）
 │   └── diagrams/
