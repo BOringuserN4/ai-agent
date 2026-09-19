@@ -159,6 +159,66 @@ CASES = [
         "must_have": [], "tags": [],
         "why": "**边界题**：时间类查询，时效数据不该进长期记忆",
     },
+
+    # ================= 难例（2026/09/19 加）=================
+    # 起因：云端与本地都是 100%，说明题集有天花板效应、对强模型无区分度。
+    # 这批题专攻「看似该记、实则不该」和「表面像寒暄、实则有信息」的灰色地带。
+    {
+        "id": "h1", "keep": False,
+        "user": "我朋友张三说他上周去日本出差了",
+        "reply": "听起来是不错的行程。",
+        "must_have": [], "tags": [],
+        "why": "**第三方信息**：说的不是用户自己的事。记住会污染（下次可能答成用户去过日本）",
+    },
+    {
+        "id": "h2", "keep": False,
+        "user": "上一轮你提到过那个叫 Langfuse 的东西，它到底是干嘛的？",
+        "reply": "Langfuse 是一个 LLM 可观测性平台，用于追踪调用链和成本。",
+        "must_have": [], "tags": [],
+        "why": "**助手自造内容**：Langfuse 是助手上轮说的，不是用户透露的事实，不该当用户记忆",
+    },
+    {
+        "id": "h3", "keep": False,
+        "user": "假设我是一个刚入行的前端工程师，你会怎么建议我学 AI？",
+        "reply": "可以从 Python 基础和 LLM API 调用开始。",
+        "must_have": [], "tags": [],
+        "why": "**假设句**：『假设我是…』不是真身份，记住就是错误画像",
+    },
+    {
+        "id": "h4", "keep": True,
+        "user": "对了，我上周刚把家里的猫换成了一只狗，现在养的是柴犬",
+        "reply": "柴犬很活泼，养起来挺有活力的。",
+        "must_have": ["柴犬"], "tags": ["fact"],
+        "why": "**信息更新**：与旧信息（猫）冲突。正确行为是记新的，这题测的是它会不会漏",
+    },
+    {
+        "id": "h5", "keep": True,
+        "user": "以后跟我说话别用敬语，随便点就行",
+        "reply": "好的，那我随意点。",
+        "must_have": ["敬语"], "tags": ["preference"],
+        "why": "**隐含偏好**：没有『我喜欢』这种显式标记，靠理解才能识别出是偏好",
+    },
+    {
+        "id": "h6", "keep": False,
+        "user": "你说说看，1 到 100 之间哪个数字最漂亮？",
+        "reply": "我选 42，它有种故事感。",
+        "must_have": [], "tags": [],
+        "why": "**闲聊式提问**：看着像有内容，其实是开放闲聊，记了纯噪声",
+    },
+    {
+        "id": "h7", "keep": False,
+        "user": "我现在有点困，可能一会儿就睡了",
+        "reply": "那早点休息，有需要随时找我。",
+        "must_have": [], "tags": [],
+        "why": "**瞬时状态**：困不困是会变的临时状态，不是稳定事实",
+    },
+    {
+        "id": "h8", "keep": True,
+        "user": "顺便说一句，我们团队用的是 GitLab 而不是 GitHub 做代码托管",
+        "reply": "了解，GitLab 自托管确实更常见于企业内网。",
+        "must_have": ["GitLab"], "tags": ["fact", "preference"],
+        "why": "**埋在句子中间的事实**：前置『顺便说一句』容易让模型当成闲话略过",
+    },
 ]
 
 
@@ -185,12 +245,41 @@ def judge_text(case: dict, extracted: str) -> bool:
     return any(kw.lower() in text.lower() for kw in case["must_have"])
 
 
+# 标签的同义/包含关系表（2026/09/19 修）
+# 起因：旧判法直接把标签与期望词做等值比较，把 `project`/`pet` 这类
+# **比期望更具体**的标签判成了「未命中」——那测的是命名习惯，不是标签质量。
+# 现在改成「语义相符」：命中任一同义词，或标签是期望词的更具体形式，即算对。
+TAG_SYNONYMS = {
+    "fact": {"fact", "personal_info", "info", "project", "pet", "profile",
+             "background", "identity", "detail", "preference"},
+    "preference": {"preference", "pref", "habit", "like", "style", "setting",
+                   "technology", "tech", "language", "communication"},
+    "personal_info": {"personal_info", "info", "profile", "identity", "fact",
+                      "name", "occupation", "job"},
+}
+
+
+def _tag_matches(want: str, got: set) -> bool:
+    """want 是否被 got 命中（含同义/更具体的形式）。"""
+    w = want.lower()
+    if w in got:
+        return True
+    for g in got:
+        # 同义词表命中
+        if g in TAG_SYNONYMS.get(w, set()):
+            return True
+    return False
+
+
 def judge_tags(case: dict, tags: list) -> bool:
-    """标签是否命中（至少一个）。无期望标签的题不计此项。"""
+    """标签是否语义相符（至少一个）。无期望标签的题不计此项。
+
+    判定放宽为「语义相符」而非「词完全相等」——见 TAG_SYNONYMS 的说明。
+    """
     if not case.get("tags"):
         return True
     got = {str(t).lower() for t in (tags or [])}
-    return any(t.lower() in got for t in case["tags"])
+    return any(_tag_matches(t, got) for t in case["tags"])
 
 
 def main():
