@@ -290,6 +290,8 @@ def main():
     ap.add_argument("--verbose", action="store_true")
     ap.add_argument("--reasoning-effort", default=None,
                     help='传 reasoning_effort（本地小模型建议 "none"，见 extractor.py 注释）')
+    ap.add_argument("--extra-rule", action="store_true",
+                    help="在 system prompt 后追加「只记用户本人透露的信息」规则（治 h2/h3）")
     ap.add_argument("--save", default=None,
                     help="把结果存成 JSON（用于跨模型对比，如 --save baseline_cloud.json）")
     args = ap.parse_args()
@@ -306,12 +308,21 @@ def main():
         extractor._ensure_client = lambda: extractor.client
     if args.reasoning_effort:
         extractor.reasoning_effort = args.reasoning_effort
+    if args.extra_rule:
+        import agent.extractor as ex
+        ex.SYSTEM_PROMPT = ex.SYSTEM_PROMPT + """
+【重要】只记录**用户本人透露**的稳定信息。以下一律不记：
+- 助手自己说过的话、助手提供的知识（即使出现在对话里）
+- 用户转述的第三方信息（「我朋友说…」）
+- 假设、比喻、举例（「假设我是…」「如果我是…」）
+- 临时状态（困、饿、忙）与时效数据（今天的天气/日期）"""
 
     print("=" * 78)
     print(f"🧪 记忆抽取质量评测")
     print(f"   模型：{extractor.model}"
           f"{'  @ ' + args.base_url if args.base_url else '  (云端 DeepSeek)'}"
-          f"{'  reasoning_effort=' + args.reasoning_effort if args.reasoning_effort else ''}")
+          f"{'  reasoning_effort=' + args.reasoning_effort if args.reasoning_effort else ''}"
+          f"{'  +额外规则' if args.extra_rule else ''}")
     print(f"   用例：{len(CASES)} 条｜每例跑 {args.repeat} 次")
     print("=" * 78)
 

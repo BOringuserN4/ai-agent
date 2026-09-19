@@ -99,9 +99,12 @@ class MemoryExtractor:
             if start < 0 or end <= start:
                 return {"keep": False, "text": "", "tags": [], "_error": "no_json"}
             data = json.loads(content[start:end])
+            # 注意：某些模型（如 NuExtract）在 keep=false 时把 text 置为 null，
+            # str(None) 会得到字符串 "None" → 这里统一归一为空串。
+            raw_text = data.get("text")
             return {
                 "keep": bool(data.get("keep", False)),
-                "text": str(data.get("text", "")).strip(),
+                "text": ("" if raw_text is None else str(raw_text)).strip(),
                 "tags": data.get("tags", []) if isinstance(data.get("tags"), list) else [],
             }
         except Exception:
