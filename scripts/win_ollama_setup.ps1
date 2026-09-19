@@ -1,10 +1,15 @@
-# win_ollama_setup.ps1 — Windows 主机：把 Ollama 配成本局域网的推理服务
+﻿﻿# win_ollama_setup.ps1 — Windows 主机：把 Ollama 配成本局域网的推理服务
 #
 # 2026/09/19 · 配合 docs/local-inference.md
 #
 # 用法（在 Windows 上以「管理员 PowerShell」运行）：
+#     # 若文件是从网络/浏览器下载的，先解锁（否则可能被安全策略拦住）：
+#     Unblock-File .\win_ollama_setup.ps1
 #     Set-ExecutionPolicy -Scope Process Bypass -Force
-#     .\scripts\win_ollama_setup.ps1
+#     .\win_ollama_setup.ps1
+#
+# 编码说明：本文件带 UTF-8 BOM —— Windows PowerShell 5.1 若无 BOM 会按
+# 系统 ANSI（中文系统=GBK）解析，导致中文乱码甚至语法错误。请勿去掉 BOM。
 #
 # 它做四件事（都可重复运行，不会重复添加）：
 #   1. 体检：系统版本 / AMD 驱动 / amdhip64 是否在
