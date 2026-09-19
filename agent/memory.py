@@ -69,13 +69,34 @@ class MemoryStore:
         # 可插拔后端：默认仍是云端（不改变既有行为）
         self.backend = backend or get_backend()
         self.chroma_dir = chroma_dir or CHROMA_DIR
-        # 不同后端的向量**不可混用** → collection 名按后端区分，避免混表
-        self.collection_name = (
-            COLLECTION_NAME if self.backend.name == "dashscope"
-            else f"{COLLECTION_NAME}_{self.backend.name}"
-        )
+        # 不同后端的向量**不可混用** → collection 名按后端区分，避免混表。
+        # 注意：后端可能带**自动回退**（本地挂了退云端），此时实际生效的后端
+        # 会在运行时变化，所以 collection 不能只在构造时定死 ——
+        # 每次读写前用 _sync_collection() 校正。
         self._ensure_chroma()
-        self.collection = self._collection()
+        self._sync_collection(initial=True)
+
+    def _collection_name_for(self, backend_name: str) -> str:
+        """按后端名推导 collection 名（云端沿用原名，保证既有数据不受影响）。"""
+        return COLLECTION_NAME if backend_name == "dashscope" \
+            else f"{COLLECTION_NAME}_{backend_name}"
+
+    def _sync_collection(self, initial: bool = False):
+        """让 collection 与**当前实际生效**的后端保持一致。
+
+        回退还意味着「换了一个向量空间」，所以必须同时换表。
+        这一步若漏掉，两种向量会混进同一张表，检索结果静默崩坏。
+        """
+        want = self._collection_name_for(self.backend.name)
+        if getattr(self, "collection_name", None) == want:
+            return
+        prev = getattr(self, "collection_name", None)
+        self.collection_name = want
+        self.collection = self._chroma.get_or_create_collection(
+            name=want, metadata={"hnsw:space": "cosine"},
+        )
+        if not initial and prev:
+            print(f"   🔀 embedding 后端切换（{prev} → {want}），已切到对应的向量集合")
 
     # ---- ChromaDB 持久化 ----
     def _ensure_chroma(self):
@@ -83,12 +104,8 @@ class MemoryStore:
         import chromadb
         # PersistentClient：数据写到磁盘，跨进程重启后还在。
         self._chroma = chromadb.PersistentClient(path=self.chroma_dir)
-        # 用 cosine 距离（等价于余弦相似度，向量已归一化）。
-        # get_or_create_collection 已存在则复用，避免重建丢数据。
-        self.collection = self._chroma.get_or_create_collection(
-            name=self.collection_name,
-            metadata={"hnsw:space": "cosine"},
-        )
+        # collection 的创建延后到 _sync_collection()，因为后端可能带自动回退、
+        # 实际生效的后端要到运行时才确定。
 
     def _collection(self):
         return self.collection
@@ -109,6 +126,7 @@ class MemoryStore:
         text = text.strip()
         if not text:
             return
+        self._sync_collection()          # 后端可能已回退 → 先对齐集合
         # 去重：同文本不重复存（用 md5 作为唯一 id）
         digest = hashlib.md5(text.encode()).hexdigest()
         # 先查 id 是否已存在，避免重复写入导致的重复检索
@@ -130,6 +148,7 @@ class MemoryStore:
         语义检索：返回最相关的若干条记忆。
         Returns: list of {text, score, meta}
         """
+        self._sync_collection()          # 后端可能已回退 → 先对齐集合
         if self.collection.count() == 0:
             return []
         top_k = top_k or self.top_k

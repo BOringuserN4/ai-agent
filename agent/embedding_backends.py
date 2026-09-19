@@ -146,12 +146,115 @@ class OllamaBackend(EmbeddingBackend):
         return [x.embedding for x in resp.data]
 
 
+class FailoverBackend(EmbeddingBackend):
+    """自动回退后端：主后端不可用时退回备用后端。
+
+    为什么需要它（真实场景）：
+      本地 Ollama 跑在那台 Windows 主机上。主机不会 24 小时开着——
+      休眠、重启、拔网线、Ollama 崩了，任何一种都会让嵌入调用直接失败。
+      如果主后端是本地、又没有备用，Agent 会**直接死掉**，而不是降级。
+
+    设计取舍：
+      - **只在「不可用」时回退**，不在「慢」时回退：
+        慢是可接受的，来回抖动会破坏向量空间一致性（见下）。
+      - **回退有代价**：两个后端的向量不在同一空间。
+        所以回退到备用后端时，用的必须是**备用后端自己的 collection**，
+        绝不能把两种向量写进同一张表。因此 MemoryStore 需要知道
+        「这次实际用的是哪个后端」——见 `.active_name` 与 `on_switch` 回调。
+      - **恢复后自动切回**：主后端探活成功就切回去，避免长期跑在备用上。
+
+    对外表现：与普通后端完全一致（同样是 embed / health / name / dim），
+    但额外提供 `active_name`（当前实际在用的后端名）和 `switched`（是否发生过切换）。
+    """
+
+    #: 探活成功/失败后，隔多少次调用再探一次（避免每次调用都付一次探活开销）
+    PROBE_EVERY = 20
+
+    def __init__(self, primary: EmbeddingBackend, fallback: EmbeddingBackend):
+        self.primary = primary
+        self.fallback = fallback
+        self._using = "primary"
+        self.switched = False
+        self._calls_since_probe = 0
+        self._last_probe_ok = None
+
+    @property
+    def name(self):
+        """当前实际生效的后端名（用于 collection 隔离）。"""
+        return self.active.name
+
+    @property
+    def active(self) -> EmbeddingBackend:
+        return self.primary if self._using == "primary" else self.fallback
+
+    @property
+    def active_name(self) -> str:
+        return self.active.name
+
+    @property
+    def dim(self):
+        return self.active.dim
+
+    def embed(self, texts):
+        """先试主后端；不可用则切备用；之后周期性探活以便切回。"""
+        if self._using == "fallback":
+            self._calls_since_probe += 1
+            if self._calls_since_probe >= self.PROBE_EVERY:
+                self._calls_since_probe = 0
+                ok, _ = self.primary.health()
+                if ok:
+                    self._using = "primary"
+                    print("   ↩️  embedding 主后端已恢复，切回")
+
+        try:
+            return self.active.embed(texts)
+        except Exception as e:
+            if self._using == "primary":
+                ok, msg = self.fallback.health()
+                if ok:
+                    print(f"   ⚠️  主后端不可用（{type(e).__name__}），"
+                          f"暂切备用后端 [{self.fallback.name}]")
+                    self._using = "fallback"
+                    self.switched = True
+                    self._calls_since_probe = 0
+                    return self.fallback.embed(texts)
+            # 备用也不可用：如实抛出，不要静默吞掉
+            raise
+
+    def health(self):
+        ok, msg = self.primary.health()
+        if ok:
+            return True, f"primary[{self.primary.name}]: {msg}"
+        ok2, msg2 = self.fallback.health()
+        return ok2, (f"primary 不可用（{msg2 if not ok else ''}）"
+                     f"；fallback[{self.fallback.name}]: {msg2}")
+
+
 def get_backend(name: str = None, **kwargs) -> EmbeddingBackend:
     """按名字取后端。名字缺省时读环境变量 EMBEDDING_BACKEND（默认 dashscope）。
 
     这样「切回云端」= 改一个环境变量，不需要动代码。
     """
-    name = (name or os.getenv("EMBEDDING_BACKEND") or "dashscope").lower()
+    raw = (name or os.getenv("EMBEDDING_BACKEND") or "dashscope").lower()
+
+    # 形如 "ollama+dashscope"：主用 ollama，不可用时自动回退 dashscope
+    if "+" in raw:
+        prim_name, fb_name = raw.split("+", 1)
+        primary = _single(prim_name.strip(), **kwargs)
+        fallback = _single(fb_name.strip(), **kwargs)
+        return FailoverBackend(primary, fallback)
+
+    backend = _single(raw, **kwargs)
+
+    # 默认行为：选本地后端时，自动带云端兜底（可用 EMBEDDING_NO_FALLBACK=1 关掉）
+    # 理由：本地主机不常开，没有兜底会让 Agent 直接死。
+    if raw in ("ollama", "local") and not os.getenv("EMBEDDING_NO_FALLBACK"):
+        return FailoverBackend(backend, DashScopeBackend(**kwargs))
+    return backend
+
+
+def _single(name: str, **kwargs) -> EmbeddingBackend:
+    """构造单个后端（不做回退包装）。"""
     if name in ("dashscope", "cloud", "aliyun"):
         return DashScopeBackend(**kwargs)
     if name in ("ollama", "local"):
