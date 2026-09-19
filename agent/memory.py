@@ -9,7 +9,10 @@ agent/memory.py — 长期记忆（LTM）模块（RAG 实现，ChromaDB 版本�
   - 检索：用户提问时，用远程 embedding 生成查询向量，交给 ChromaDB 做近似最近邻（HNSW）检索，取 top-k 注入上下文。
 
 技术栈：
-  - 阿里云 DashScope text-embedding-v3：远程 embedding API（OpenAI 兼容，中文友好，速度快）。
+  - embedding 后端**可插拔**（2026/09/19）：云端 DashScope text-embedding-v3 或
+    局域网 Ollama（Qwen3-Embedding-0.6B），见 agent/embedding_backends.py。
+    用环境变量 EMBEDDING_BACKEND=dashscope|ollama 切换，默认 dashscope。
+    ⚠️ 两个后端的向量**不可混用**，故各自用独立的 ChromaDB collection。
   - ChromaDB：本地向量数据库（PersistentClient 持久化），内置 HNSW 索引，
     把之前的「numpy 暴力点积检索（O(N)）」升级为「索引近似最近邻（O(log N)）」。
 
@@ -27,6 +30,7 @@ import os
 import hashlib
 import numpy as np
 from dotenv import load_dotenv
+from agent.embedding_backends import get_backend, EMBED_DIM
 
 load_dotenv()
 
@@ -50,10 +54,26 @@ def _get_dashscope_key():
 class MemoryStore:
     """基于 ChromaDB 的长期记忆仓库：持久化 + HNSW 语义检索。"""
 
-    def __init__(self, model_name=DEFAULT_MODEL, top_k=8):
+    def __init__(self, model_name=DEFAULT_MODEL, top_k=8, backend=None,
+                 chroma_dir=None):
+        """
+        Args:
+            model_name: 兼容旧参数（保留，实际由 backend 决定模型）。
+            top_k: 检索条数上限。
+            backend: 可选的 embedding 后端实例（见 agent/embedding_backends.py）。
+                     不传则按环境变量 EMBEDDING_BACKEND 取（默认云端 DashScope）。
+            chroma_dir: 可选，覆盖向量库目录（评测用独立目录，不碰真实记忆）。
+        """
         self.top_k = top_k
         self.model_name = model_name
-        self.client = None  # 懒加载 OpenAI 兼容客户端（首次使用才建，省启动时间）
+        # 可插拔后端：默认仍是云端（不改变既有行为）
+        self.backend = backend or get_backend()
+        self.chroma_dir = chroma_dir or CHROMA_DIR
+        # 不同后端的向量**不可混用** → collection 名按后端区分，避免混表
+        self.collection_name = (
+            COLLECTION_NAME if self.backend.name == "dashscope"
+            else f"{COLLECTION_NAME}_{self.backend.name}"
+        )
         self._ensure_chroma()
         self.collection = self._collection()
 
@@ -62,51 +82,26 @@ class MemoryStore:
         """初始化 ChromaDB 客户端 + 集合（首次使用时创建）。"""
         import chromadb
         # PersistentClient：数据写到磁盘，跨进程重启后还在。
-        self._chroma = chromadb.PersistentClient(path=CHROMA_DIR)
+        self._chroma = chromadb.PersistentClient(path=self.chroma_dir)
         # 用 cosine 距离（等价于余弦相似度，向量已归一化）。
         # get_or_create_collection 已存在则复用，避免重建丢数据。
         self.collection = self._chroma.get_or_create_collection(
-            name=COLLECTION_NAME,
+            name=self.collection_name,
             metadata={"hnsw:space": "cosine"},
         )
 
     def _collection(self):
         return self.collection
 
-    # ---- embedding 客户端（懒加载）----
-    def _ensure_client(self):
-        """懒加载 OpenAI 兼容客户端（首次使用才建）。"""
-        if self.client is None:
-            from openai import OpenAI
-            key = _get_dashscope_key()
-            if not key or len(key) < 10:
-                raise RuntimeError("❌ 请在 .env 里配置 DASHSCOPE_API_KEY")
-            self.client = OpenAI(api_key=key, base_url=DASHSCOPE_BASE_URL)
-        return self.client
-
+    # ---- embedding（委托给可插拔后端，归一化在后端内统一做）----
     def _embed(self, texts):
-        """把文本转成向量（远程 API，归一化方便点积算相似度）。
+        """把文本转成向量。后端可插拔（云端 DashScope / 本地 Ollama）。
 
         支持：
           - texts 是 str  → 返回单个向量 np.ndarray (dim,)
           - texts 是 list → 返回 (N, dim) 矩阵
         """
-        single = isinstance(texts, str)
-        if single:
-            texts = [texts]
-        client = self._ensure_client()
-        resp = client.embeddings.create(
-            model=self.model_name,
-            input=texts,
-            dimensions=EMBED_DIM,
-        )
-        # DashScope/text-embedding-v3 输出已归一化，这里保险起见再归一化一次
-        vecs = np.asarray([x.embedding for x in resp.data], dtype=np.float32)
-        norms = np.linalg.norm(vecs, axis=1, keepdims=True)
-        vecs = vecs / np.maximum(norms, 1e-12)  # 归一化，避免除零
-        if single:
-            return vecs[0]
-        return vecs
+        return self.backend.embed(texts)
 
     # ---- 写入记忆 ----
     def add(self, text: str, meta: dict = None):
