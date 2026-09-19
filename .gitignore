@@ -6,6 +6,10 @@ venv/
 .env
 *.env
 !*.env.example
+# 备份文件常带 key，且名字多变（如 .env.bak_xxx 不会被 *.bak 覆盖）→ 一并挡掉
+.env.*
+*.env.*
+!*.env.example
 
 # 日志与运行产物
 server.log
