@@ -46,3 +46,6 @@ dist/
 # 第三方 MCP server（npm 安装产物，体积大，按需 npm install）
 mcp_servers/vendor/
 memory_backup_*.json
+
+#图表渲染QA的临时产物
+tmp-artifacts/

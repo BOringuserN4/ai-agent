@@ -97,11 +97,14 @@ ai-agent/
 │   ├── mcp-basics.md          # 协议章讲义（MCP：把天气工具适配成 MCP server）
 │   ├── local-inference.md     # 本地推理讲义（embedding 挪到局域网 Windows 主机）
 │   ├── memory-extraction.md   # 记忆抽取讲义（评测 + 云端基线 + 本地模型对比）
+│   ├── session-2026-09-19.md  # 学习总结：本地推理链路 + 记忆抽取评测
+│   ├── local-inference-chain.html # 本地推理链路图（单文件，浏览器打开）
 │   ├── agent-mainline.html      # Agent 主线图（单文件，浏览器直接打开）
 │   ├── agent-understanding-timeline.html  # 对 Agent 的理解演进时间线（对照纠偏）
 │   └── diagrams/
 │       ├── agent-mainline.svg
-│       └── agent-understanding-timeline.png
+│       ├── agent-understanding-timeline.png
+│       └── local-inference-chain.png
 ├── langfuse/             # Langfuse 自部署（docker-compose，.env 已 gitignore）
 └── agent/
     ├── __init__.py

@@ -4,6 +4,7 @@
 > （embedding、工具选择），通过局域网给 Mac 上的本项目用。
 > 本文记录**可行性结论、成本对比、实现方式、以及为什么核心价值不是省钱**。
 > 完成日期：2026/09/19。
+> 链路图：`docs/diagrams/local-inference-chain.png`（源文件 `docs/local-inference-chain.html`）
 
 ---
 

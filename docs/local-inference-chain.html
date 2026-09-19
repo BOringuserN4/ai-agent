@@ -1,0 +1,150 @@
+<!doctype html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>本地推理链路图 · 从 Mac 到 Windows 主机上的大模型</title>
+<style>
+:root{color-scheme:light dark;--bg:#f8fafc;--fg:#172033;--muted:#5b6475;--line:#64748b;
+--app:#dbeafe;--proto:#fde68a;--net:#e2e8f0;--svc:#dcfce7;--hw:#fecaca;--note:#f1f5f9;}
+@media (prefers-color-scheme:dark){:root{--bg:#0f172a;--fg:#e5e7eb;--muted:#a3adbd;--line:#94a3b8;
+--app:#1e3a8a;--proto:#92400e;--net:#334155;--svc:#14532d;--hw:#7f1d1d;--note:#1e293b;}}
+body{margin:0;background:var(--bg);color:var(--fg);
+font:14px/1.4 ui-sans-serif,system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}
+main{max-width:1460px;margin:28px auto;padding:0 18px;}
+svg{width:100%;height:auto;display:block;}
+.title{font-size:22px;font-weight:700;fill:var(--fg);}
+.subtitle{font-size:13.5px;fill:var(--muted);}
+.node{stroke:var(--line);stroke-width:1;}
+.f-app{fill:var(--app);} .f-proto{fill:var(--proto);} .f-net{fill:var(--net);}
+.f-svc{fill:var(--svc);} .f-hw{fill:var(--hw);} .f-note{fill:var(--note);}
+.body{font-size:12.5px;fill:var(--fg);}
+.small{font-size:12px;fill:var(--muted);}
+.tag{font-size:11.5px;font-weight:700;fill:var(--muted);}
+.lbl{font-size:15px;font-weight:700;fill:var(--fg);}
+.lno{font-size:17px;font-weight:700;fill:var(--muted);}
+.h{font-size:13px;font-weight:700;fill:var(--fg);}
+.edge{stroke:var(--line);stroke-width:1.6;fill:none;}
+.dash{stroke:var(--line);stroke-width:1.6;fill:none;stroke-dasharray:6 5;}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;fill:var(--fg);}
+</style>
+<main>
+<svg viewBox="0 0 1460 1460" role="img" aria-label="本地推理链路图">
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="var(--line)"/></marker>
+</defs>
+<text class="title" x="30" y="46">本地推理链路图 · 从 Mac 到 Windows 主机上的大模型</text>
+<text class="subtitle" x="30" y="72">同一个客户端代码，两条链路：差别只在 base_url。左边走公网到云，右边走局域网到你的主机。</text>
+
+<!-- ============ 连接线（先画，压在框下） ============ -->
+<!-- 主干分叉 -->
+<path class="edge" d="M 400 258 L 400 292" marker-end="url(#ar)" />
+<path class="edge" d="M 1040 258 L 1040 292" marker-end="url(#ar)" />
+<path class="edge" d="M 400 432 L 400 462" marker-end="url(#ar)" />
+<path class="edge" d="M 1040 432 L 1040 462" marker-end="url(#ar)" />
+<path class="edge" d="M 400 602 L 400 632" marker-end="url(#ar)" />
+<path class="edge" d="M 1040 602 L 1040 632" marker-end="url(#ar)" />
+<path class="edge" d="M 400 772 L 400 802" marker-end="url(#ar)" />
+<path class="edge" d="M 1040 772 L 1040 802" marker-end="url(#ar)" />
+<!-- 协议形状相同的横向虚线 -->
+<path class="dash" d="M 682 361 L 758 361" />
+<text class="tag" x="720" y="352" text-anchor="middle">形状相同</text>
+
+<!-- ============ 顶部应用层（横跨） ============ -->
+<rect class="node f-app" x="120" y="118" width="1160" height="140" rx="12" />
+<text class="tag" x="140" y="146">⑤ 应用层 · 你的代码（只在这里动手）</text>
+<text class="mono" x="140" y="176">from openai import OpenAI</text>
+<text class="mono" x="140" y="198">client = OpenAI(api_key="***", base_url=BASE_URL)   ← 唯一变量</text>
+<text class="mono" x="140" y="220">client.chat.completions.create(model=MODEL, messages=[...])</text>
+<text class="small" x="140" y="244">LangChain / LlamaIndex / 任何用 OpenAI SDK 的东西，都能这样接。这就是 N×M → N+M。</text>
+
+<!-- ============ 左列：云端 ============ -->
+<text class="lno" x="60" y="361" text-anchor="middle">④</text>
+<rect class="node f-proto" x="120" y="292" width="560" height="140" rx="12" />
+<text class="tag" x="140" y="320">协议层 · 公网</text>
+<text class="mono" x="140" y="348">POST https://api.deepseek.com/chat/completions</text>
+<text class="body" x="140" y="372">HTTPS + TLS 1.3，请求体是 OpenAI 格式的 JSON</text>
+<text class="body" x="140" y="394">Authorization: Bearer &lt;key&gt;</text>
+<text class="body" x="140" y="416">响应：choices[0].message.content</text>
+
+<text class="lno" x="60" y="531" text-anchor="middle">③</text>
+<rect class="node f-net" x="120" y="462" width="560" height="140" rx="12" />
+<text class="tag" x="140" y="490">网络层 · 公网</text>
+<text class="body" x="140" y="518">Mac → 家用路由器 → 运营商 → 云厂商入口</text>
+<text class="body" x="140" y="540">→ DeepSeek 机房</text>
+<text class="body" x="140" y="562">跨城往返，受公网抖动影响</text>
+<text class="small" x="140" y="586">实测：主对话 1.5s 级；embedding 158ms</text>
+
+<text class="lno" x="60" y="701" text-anchor="middle">②</text>
+<rect class="node f-svc" x="120" y="632" width="560" height="140" rx="12" />
+<text class="tag" x="140" y="660">服务层 · 云</text>
+<text class="body" x="140" y="688">DeepSeek 推理集群（网关 → 调度 → 批处理）</text>
+<text class="body" x="140" y="710">并发限制 2500｜按 token 计费｜峰谷分时</text>
+<text class="body" x="140" y="732">带 SLA；容量不足时会返回限流</text>
+
+<text class="lno" x="60" y="871" text-anchor="middle">①</text>
+<rect class="node f-hw" x="120" y="802" width="560" height="140" rx="12" />
+<text class="tag" x="140" y="830">硬件层 · 云</text>
+<text class="body" x="140" y="858">数据中心 GPU 集群（规模未公开）</text>
+<text class="body" x="140" y="880">deepseek-flash ≈ V4.1-Flash｜1M 上下文</text>
+<text class="body" x="140" y="902">你只看到「一个模型名」，看不到机器</text>
+
+<!-- ============ 右列：本地 ============ -->
+<rect class="node f-proto" x="760" y="292" width="560" height="140" rx="12" />
+<text class="tag" x="780" y="320">协议层 · 局域网</text>
+<text class="mono" x="780" y="348">POST http://192.168.1.252:11434/v1/chat/completions</text>
+<text class="body" x="780" y="372">HTTP（明文，无 TLS）+ 同一套 JSON 形状</text>
+<text class="body" x="780" y="394">api_key 是占位符 —— Ollama 不校验</text>
+<text class="body" x="780" y="416">响应：choices[0].message.content ← 与左边一致</text>
+
+<rect class="node f-net" x="760" y="462" width="560" height="140" rx="12" />
+<text class="tag" x="780" y="490">网络层 · 局域网</text>
+<text class="body" x="780" y="518">Mac 192.168.1.245 → Windows 192.168.1.252:11434</text>
+<text class="body" x="780" y="540">同一台路由器下，不经过公网（数据不出家门）</text>
+<text class="body" x="780" y="562">TCP 握手 12ms</text>
+<text class="small" x="780" y="586">前置条件：OLLAMA_HOST=0.0.0.0:11434 + 防火墙放行</text>
+
+<rect class="node f-svc" x="760" y="632" width="560" height="140" rx="12" />
+<text class="tag" x="780" y="660">服务层 · 你的主机</text>
+<text class="body" x="780" y="688">Ollama 守护进程 v0.34.2（单进程）</text>
+<text class="body" x="780" y="710">收到请求 → 查模型是否在显存 → 冷启动加载 → 转发推理</text>
+<text class="body" x="780" y="732">对外暴露两套 API：/api/*（原生）与 /v1/*（OpenAI 兼容）</text>
+
+<rect class="node f-hw" x="760" y="802" width="560" height="140" rx="12" />
+<text class="tag" x="780" y="830">硬件层 · 你的主机</text>
+<text class="body" x="780" y="858">RX 7900 GRE 16GB（gfx1100 / RDNA3）</text>
+<text class="body" x="780" y="880">ROCm v7 / HIP7 驱动 → amdhip64.dll → GPU</text>
+<text class="body" x="780" y="902">缺这个 dll 会静默回落 CPU，慢 10-100 倍</text>
+
+<!-- ============ 响应回流 ============ -->
+<rect class="node f-note" x="120" y="972" width="1160" height="118" rx="12" />
+<text class="tag" x="140" y="1000">响应回流（两条链路在这一层已经分不出差别）</text>
+<text class="mono" x="140" y="1028">{"choices":[{"message":{"role":"assistant","content":"..."}}],"usage":{...}}</text>
+<text class="body" x="140" y="1054">同一份代码原样解析 —— 它不知道对面是数据中心还是一台家用主机。差别在「内容质量」和「速度」，不在「结构」。</text>
+<text class="small" x="140" y="1076">实测：云端 1.59s / 一句话答完　　本地 14.44s / 给了三个版本（未关思考）</text>
+
+<!-- ============ 相同 vs 不同 ============ -->
+<rect class="node f-svc" x="120" y="1116" width="560" height="200" rx="12" />
+<text class="h" x="140" y="1146">✅ 相同：协议形状</text>
+<text class="body" x="140" y="1176">· 请求格式（messages / model / temperature）</text>
+<text class="body" x="140" y="1198">· 响应结构（choices / usage / finish_reason）</text>
+<text class="body" x="140" y="1220">· 流式输出（SSE）、错误码、工具调用声明</text>
+<text class="body" x="140" y="1242">· 所以客户端「零改动」——这是兼容层的全部意义</text>
+<text class="small" x="140" y="1270">Ollama 实现一次 OpenAI 协议，所有 OpenAI SDK 客户端都能用。</text>
+<text class="small" x="140" y="1292">和你学的 MCP 是同一个思想：把 N×M 压成 N+M。</text>
+
+<rect class="node f-hw" x="760" y="1116" width="560" height="200" rx="12" />
+<text class="h" x="780" y="1146">❌ 不同：模型能力</text>
+<text class="body" x="780" y="1176">· 参数量：gemma4-e4b 7.5B vs deepseek 未公开</text>
+<text class="body" x="780" y="1198">· 上下文：128K vs 1M｜并发：1 vs 2500</text>
+<text class="body" x="780" y="1220">· 可用性：关机就没了 vs 带 SLA</text>
+<text class="body" x="780" y="1242">· 计费：电费 vs 按 token（含峰谷）</text>
+<text class="small" x="780" y="1270">一句话：**协议可以伪造，能力不能伪造。**</text>
+<text class="small" x="780" y="1292">本地适合窄任务（embedding/分类/抽取），不适合替代主对话模型。</text>
+
+<!-- ============ 底部结论 ============ -->
+<rect class="node f-note" x="120" y="1348" width="1200" height="96" rx="12" />
+<text class="h" x="140" y="1378">📌 本次踩过的四个坑（都在「最后一公里」上）</text>
+<text class="body" x="140" y="1404">① 默认只绑 127.0.0.1（局域网连不上）　② 改完环境变量不重启 Ollama 不生效</text>
+<text class="body" x="140" y="1426">③ 防火墙要放行入站 11434（且网络配置档须为「专用」）　④ 缺 AMD HIP 运行时 → 静默回落 CPU</text>
+</svg>
+</main>
