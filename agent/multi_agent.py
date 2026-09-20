@@ -16,6 +16,7 @@ agent/multi_agent.py — 多 Agent 调度器（Router + Worker 架构）
 于是漏答一半。根本原因不是「跨域」，是调度策略把跨域当成了判据。
 """
 import json
+import time
 from agent.core import Agent
 from agent.roles import ROLE_FACTORIES
 from agent.memory import MemoryStore
@@ -127,23 +128,69 @@ class MultiAgent:
             print(f"   {answer}")
             return answer
 
-        # 多子任务：Fan-out（各专家只答自己那部分）→ Fan-in（归并）
-        parts = []
-        for t in tasks:
-            expert, subtask = t["expert"], t["subtask"]
-            worker = self.experts[expert]
-            worker.reset()
-            ans = worker.run_traced(subtask, trace_name=f"expert-{expert}", user_id="demo")
-            parts.append((expert, subtask, ans))
+        # 多子任务：Fan-out（**真并行**）→ Fan-in（归并）
+        #
+        # 为什么用多线程而不是多进程（2026/09/20）：
+        #   每个专家的时间几乎全花在「等 LLM 返回」（I/O 密集），
+        #   Python 在等 I/O 时会释放 GIL，所以多线程能真并行；
+        #   而多进程要复制整个进程，那些共享对象（memory / 专家实例）
+        #   在新进程里都是另一份，通信成本远高于收益。
+        #
+        # 为什么不用加锁：
+        #   ① 每个专家是独立 Agent 实例（各自的 history/tracer/usage），不共享；
+        #   ② _plan() 已按 expert 去重，同一个专家不会同时出现在两个子任务里；
+        #   ③ 唯一共享的是 memory（ChromaDB），实测 8 线程并发读写无异常，
+        #      且 id=md5(text) 幂等，即使竞态也只是覆盖而非脏数据。
+        #
+        # 输出说明：并行时各专家的打印会交错，这里改为「先收集、再按序输出」，
+        # 保证可读性（测量数字来自主线程，不受影响）。
+        t_fanout = time.time()
+        parts = self._fanout_parallel(tasks)
+        fanout_s = round(time.time() - t_fanout, 2)
+
+        for expert, subtask, ans, one_s in parts:
+            print(f"   ✅ [{expert}] 完成（{one_s}s）：{ans[:60]}"
+                  f"{'…' if len(ans) > 60 else ''}")
+        print(f"⏱️  Fan-out 并行耗时：{fanout_s}s"
+              f"（串行估算 ≈ {round(sum(p[3] for p in parts), 2)}s）")
+
         answer = self._merge(user_input, parts)
         print(f"\n👥 [Multi-Agent] 汇总：{len(tasks)} 位专家完成并归并：")
         print(f"   {answer}")
         return answer
 
+    def _fanout_parallel(self, tasks: list, max_workers: int = None) -> list:
+        """把各专家的子任务**并发**跑掉，返回 [(expert, subtask, answer, 耗时)]。
+
+        为什么单独抽一个方法：让「并行」这件事有一个**可替换的落点**——
+        将来想换 asyncio / 进程池 / 限流，只改这里，run() 不用动。
+
+        顺序保证：结果按 tasks 的原始顺序返回（用 executor.map 天然保序），
+        这样归并员的输入顺序稳定，输出可复现。
+        """
+        from concurrent.futures import ThreadPoolExecutor
+
+        def _run_one(t):
+            expert, subtask = t["expert"], t["subtask"]
+            worker = self.experts[expert]
+            worker.reset()          # 各专家实例独立，这里并发无竞争
+            t0 = time.time()
+            ans = worker.run_traced(subtask, trace_name=f"expert-{expert}",
+                                    user_id="demo")
+            return (expert, subtask, ans, round(time.time() - t0, 2))
+
+        # 线程数 = 子任务数（任务本来就少，不必开更多）
+        workers = max_workers or len(tasks)
+        with ThreadPoolExecutor(max_workers=workers,
+                                thread_name_prefix="fanout") as pool:
+            return list(pool.map(_run_one, tasks))
+
     def _merge(self, user_input: str, parts: list) -> str:
         """Fan-in：把各专家子结果合成一段连贯回答。"""
+        # 注意：parts 现在可能带第 4 项（单任务耗时，供并行模式上报用），
+        # 所以用 `*_` 吞掉多余字段，兼容 3 元组与 4 元组两种形态。
         blocks = "\n".join(
-            f"[{e}] 子任务：{s}\n结果：{a}" for e, s, a in parts
+            f"[{e}] 子任务：{s}\n结果：{a}" for e, s, a, *_ in parts
         )
         prompt = (
             f"【用户原问题】{user_input}\n\n【各专家结果】\n{blocks}\n\n"

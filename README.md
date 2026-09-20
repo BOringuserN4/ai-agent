@@ -76,7 +76,8 @@ ai-agent/
 ├── eval_memory_recall.py # 召回质量迷你评测（该召回/不该召回 + 阈值扫描）
 ├── eval_evaluator_critic.py # Evaluator-Critic 正反例对照实验（轮次×分数 + token 账）
 ├── eval_embedding_compare.py # 云端/本地 embedding 的 A/B 对比（召回质量 + 延迟）
-├── eval_memory_extract.py # 记忆抽取质量评测（12 用例 × 3 维度，确定性判分）
+├── eval_memory_extract.py # 记忆抽取质量评测（20 用例 × 3 维度，确定性判分）
+├── eval_fanout_parallel.py # 真并行 Fan-out 对照实验（墙钟/token/扩展性）
 ├── scripts/
 │   ├── win_ollama_setup.ps1     # Windows 主机：Ollama 局域网服务一键配置
 │   └── check_local_llm_host.py  # Mac 侧：分 5 步诊断主机连通性
@@ -98,6 +99,7 @@ ai-agent/
 │   ├── local-inference.md     # 本地推理讲义（embedding 挪到局域网 Windows 主机）
 │   ├── memory-extraction.md   # 记忆抽取讲义（评测 + 云端基线 + 本地模型对比）
 │   ├── session-2026-09-19.md  # 学习总结：本地推理链路 + 记忆抽取评测
+│   ├── fanout-parallel.md     # 编排章讲义：真并行 Fan-out
 │   ├── local-inference-chain.html # 本地推理链路图（单文件，浏览器打开）
 │   ├── agent-mainline.html      # Agent 主线图（单文件，浏览器直接打开）
 │   ├── agent-understanding-timeline.html  # 对 Agent 的理解演进时间线（对照纠偏）
@@ -208,7 +210,7 @@ ai-agent/
 - ~~多 Agent 拆与不拆的判据~~ ✅ 已完成（multi_agent.py 重构）
 - ~~Evaluator-Critic 编排~~ ✅ 已完成（evaluator_critic.py，实测见第八节）
 - Router 成本优化（当前每条都问 LLM，约 850 token/次 → 加规则预筛）
-- 真并行 Fan-out（当前串行 `for` 循环）
+- ~~真并行 Fan-out~~ ✅ 已完成（2026/09/20，`_fanout_parallel`，实测省 41% 墙钟）
 - MCP 工具生态
 - 可视化界面
 

@@ -197,7 +197,7 @@ Plan → Act → Reflect → Replan
 **任务清单**：
 - [x] **编排章 · Pipeline**：在 multi_agent.py 上加 Pipeline 模式（数学→总结）（✅ 已完成 2026/09/08：`pipeline.py`）
 - [x] **编排章 · Evaluator-Critic**：生成→评分→重做（✅ 已完成 2026/09/16：`agent/evaluator_critic.py`；实测见 README 第八节）
-- [x] **编排章 · Fan-out / Fan-in**：跨域任务切分与汇总（✅ 已完成 2026/09/10：`multi_agent.py` 真 Fan-out；当前为串行，真并行待做）
+- [x] **编排章 · Fan-out / Fan-in**：跨域任务切分与汇总（✅ 2026/09/10 切分与归并；✅ 2026/09/20 **真并行**：`_fanout_parallel` 实测省 41% 墙钟，见 `docs/fanout-parallel.md`）
 - [x] **协议章 · MCP 基础**：跑通一个 MCP server demo（✅ 已完成 2026/09/17：`mcp_servers/weather_server.py`；讲义 `docs/mcp-basics.md`）
 
 **验收**：✅ 本项目能演示 4 种编排模式（Router + Pipeline + Evaluator-Critic + Fan-out）
@@ -235,6 +235,7 @@ Plan → Act → Reflect → Replan
 | 协议章 | 工具裁剪（按需挂载，实测省 42%）| 2026/09/17 | `agent/tool_selector.py`、`mcp_tool_pruning_demo.py` |
 | 延伸 | 本地推理（embedding 挪到局域网主机）| 2026/09/19 | `agent/embedding_backends.py`、`eval_embedding_compare.py`、`docs/local-inference.md` |
 | 延伸 | 记忆抽取评测 + 本地化评估 | 2026/09/19 | `eval_memory_extract.py`、`docs/memory-extraction.md` |
+| 编排章 | 真并行 Fan-out | 2026/09/20 | `agent/multi_agent.py`、`eval_fanout_parallel.py`、`docs/fanout-parallel.md` |
 
 
 ### 5.5 时间投入参考
