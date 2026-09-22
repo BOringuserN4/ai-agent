@@ -236,6 +236,7 @@ Plan → Act → Reflect → Replan
 | 延伸 | 本地推理（embedding 挪到局域网主机）| 2026/09/19 | `agent/embedding_backends.py`、`eval_embedding_compare.py`、`docs/local-inference.md` |
 | 延伸 | 记忆抽取评测 + 本地化评估 | 2026/09/19 | `eval_memory_extract.py`、`docs/memory-extraction.md` |
 | 编排章 | 真并行 Fan-out | 2026/09/20 | `agent/multi_agent.py`、`eval_fanout_parallel.py`、`docs/fanout-parallel.md` |
+| 编排章 | Router 成本优化（规则预筛）| 2026/09/22 | `agent/router_prefilter.py`、`eval_router_prefilter.py`、`docs/router-cost.md` |
 
 
 ### 5.5 时间投入参考

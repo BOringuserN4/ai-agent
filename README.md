@@ -78,6 +78,7 @@ ai-agent/
 ├── eval_embedding_compare.py # 云端/本地 embedding 的 A/B 对比（召回质量 + 延迟）
 ├── eval_memory_extract.py # 记忆抽取质量评测（20 用例 × 3 维度，确定性判分）
 ├── eval_fanout_parallel.py # 真并行 Fan-out 对照实验（墙钟/token/扩展性）
+├── eval_router_prefilter.py # Router 规则预筛对照实验（14 条 golden set）
 ├── scripts/
 │   ├── win_ollama_setup.ps1     # Windows 主机：Ollama 局域网服务一键配置
 │   └── check_local_llm_host.py  # Mac 侧：分 5 步诊断主机连通性
@@ -100,6 +101,7 @@ ai-agent/
 │   ├── memory-extraction.md   # 记忆抽取讲义（评测 + 云端基线 + 本地模型对比）
 │   ├── session-2026-09-19.md  # 学习总结：本地推理链路 + 记忆抽取评测
 │   ├── fanout-parallel.md     # 编排章讲义：真并行 Fan-out
+│   ├── router-cost.md         # 编排章讲义：Router 成本优化（规则预筛）
 │   ├── local-inference-chain.html # 本地推理链路图（单文件，浏览器打开）
 │   ├── agent-mainline.html      # Agent 主线图（单文件，浏览器直接打开）
 │   ├── agent-understanding-timeline.html  # 对 Agent 的理解演进时间线（对照纠偏）
@@ -124,6 +126,7 @@ ai-agent/
     ├── evaluator_critic.py # Evaluator-Critic 模式（生成→批判→不达标重做，代码封顶轮次）
     ├── mcp_bridge.py     # MCP 桥接（异步 server ↔ 同步 Agent，外挂式挂载工具）
     ├── tool_selector.py  # 工具裁剪（关键词分组，先裁后挂，省工具清单的租金）
+    ├── router_prefilter.py # Router 规则预筛（零 token 判断要不要拆任务）
     └── embedding_backends.py # embedding 可插拔后端（云端 DashScope / 本地 Ollama）
 ```
 
@@ -209,7 +212,7 @@ ai-agent/
 - ~~召回质量评测 + 阈值闸门~~ ✅ 已完成（eval_memory_recall.py + memory.py）
 - ~~多 Agent 拆与不拆的判据~~ ✅ 已完成（multi_agent.py 重构）
 - ~~Evaluator-Critic 编排~~ ✅ 已完成（evaluator_critic.py，实测见第八节）
-- Router 成本优化（当前每条都问 LLM，约 850 token/次 → 加规则预筛）
+- ~~Router 成本优化~~ ✅ 已完成（2026/09/22：清工具声明 + 规则预筛，86% 跳过率，总 token −25%）
 - ~~真并行 Fan-out~~ ✅ 已完成（2026/09/20，`_fanout_parallel`，实测省 41% 墙钟）
 - MCP 工具生态
 - 可视化界面

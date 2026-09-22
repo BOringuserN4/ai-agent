@@ -20,6 +20,7 @@ import time
 from agent.core import Agent
 from agent.roles import ROLE_FACTORIES
 from agent.memory import MemoryStore
+from agent.router_prefilter import RouterPrefilter
 
 
 class MultiAgent:
@@ -49,8 +50,20 @@ class MultiAgent:
                 "- subtask 需自包含、具体；expert=solo 时 subtask 可为整题。\n"
                 "只输出 JSON，不要其他文字。"
             ),
-            tools=None,  # 调度器不需要工具
+            tools=None,  # 构造期无法表达「零工具」，见下方显式清空
         )
+        # ⚠️ 语义陷阱（2026/09/22 实测修复）：
+        #   Agent 里 `tools=None` 的语义是「**全部工具**」（见 core.py 的
+        #   `set(tools) if tools else None`），而 `tools=()` 也会因空集为假
+        #   而落到同一个分支 —— 两种写法都拿不到「零工具」。
+        #   结果：Router 每次路由都背着 3 个工具的声明（约 386 token），
+        #   而它只输出 JSON、一个工具都不用 —— 占输入 token 约一半，纯浪费。
+        #   所以构造后**显式清空**（这是唯一能表达「零工具」的位置）。
+        self.router.tools_spec = []
+        self.router.tool_registry = {}
+        # 规则预筛（2026/09/22）：明显不用拆的，直接走 solo，省掉一次 Router 调用。
+        # 依据与取舍见 agent/router_prefilter.py 的模块注释。
+        self.prefilter = RouterPrefilter()
         # 归并员（Fan-in）：把各专家的子结果合成一段连贯回答
         self.merger = Agent(
             system_prompt=(
@@ -60,6 +73,10 @@ class MultiAgent:
             ),
             tools=None,
         )
+        # 同 Router：归并员也只是「把已给结果拼成一段话」，不调工具，
+        # 同样显式清空，省掉这 386 token。
+        self.merger.tools_spec = []
+        self.merger.tool_registry = {}
         # 专家 Worker 们（懒加载，复用同一份配置）
         self.experts = {}
         for name, factory in ROLE_FACTORIES.items():
@@ -80,7 +97,18 @@ class MultiAgent:
           - 越权心算（天气专家去算数学）
           - 自相矛盾（各说「这半不归我管」）
         兼容旧格式（experts / expert 字段）。
+
+        成本优化（2026/09/22）：先用**零 token 的规则预筛**拦一道——
+        规则判定「明显不用拆」的直接返回 solo，跳过 Router 这个付费判断。
+        规则不确定时才问 Router（详见 agent/router_prefilter.py）。
         """
+        if self.prefilter is not None:
+            decision, reason = self.prefilter.decide(user_input)
+            if decision == "skip":
+                print(f"⚡ 预筛跳过 Router（{reason}）→ 直接 solo")
+                return [{"expert": "solo", "subtask": user_input}]
+            print(f"🧭 预筛交给 Router（{reason}）")
+
         self.router.reset()  # 每次重新规划，避免历史干扰
         result = self.router.run_traced(user_input, trace_name="router", user_id="demo")
         print(f"🧭 Router 规划 → {result}")
