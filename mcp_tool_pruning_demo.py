@@ -20,7 +20,6 @@ mcp_tool_pruning_demo.py — 工具裁剪：干掉「工具清单的租金」
 用法：.venv/bin/python mcp_tool_pruning_demo.py
 """
 import json
-import sys
 import time
 from pathlib import Path
 

@@ -28,44 +28,28 @@ agent/memory.py — 长期记忆（LTM）模块（RAG 实现，ChromaDB 版本�
 """
 import os
 import hashlib
-import numpy as np
 from dotenv import load_dotenv
-from agent.embedding_backends import get_backend, EMBED_DIM
+from agent.embedding_backends import get_backend
 
 load_dotenv()
-
-# 阿里云 DashScope embedding 模型（OpenAI 兼容接口，中文效果好，速度快，无需本地模型）
-DEFAULT_MODEL = "text-embedding-v3"
-# DashScope OpenAI 兼容端点
-DASHSCOPE_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-# 默认输出维度（支持 Matryoshka：可动态调小省存储，用默认 1024）
-EMBED_DIM = 1024
 
 # ChromaDB 持久化目录（运行时生成，含用户信息，不入库）
 CHROMA_DIR = os.path.join(os.path.dirname(__file__), "..", "chroma_data")
 COLLECTION_NAME = "memory_store"
 
 
-def _get_dashscope_key():
-    """从环境变量读阿里云 DashScope key。"""
-    return os.getenv("DASHSCOPE_API_KEY", "")
-
-
 class MemoryStore:
     """基于 ChromaDB 的长期记忆仓库：持久化 + HNSW 语义检索。"""
 
-    def __init__(self, model_name=DEFAULT_MODEL, top_k=8, backend=None,
-                 chroma_dir=None):
+    def __init__(self, top_k=8, backend=None, chroma_dir=None):
         """
         Args:
-            model_name: 兼容旧参数（保留，实际由 backend 决定模型）。
             top_k: 检索条数上限。
             backend: 可选的 embedding 后端实例（见 agent/embedding_backends.py）。
                      不传则按环境变量 EMBEDDING_BACKEND 取（默认云端 DashScope）。
             chroma_dir: 可选，覆盖向量库目录（评测用独立目录，不碰真实记忆）。
         """
         self.top_k = top_k
-        self.model_name = model_name
         # 可插拔后端：默认仍是云端（不改变既有行为）
         self.backend = backend or get_backend()
         self.chroma_dir = chroma_dir or CHROMA_DIR
@@ -107,15 +91,12 @@ class MemoryStore:
         # collection 的创建延后到 _sync_collection()，因为后端可能带自动回退、
         # 实际生效的后端要到运行时才确定。
 
-    def _collection(self):
-        return self.collection
-
     # ---- embedding（委托给可插拔后端，归一化在后端内统一做）----
     def _embed(self, texts):
         """把文本转成向量。后端可插拔（云端 DashScope / 本地 Ollama）。
 
         支持：
-          - texts 是 str  → 返回单个向量 np.ndarray (dim,)
+          - texts 是 str  → 返回单个向量（一维数组）
           - texts 是 list → 返回 (N, dim) 矩阵
         """
         return self.backend.embed(texts)

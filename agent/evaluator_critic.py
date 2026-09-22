@@ -31,7 +31,6 @@ agent/evaluator_critic.py — Evaluator-Critic 模式（生成 → 批判 → �
   - 每轮都上报 Langfuse（能看到「第几轮、几分」），token 按角色归因。
 """
 import contextlib
-import json
 import time
 
 from agent.core import Agent, get_langfuse

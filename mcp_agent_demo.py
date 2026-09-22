@@ -17,7 +17,6 @@ mcp_agent_demo.py — 对照实验：同一任务，「本地工具」vs「MCP �
 用法：.venv/bin/python mcp_agent_demo.py
 """
 import json
-import sys
 import time
 from pathlib import Path
 

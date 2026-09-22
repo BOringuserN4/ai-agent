@@ -18,7 +18,6 @@ mcp_external_demo.py — 方案 B：接一个**别人写好的** MCP server
 用法：.venv/bin/python mcp_external_demo.py
 """
 import json
-import sys
 import time
 from pathlib import Path
 

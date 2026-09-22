@@ -26,7 +26,6 @@ agent/tool_selector.py — 工具裁剪（按需加载），省掉「工具清�
   - 召回是近似的：关键词匹配会有「该选没选」和「不该选却选了」；
   - 多一层代码路径，出问题时要能降级回全量（提供 `always_include` / 全量开关）。
 """
-import re
 
 
 class ToolSelector:
