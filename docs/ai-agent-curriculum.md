@@ -237,6 +237,7 @@ Plan → Act → Reflect → Replan
 | 延伸 | 记忆抽取评测 + 本地化评估 | 2026/09/19 | `eval_memory_extract.py`、`docs/memory-extraction.md` |
 | 编排章 | 真并行 Fan-out | 2026/09/20 | `agent/multi_agent.py`、`eval_fanout_parallel.py`、`docs/fanout-parallel.md` |
 | 编排章 | Router 成本优化（规则预筛）| 2026/09/22 | `agent/router_prefilter.py`、`eval_router_prefilter.py`、`docs/router-cost.md` |
+| 收尾章 | 记忆用例评测（补评测链路的缝）| 2026/09/23 | `agent/golden_set.py`、`eval_memory_cases.py`、`docs/memory-cases.md` |
 
 
 ### 5.5 时间投入参考

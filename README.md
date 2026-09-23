@@ -79,6 +79,7 @@ ai-agent/
 ├── eval_memory_extract.py # 记忆抽取质量评测（20 用例 × 3 维度，确定性判分）
 ├── eval_fanout_parallel.py # 真并行 Fan-out 对照实验（墙钟/token/扩展性）
 ├── eval_router_prefilter.py # Router 规则预筛对照实验（14 条 golden set）
+├── eval_memory_cases.py   # 记忆用例评测（有/无记忆两遍对照，5 条用例）
 ├── scripts/
 │   ├── win_ollama_setup.ps1     # Windows 主机：Ollama 局域网服务一键配置
 │   └── check_local_llm_host.py  # Mac 侧：分 5 步诊断主机连通性
@@ -102,6 +103,7 @@ ai-agent/
 │   ├── session-2026-09-19.md  # 学习总结：本地推理链路 + 记忆抽取评测
 │   ├── fanout-parallel.md     # 编排章讲义：真并行 Fan-out
 │   ├── router-cost.md         # 编排章讲义：Router 成本优化（规则预筛）
+│   ├── memory-cases.md        # 收尾章讲义：记忆用例评测（补两套评测之间的缝）
 │   ├── local-inference-chain.html # 本地推理链路图（单文件，浏览器打开）
 │   ├── agent-mainline.html      # Agent 主线图（单文件，浏览器直接打开）
 │   ├── agent-understanding-timeline.html  # 对 Agent 的理解演进时间线（对照纠偏）

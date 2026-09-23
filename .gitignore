@@ -49,3 +49,4 @@ memory_backup_*.json
 
 #图表渲染QA的临时产物
 tmp-artifacts/
+chroma_data_memcases/
