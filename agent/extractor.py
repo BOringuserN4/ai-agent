@@ -45,6 +45,58 @@ questions 的写法要求（重要）：
 3. 不要记的：问候、寒暄、"你好""谢谢"、一次性数学计算、模糊回复("嗯""哦")"""
 
 
+QUESTIONS_PROMPT = """你是「记忆检索助手」。给定一条已记住的事实，写出用户日后**可能怎么问**它。
+
+要求：
+- 输出严格的 JSON，格式 {"questions": ["问法1", "问法2", "问法3"]}
+- 2~4 条，覆盖不同措辞（正式/口语/间接），不要只换标点
+- 必须让这些问题**只能由这条事实回答**（不要写成能泛化到别的事实的问法）
+- 用用户第一人称视角问（「我…」）
+
+例：事实「用户是一名测试开发工程师」
+     → {"questions": ["我是做什么工作的", "我的职业是什么", "我干啥的"]}"""
+
+
+def suggest_questions(text: str, client=None, model: str = "deepseek-flash",
+                      reasoning_effort: str = "none") -> list:
+    """给一条**已存在的**记忆补出「可能被怎么问」。
+
+    用途：迁移旧记忆（早期存入的记忆没有 questions，享受不到增富收益）。
+    返回问题列表；失败时返回空列表（调用方应容忍）。
+    """
+    import json as _json
+    import os as _os
+    text = (text or "").strip()
+    if not text:
+        return []
+    try:
+        if client is None:
+            from openai import OpenAI
+            key = _os.getenv("DEEPSEEK_API_KEY", "")
+            if not key:
+                return []
+            client = OpenAI(api_key=key, base_url="https://api.deepseek.com")
+        # ⚠️ 必须关思考（2026/09/29 实测）：deepseek-flash 默认开思考，
+        # 生成 4 条问题会烧光 max_tokens 预算 → content 为空、finish_reason=length
+        # → 静默返回 []。这与 2026/09/19 在本地模型上踩的坑**同一类**：
+        # 思考吃光输出预算导致的**静默失败**。
+        kwargs = dict(
+            model=model, temperature=0,
+            messages=[{"role": "system", "content": QUESTIONS_PROMPT},
+                      {"role": "user", "content": f"事实：{text}"}],
+            max_tokens=400,
+        )
+        if reasoning_effort:
+            kwargs["reasoning_effort"] = reasoning_effort
+        resp = client.chat.completions.create(**kwargs)
+        content = (resp.choices[0].message.content or "").strip()
+        data = _json.loads(content[content.find("{"):content.rfind("}") + 1])
+        qs = data.get("questions") or []
+        return [str(q).strip() for q in qs if str(q).strip()][:4]
+    except Exception:
+        return []
+
+
 def build_embed_text(text: str, questions: list = None) -> str:
     """把「事实 + 可能被怎么问」拼成**专用于向量化**的文本。
 
@@ -75,7 +127,7 @@ class MemoryExtractor:
     """让 LLM 决定"这轮对话是否值得长期记"的过滤器。"""
 
     def __init__(self, model="deepseek-flash", client=None, reasoning_effort=None,
-                 max_tokens=200):
+                 max_tokens=600):
         """
         Args:
             model: 模型名。
@@ -83,7 +135,10 @@ class MemoryExtractor:
             reasoning_effort: 传给模型（None=不传）。**本地小模型强烈建议设 "none"**：
                 实测 gemma4-e4b 在思考模式下会把 max_tokens 预算全烧在推理上，
                 正文返回空字符串，导致抽取器兜底为 keep=False（等于「什么都不记」）。
-            max_tokens: 输出上限。思考模式会吃掉它，故本地模型可适当调大。
+            max_tokens: 输出上限。**思考模式会吃掉它** —— 默认 600 是为留足预算：
+                实测该任务思考约用 9~49 token，但生成类任务（如 suggest_questions）
+                可烧光 200 的上限，导致 content 为空、finish_reason=length，
+                表现为**静默失败**（2026/09/29 实测踩到）。
         """
         self.model = model
         self.client = client  # 懒加载：调用时才建
@@ -120,7 +175,16 @@ class MemoryExtractor:
             kwargs["reasoning_effort"] = self.reasoning_effort
         try:
             resp = client.chat.completions.create(**kwargs)
-            content = resp.choices[0].message.content.strip()
+            content = (resp.choices[0].message.content or "").strip()
+            # ⚠️ 显式识别「思考吃光输出预算」（2026/09/29）：
+            # 这时 content 为空且 finish_reason=length。若不特判，会走到下面的
+            # 解析失败分支，与「真的没什么可记」长得一样 → **静默失败**。
+            if not content and resp.choices[0].finish_reason == "length":
+                u = getattr(resp, "usage", None)
+                detail = getattr(getattr(u, "completion_tokens_details", None),
+                                 "reasoning_tokens", None)
+                return {"keep": False, "text": "", "questions": [], "tags": [],
+                        "_error": f"budget_exhausted:reasoning={detail}"}
         except Exception as e:
             # API 失败：兜底为不记（避免污染记忆库）
             return {"keep": False, "text": "", "questions": [], "tags": [],

@@ -84,7 +84,9 @@ def main():
     all_rows = []      # (expect, [(idx, score), ...])
     for case in CASES:
         q, expect = case["query"], case["expect"]
-        res = store.search(q, top_k=len(MEMORIES))   # 全量返回，才能看清分布
+        # ⚠️ 必须显式 min_score=0.0：search() 默认带阈值过滤，
+        # 否则负例在进扫描前就被滤掉，所有阈值行结果相同 —— 扫描退化、自证完美。
+        res = store.search(q, top_k=len(MEMORIES), min_score=0.0)
         # 把 text 映射回下标
         scored = []
         for r in res:

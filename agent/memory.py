@@ -33,6 +33,14 @@ from agent.embedding_backends import get_backend
 
 load_dotenv()
 
+# 召回阈值（2026/09/29 由 0.6 下调到 0.46）
+# 依据：把「自然口语问法」纳入评测后重新推导——
+#   v3@1024 合并空档只有 +0.0116（几乎分不开），v4@1024 为 +0.0653；
+#   v4 下的推荐区间是 (0.4274, 0.4927]，取中点附近 0.46。
+#   旧的 0.6 是在「只含标准措辞」的语料上定的，遇到自然问法必然漏召。
+# 可用环境变量 MEMORY_MIN_SCORE 覆盖。
+MIN_SCORE = float(os.getenv("MEMORY_MIN_SCORE") or 0.46)
+
 # ChromaDB 持久化目录（运行时生成，含用户信息，不入库）
 CHROMA_DIR = os.path.join(os.path.dirname(__file__), "..", "chroma_data")
 COLLECTION_NAME = "memory_store"
@@ -60,10 +68,29 @@ class MemoryStore:
         self._ensure_chroma()
         self._sync_collection(initial=True)
 
-    def _collection_name_for(self, backend_name: str) -> str:
-        """按后端名推导 collection 名（云端沿用原名，保证既有数据不受影响）。"""
-        return COLLECTION_NAME if backend_name == "dashscope" \
-            else f"{COLLECTION_NAME}_{backend_name}"
+    def _space_id(self) -> str:
+        """当前向量空间的标识：后端 + 模型 + 维度。
+
+        为什么必须包含模型与维度（2026/09/29 修正）：
+          原先只按后端名（dashscope / ollama）区分集合 —— 但**同后端内换模型
+          同样是换向量空间**。换模型后若沿用同一集合，新旧向量会混表，
+          检索结果静默崩坏（分数看着正常，实际是两种空间的混算）。
+          这是 skill「embedding-backend-swap」明确警告的失败模式。
+
+        兼容：legacy 组合（dashscope + text-embedding-v3 + 1024）仍映射到
+        原名 `memory_store`，既有数据不受影响、无需迁移。
+        """
+        b = self.backend
+        model = getattr(b, "model", "") or ""
+        dim = getattr(b, "dim", None)
+        if b.name == "dashscope" and model == "text-embedding-v3" and dim == 1024:
+            return COLLECTION_NAME            # legacy：保持原名
+        parts = [COLLECTION_NAME, b.name]
+        if model:
+            parts.append(model.replace(".", "-"))   # 点号不合集合命名惯例
+        if dim:
+            parts.append(str(dim))
+        return "_".join(parts)
 
     def _sync_collection(self, initial: bool = False):
         """让 collection 与**当前实际生效**的后端保持一致。
@@ -71,7 +98,7 @@ class MemoryStore:
         回退还意味着「换了一个向量空间」，所以必须同时换表。
         这一步若漏掉，两种向量会混进同一张表，检索结果静默崩坏。
         """
-        want = self._collection_name_for(self.backend.name)
+        want = self._space_id()
         if getattr(self, "collection_name", None) == want:
             return
         prev = getattr(self, "collection_name", None)
@@ -138,7 +165,7 @@ class MemoryStore:
         )
 
     # ---- 检索记忆 ----
-    def search(self, query: str, top_k: int = None, min_score: float = 0.6):
+    def search(self, query: str, top_k: int = None, min_score: float = None):
         """
         语义检索：返回最相关的若干条记忆。
         Returns: list of {text, score, meta}
@@ -146,6 +173,8 @@ class MemoryStore:
         self._sync_collection()          # 后端可能已回退 → 先对齐集合
         if self.collection.count() == 0:
             return []
+        if min_score is None:
+            min_score = MIN_SCORE        # 见文件头 MIN_SCORE 的说明
         top_k = top_k or self.top_k
         q_vec = self._embed(query)  # str 单条
         # ChromaDB query：返回最近的 top_k 条，带 distance。

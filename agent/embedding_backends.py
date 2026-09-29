@@ -73,13 +73,27 @@ class EmbeddingBackend:
 
 
 class DashScopeBackend(EmbeddingBackend):
-    """云端：阿里云 DashScope text-embedding-v3（OpenAI 兼容）。"""
+    """云端：阿里云 DashScope 文本向量（OpenAI 兼容）。
+
+    模型与维度可配：
+      · 模型：参数 model 或环境变量 EMBEDDING_MODEL（默认 text-embedding-v4）
+      · 维度：参数 dims 或环境变量 EMBEDDING_DIM（默认 1024）
+
+    2026/09/29 从 v3 升到 v4：实测难负例最高分从 0.4693 压到 0.3086，
+    空档由 +0.0452 扩到 +0.0653（1024 维）/ +0.0902（2048 维）。
+    即**安全边距翻倍**，而不是"分数变高"。详见 docs/embedding-upgrade.md。
+
+    ⚠️ 换模型 = 换向量空间 → 必须使用**不同的 collection**，
+       否则新旧向量混表、检索静默崩坏（见 memory.py 的 _space_id）。
+    """
 
     name = "dashscope"
     BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    DEFAULT_MODEL = "text-embedding-v4"
 
-    def __init__(self, model: str = "text-embedding-v3"):
-        self.model = model
+    def __init__(self, model: str = None, dims: int = None):
+        self.model = model or os.getenv("EMBEDDING_MODEL") or self.DEFAULT_MODEL
+        self.dim = int(dims or os.getenv("EMBEDDING_DIM") or EMBED_DIM)
         self._client = None
 
     def _client_or_create(self):
