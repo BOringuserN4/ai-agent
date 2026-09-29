@@ -228,7 +228,8 @@ class Agent:
                 if self.memory:
                     def _persist():
                         try:
-                            from agent.extractor import MemoryExtractor
+                            from agent.extractor import (MemoryExtractor,
+                                                         build_embed_text)
                             extractor = MemoryExtractor()
                             result = extractor.extract(user_input, msg.content)
                             if result["keep"] and result["text"]:
@@ -239,7 +240,13 @@ class Agent:
                                     "tags": tags,
                                     "time": time.time(),
                                 }
-                                self.memory.add(f"{tag_prefix}{result['text']}", meta=meta)
+                                # 存储文本保持精简（注入上下文用）；
+                                # 向量化用增富版（事实 + 可能被怎么问），
+                                # 提高召回率且**不增加注入 token**。
+                                # 见 docs/memory-recall-fix.md。
+                                stored = f"{tag_prefix}{result['text']}"
+                                embed_src = f"{tag_prefix}{build_embed_text(result['text'], result.get('questions'))}"
+                                self.memory.add(stored, meta=meta, embed_text=embed_src)
                                 preview = result["text"][:30]
                                 self.tracer.log(f"记忆抽取：keep=True, tags={tags}, text='{preview}'")
                             else:

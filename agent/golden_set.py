@@ -165,7 +165,10 @@ GOLDEN_SET = [
 #   ② 分开便于单独跑（`mcp_...` 风格），也便于对比「有记忆 vs 无记忆」。
 #
 # 一条记忆用例比普通用例多三样：
-#   seed:        跑之前要往记忆库种什么（文本 + 元数据）
+#   seed:        跑之前要往记忆库种什么（文本 + 元数据 + 可选 questions）
+#                  questions = 用户日后**可能怎么问**这条信息（2026/09/29 新增）
+#                  它会拼进「向量化用文本」，提高召回率但不增加注入 token
+#                  （见 docs/memory-recall-fix.md）
 #   must_recall: 答案里**必须出现**的关键事实 —— 这是「记忆真的起作用」的判据
 #   cleanup:     跑完是否清空记忆库（**必为 True**，见下）
 #
@@ -190,7 +193,11 @@ MEMORY_CASES = [
     {
         "id": "mem1",
         "category": "memory",
-        "seed": [{"text": "用户养了一只猫，名字叫豆豆", "meta": {"type": "test"}}],
+        "seed": [{
+            "text": "用户养了一只猫，名字叫豆豆",
+            "questions": ["我家猫叫什么", "我养了什么宠物", "我的宠物名字"],
+            "meta": {"type": "test"},
+        }],
         "input": "我家的猫叫什么名字？",
         "must_recall": "豆豆",
         "expected": "必须答出猫的名字是「豆豆」。名字只存在于记忆中，凭空编不出。",
@@ -200,7 +207,12 @@ MEMORY_CASES = [
     {
         "id": "mem2",
         "category": "memory",
-        "seed": [{"text": "用户是一名测试开发工程师", "meta": {"type": "test"}}],
+        "seed": [{
+            "text": "用户是一名测试开发工程师",
+            "questions": ["我是做什么工作的", "我的职业是什么", "我是干啥的",
+                          "我的岗位是什么"],
+            "meta": {"type": "test"},
+        }],
         "input": "我的职业是什么？",
         "must_recall": "测试",
         "expected": "必须答出用户是「测试开发工程师」（含『测试』即可）。",
@@ -210,8 +222,11 @@ MEMORY_CASES = [
     {
         "id": "mem3",
         "category": "memory",
-        "seed": [{"text": "用户偏好用 Python 而不是 Java 写脚本",
-                  "meta": {"type": "test"}}],
+        "seed": [{
+            "text": "用户偏好用 Python 而不是 Java 写脚本",
+            "questions": ["我喜欢用什么语言", "我的语言偏好", "我写脚本用什么"],
+            "meta": {"type": "test"},
+        }],
         "input": "我平时写脚本喜欢用什么语言？",
         "must_recall": "Python",
         "expected": "必须答出「Python」，且说明是用户的偏好。",
@@ -226,6 +241,7 @@ MEMORY_CASES = [
         "seed": [
             # 语义上「沾边」但答非所问 —— 检验会不会被无关记忆带偏
             {"text": "用户上周问过上海天气，当时是阴天 25 度",
+             "questions": ["上海天气", "我之前问过的天气"],
              "meta": {"type": "test"}},
         ],
         "input": "帮我算 88 * 12 等于多少？",

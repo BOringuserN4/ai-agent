@@ -102,8 +102,22 @@ class MemoryStore:
         return self.backend.embed(texts)
 
     # ---- 写入记忆 ----
-    def add(self, text: str, meta: dict = None):
-        """添加一条记忆：向量化 + 存储。使用文本哈希去重。"""
+    def add(self, text: str, meta: dict = None, embed_text: str = None):
+        """添加一条记忆：向量化 + 存储。使用文本哈希去重。
+
+        Args:
+            text: **注入上下文用**的文本（保持简洁，省 token）。
+            meta: 元数据。
+            embed_text: **向量化用**的文本，可带「问法提示」等增富内容。
+                不传则与 text 相同（向后兼容）。
+
+        为什么要分开（2026/09/29）：
+            检索质量取决于「记忆向量」与「问句向量」的接近程度。实测发现，
+            把记忆文本改写成「事实 + 可能被怎么问」，能显著拉高召回分且
+            **不抬高无关记忆的分数**（见 docs/memory-recall-fix.md）。
+            但增富后的文本若直接注入上下文，会白吃 token ——
+            所以拆成两份：**向量化用增富版，注入用精简版**。
+        """
         text = text.strip()
         if not text:
             return
@@ -114,8 +128,8 @@ class MemoryStore:
         exists = self.collection.get(ids=[digest])
         if exists and exists.get("ids"):
             return
-        # 向量化（单条，str）
-        vec = self._embed(text)
+        # 向量化：优先用增富文本（embed_text），存储仍用精简文本（text）
+        vec = self._embed(embed_text if embed_text else text)
         self.collection.add(
             ids=[digest],
             documents=[text],

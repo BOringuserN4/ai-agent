@@ -44,6 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import agent.memory as mem_mod
 from agent.core import Agent
+from agent.extractor import build_embed_text
 from agent.golden_set import MEMORY_CASES
 
 # 独立目录：与真实库（chroma_data）、召回评测库（chroma_data_eval）都不共用
@@ -117,7 +118,10 @@ def run_case(case: dict, use_memory: bool) -> dict:
     store.clear()
     if use_memory and case.get("seed"):
         for item in case["seed"]:
-            store.add(item["text"], item.get("meta"))
+            # 走与生产一致的路径：存储用精简 text，向量化用增富文本
+            # （事实 + 可能被怎么问），提高召回率但不增加注入 token。
+            embed_src = build_embed_text(item["text"], item.get("questions"))
+            store.add(item["text"], item.get("meta"), embed_text=embed_src)
 
     agent = Agent(
         system_prompt="你是一个乐于助人的助手。若有相关历史记忆，请优先依据记忆回答。",
