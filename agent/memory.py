@@ -41,6 +41,17 @@ load_dotenv()
 # 可用环境变量 MEMORY_MIN_SCORE 覆盖。
 MIN_SCORE = float(os.getenv("MEMORY_MIN_SCORE") or 0.46)
 
+# 精排（cross-encoder rerank）开关 —— **默认关闭**。
+# 实测（2026/09/29，40 条语料 / 15 用例）：开启后 Top-1 由 14/15 降到 13/15，
+# 且延迟 +306ms（206 → 513ms）。原因是两者失败模式不同：
+#   · 双塔被「词面重叠」骗（问"英短叫什么" → 选到品种那条）
+#   · rerank 被「俚语/生词」骗（问"主子叫什么" → 选到"领导叫李工"那条）
+# 故当前向量检索（v4 + 增富 + 0.46 阈值）已够用，精排留作**可选增强**。
+# 需要时设 RERANK_ENABLED=1 打开；也可配合 RERANK_TOP_K 放宽召回。
+RERANK_ENABLED = os.getenv("RERANK_ENABLED", "").lower() in ("1", "true", "yes")
+# 开启精排时，阶段一要多召回候选（rerank 救不回漏召，故须给足）
+RERANK_RECALL_K = int(os.getenv("RERANK_RECALL_K") or 20)
+
 # ChromaDB 持久化目录（运行时生成，含用户信息，不入库）
 CHROMA_DIR = os.path.join(os.path.dirname(__file__), "..", "chroma_data")
 COLLECTION_NAME = "memory_store"
@@ -58,6 +69,14 @@ class MemoryStore:
             chroma_dir: 可选，覆盖向量库目录（评测用独立目录，不碰真实记忆）。
         """
         self.top_k = top_k
+        # 精排层（默认关闭；见文件头 RERANK_ENABLED 的实测说明）
+        self.reranker = None
+        if RERANK_ENABLED:
+            try:
+                from agent.rerank import Reranker
+                self.reranker = Reranker(enabled=True)
+            except Exception:
+                self.reranker = None      # 依赖缺失不影响主流程
         # 可插拔后端：默认仍是云端（不改变既有行为）
         self.backend = backend or get_backend()
         self.chroma_dir = chroma_dir or CHROMA_DIR
@@ -177,10 +196,12 @@ class MemoryStore:
             min_score = MIN_SCORE        # 见文件头 MIN_SCORE 的说明
         top_k = top_k or self.top_k
         q_vec = self._embed(query)  # str 单条
-        # ChromaDB query：返回最近的 top_k 条，带 distance。
+        # 开启精排时**放宽召回**：rerank 只能重排已召回的，所以要给足候选。
+        recall_k = max(top_k, RERANK_RECALL_K) if self.reranker else top_k
+        # ChromaDB query：返回最近的 recall_k 条，带 distance。
         res = self.collection.query(
             query_embeddings=[q_vec.tolist()],
-            n_results=top_k,
+            n_results=recall_k,
         )
         # 取第一个 query 的结果
         docs = res.get("documents") or [[]]
@@ -197,6 +218,12 @@ class MemoryStore:
                 "score": round(score, 4),
                 "meta": meta or {},
             })
+        # 可选精排：失败时内部自动降级为原向量顺序（不影响可用性）
+        if self.reranker and result:
+            result = self.reranker.apply(query, result)
+            # 精排后按精排分再过滤一次（分数口径已换成 rerank 分）
+            result = [r for r in result if r.get("score", 0) >= min_score]
+            return result[:top_k]
         return result
 
     # ---- 工具方法 ----

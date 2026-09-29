@@ -81,6 +81,7 @@ ai-agent/
 ├── eval_router_prefilter.py # Router 规则预筛对照实验（14 条 golden set）
 ├── eval_memory_cases.py   # 记忆用例评测（有/无记忆两遍对照，5 条用例）
 ├── eval_embedding_v4.py   # embedding v3/v4 的 A/B（空档 / 留出集 / 延迟）
+├── eval_rerank.py         # 精排层对照（40 条语料，含硬干扰与对抗用例）
 ├── scripts/
 │   ├── win_ollama_setup.ps1     # Windows 主机：Ollama 局域网服务一键配置
 │   └── check_local_llm_host.py  # Mac 侧：分 5 步诊断主机连通性
@@ -107,6 +108,7 @@ ai-agent/
 │   ├── memory-cases.md        # 收尾章讲义：记忆用例评测（补两套评测之间的缝）
 │   ├── memory-recall-fix.md   # 实战章讲义：记忆召回修复（增量式文本增富）
 │   ├── embedding-upgrade.md   # 实战章讲义：换更强 embedding（v3→v4 + 阈值修正）
+│   ├── rerank-layer.md        # 实战章讲义：精排层（技术背景 + 实测否决）
 │   ├── local-inference-chain.html # 本地推理链路图（单文件，浏览器打开）
 │   ├── agent-mainline.html      # Agent 主线图（单文件，浏览器直接打开）
 │   ├── agent-understanding-timeline.html  # 对 Agent 的理解演进时间线（对照纠偏）
@@ -132,6 +134,7 @@ ai-agent/
     ├── mcp_bridge.py     # MCP 桥接（异步 server ↔ 同步 Agent，外挂式挂载工具）
     ├── tool_selector.py  # 工具裁剪（关键词分组，先裁后挂，省工具清单的租金）
     ├── router_prefilter.py # Router 规则预筛（零 token 判断要不要拆任务）
+    ├── rerank.py         # 精排层（cross-encoder，含优雅降级；默认关闭）
     └── embedding_backends.py # embedding 可插拔后端（云端 DashScope / 本地 Ollama）
 ```
 

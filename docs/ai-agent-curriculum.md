@@ -240,6 +240,7 @@ Plan → Act → Reflect → Replan
 | 收尾章 | 记忆用例评测（补评测链路的缝）| 2026/09/23 | `agent/golden_set.py`、`eval_memory_cases.py`、`docs/memory-cases.md` |
 | 实战章 | 记忆召回修复（文本增富）| 2026/09/29 | `agent/extractor.py`、`agent/memory.py`、`docs/memory-recall-fix.md` |
 | 实战章 | 换更强 embedding（v3→v4 + 阈值修正）| 2026/09/29 | `agent/embedding_backends.py`、`eval_embedding_v4.py`、`docs/embedding-upgrade.md` |
+| 实战章 | 精排层 rerank（技术背景 + 实测否决）| 2026/09/29 | `agent/rerank.py`、`eval_rerank.py`、`docs/rerank-layer.md` |
 
 
 ### 5.5 时间投入参考
