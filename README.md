@@ -109,6 +109,7 @@ ai-agent/
 │   ├── memory-recall-fix.md   # 实战章讲义：记忆召回修复（增量式文本增富）
 │   ├── embedding-upgrade.md   # 实战章讲义：换更强 embedding（v3→v4 + 阈值修正）
 │   ├── rerank-layer.md        # 实战章讲义：精排层（技术背景 + 实测否决）
+│   ├── issue-log.md           # 已发现问题清单（37 条，按主题归类）
 │   ├── local-inference-chain.html # 本地推理链路图（单文件，浏览器打开）
 │   ├── agent-mainline.html      # Agent 主线图（单文件，浏览器直接打开）
 │   ├── agent-understanding-timeline.html  # 对 Agent 的理解演进时间线（对照纠偏）
