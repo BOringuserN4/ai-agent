@@ -120,7 +120,9 @@ ai-agent/
 │       ├── local-inference-chain.png
 │       ├── architecture-sketch.png   # 分层架构图（手绘风，主版）
 │       ├── architecture-flow.png     # 运行时数据流（手绘风）
-│       └── architecture-d2.png       # 分层架构图（D2 自动布局，备选）
+│       ├── architecture-d2.png       # 分层架构图（D2 自动布局，备选）
+│       ├── architecture-notability.png # 分层架构图（Notability 手写笔记风，3200x2400）
+│       └── architecture-notability.webp # 同上（WebP，体积 1/4）
 ├── langfuse/             # Langfuse 自部署（docker-compose，.env 已 gitignore）
 └── agent/
     ├── __init__.py

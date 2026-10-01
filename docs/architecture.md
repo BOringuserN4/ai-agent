@@ -11,7 +11,15 @@
 | 分层架构图 | `docs/diagrams/architecture-sketch.png` | 四层结构 + 10 个纯叶子 |
 | 运行时数据流 | `docs/diagrams/architecture-flow.png` | 一次对话的全过程 + 两处记忆时点 |
 
-备选（可重渲版）：`docs/architecture.d2` → `architecture-d2.png`（D2 自动布局）。
+**Notability 手写笔记版**（按用户提供规格绘制，3200×2400）：
+
+| 版本 | 文件 | 风格 |
+|---|---|---|
+| **Notability 手写风**（最新） | `architecture-notability.png` / `.webp` | 米白纸 + 点阵 + 双笔触手绘 + 马克笔色块 |
+| 手绘简版 | `architecture-sketch.png` | 纯线条手绘 |
+| D2 自动布局 | `architecture-d2.png` | 工整专业 |
+
+备选（可重渲版）：`docs/architecture.d2`（D2）、`docs/gen-notability.js`（Notability 版生成器）。
 
 ---
 
