@@ -1,0 +1,779 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1580"
+  width="3200" height="3160">
+<defs>
+  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+    <circle cx="1.6" cy="1.6" r="1.25" fill="#b9b2a6" opacity="0.5"/>
+  </pattern>
+  <!-- 噪点用可平铺小图块；整幅逐像素随机会让 3200x2400 涨到 7MB+ -->
+  <filter id="noisetile" x="0" y="0" width="256" height="256"
+          filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3"
+                  seed="11" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <pattern id="noisepat" width="256" height="256" patternUnits="userSpaceOnUse">
+    <rect width="256" height="256" filter="url(#noisetile)" opacity="0.05"/>
+  </pattern>
+  <radialGradient id="vignette" cx="50%" cy="46%" r="72%">
+    <stop offset="55%" stop-color="#fbf7ef" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#e6ddcd" stop-opacity="0.55"/>
+  </radialGradient>
+</defs>
+<rect width="1600" height="1580" fill="#fbf7ef"/>
+<rect width="1600" height="1580" fill="url(#grid)"/>
+<rect width="1600" height="1580" fill="url(#noisepat)"/>
+<rect width="1600" height="1580" fill="url(#vignette)"/>
+<text x="60" y="76" letter-spacing="2.5" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="50" font-weight="700"
+    fill="#3d3a34" opacity="1">ai-agent · 架构总览</text>
+<text x="62" y="102" font-family="Kalam, sans-serif"
+    font-size="15" font-weight="400"
+    fill="#8a8377" opacity="1">Static Layers  +  Runtime Data Flow</text>
+<g fill="none" stroke-linecap="round">
+  <path d="M 58 116 Q 69.25 107, 80.5 116 Q 91.75 107, 103 116 Q 114.25 107, 125.5 116 Q 136.75 107, 148 116 Q 159.25 107, 170.5 116 Q 181.75 107, 193 116 Q 204.25 107, 215.5 116 Q 226.75 107, 238 116 Q 249.25 107, 260.5 116 Q 271.75 107, 283 116 Q 294.25 107, 305.5 116 Q 316.75 107, 328 116 Q 339.25 107, 350.5 116 Q 361.75 107, 373 116 Q 384.25 107, 395.5 116 Q 406.75 107, 418 116" stroke="#e8590c" stroke-width="3.4" opacity="0.9"/>
+  <path d="M 58 123 Q 69.25 115.8, 80.5 123 Q 91.75 115.8, 103 123 Q 114.25 115.8, 125.5 123 Q 136.75 115.8, 148 123 Q 159.25 115.8, 170.5 123 Q 181.75 115.8, 193 123 Q 204.25 115.8, 215.5 123 Q 226.75 115.8, 238 123 Q 249.25 115.8, 260.5 123 Q 271.75 115.8, 283 123 Q 294.25 115.8, 305.5 123 Q 316.75 115.8, 328 123 Q 339.25 115.8, 350.5 123 Q 361.75 115.8, 373 123 Q 384.25 115.8, 395.5 123 Q 406.75 115.8, 418 123" stroke="#e8590c" stroke-width="2.2" opacity="0.4"/>
+</g>
+<g transform="rotate(3.2 1444 60)" opacity="0.55">
+    <rect x="1334" y="28" width="220" height="58" fill="#efe3cd"/>
+    <rect x="1334" y="28" width="220" height="58" fill="none"
+      stroke="#d8c7a8" stroke-width="1.6" stroke-dasharray="6 5"/>
+    <path d="M1334 28 L1348 44 L1334 60" fill="none" stroke="#e0d2b8" stroke-width="1.4"/>
+    <path d="M1554 28 L1540 44 L1554 60" fill="none" stroke="#e0d2b8" stroke-width="1.4"/>
+  </g>
+<text x="56" y="148" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#7d766a" opacity="1">① 静态结构 · 分层</text>
+<g transform="rotate(-0.18 650 206)">
+  <path d="M 53 149 L 1247 149 L 1247 263 L 53 263 Z" fill="#5eb2f7" opacity="0.2" stroke="none"/>
+  <path d="M 53 149 L 1247 149 L 1247 263 L 53 263 Z" fill="#5eb2f7" opacity="0.1" stroke="none"
+        transform="translate(-1.4 -1.7)"/>
+</g>
+<text x="64" y="196" transform="rotate(-0.8 64 196)" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="24" font-weight="700"
+    fill="#3d3a34" opacity="1">应用层</text>
+<text x="64" y="214" transform="rotate(-0.8 64 214)" font-family="Kalam, sans-serif"
+    font-size="11" font-weight="400"
+    fill="#8a8377" opacity="1">Application</text>
+<text x="64" y="230" transform="rotate(-0.8 64 230)" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="11" font-weight="400"
+    fill="#8a8377" opacity="1">谁来发起</text>
+<g transform="rotate(0.49 315 211)">
+  <path d="M 187 169 L 443 169 L 443 253 L 187 253 Z" fill="#5eb2f7" opacity="0.34" stroke="none"/>
+  <path d="M 187 169 L 443 169 L 443 253 L 187 253 Z" fill="#5eb2f7" opacity="0.17" stroke="none"
+        transform="translate(-0.4 -1.8)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 181.1 172.0 Q 218.9 172.1 218.9 172.0 Q 256.6 171.4 256.6 172.0 Q 294.3 170.4 294.3 172.0 Q 332.1 171.2 332.1 172.0 Q 369.8 170.4 369.8 172.0 Q 407.6 172.7 407.6 172.0 Q 445.3 172.0 445.3 172.0"/><path d="M 440.0 163.7 Q 439.8 210.7 440.0 210.7 Q 438.4 257.6 440.0 257.6"/><path d="M 448.4 250.0 Q 410.2 250.3 410.2 250.0 Q 372.1 248.9 372.1 250.0 Q 334.0 251.8 334.0 250.0 Q 295.9 249.6 295.9 250.0 Q 257.8 251.5 257.8 250.0 Q 219.7 250.3 219.7 250.0 Q 181.6 249.9 181.6 250.0"/><path d="M 190.0 255.1 Q 188.9 211.1 190.0 211.1 Q 191.4 167.1 190.0 167.1"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 188.1 173.4 Q 224.6 174.6 224.6 173.4 Q 261.2 174.4 261.2 173.4 Q 297.8 175.0 297.8 173.4 Q 334.3 171.8 334.3 173.4 Q 370.9 171.5 370.9 173.4 Q 407.5 172.1 407.5 173.4 Q 444.1 175.0 444.1 173.4"/><path d="M 441.1 170.4 Q 441.6 212.4 441.1 212.4 Q 442.8 254.4 441.1 254.4"/><path d="M 444.1 251.4 Q 407.5 253.0 407.5 251.4 Q 370.9 250.0 370.9 251.4 Q 334.3 249.4 334.3 251.4 Q 297.8 250.2 297.8 251.4 Q 261.2 251.2 261.2 251.4 Q 224.6 251.9 224.6 251.4 Q 188.1 252.6 188.1 251.4"/><path d="M 191.1 254.4 Q 193.2 212.4 191.1 212.4 Q 190.5 170.4 191.1 170.4"/>
+  </g>
+</g>
+<text x="204" y="204" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">main.py</text>
+<text x="204" y="227" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">CLI 入口</text>
+<g transform="rotate(0.41 581 211)">
+  <path d="M 453 169 L 709 169 L 709 253 L 453 253 Z" fill="#5eb2f7" opacity="0.34" stroke="none"/>
+  <path d="M 453 169 L 709 169 L 709 253 L 453 253 Z" fill="#5eb2f7" opacity="0.17" stroke="none"
+        transform="translate(-0.7 0.5)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 449.1 172.0 Q 486.4 172.5 486.4 172.0 Q 523.8 173.6 523.8 172.0 Q 561.1 170.6 561.1 172.0 Q 598.4 171.0 598.4 172.0 Q 635.7 170.2 635.7 172.0 Q 673.0 170.1 673.0 172.0 Q 710.3 170.4 710.3 172.0"/><path d="M 706.0 167.9 Q 704.3 212.9 706.0 212.9 Q 708.1 257.9 706.0 257.9"/><path d="M 714.2 250.0 Q 676.5 251.9 676.5 250.0 Q 638.9 250.3 638.9 250.0 Q 601.2 249.6 601.2 250.0 Q 563.5 251.0 563.5 250.0 Q 525.8 251.4 525.8 250.0 Q 488.2 248.2 488.2 250.0 Q 450.5 251.3 450.5 250.0"/><path d="M 456.0 254.4 Q 457.7 209.8 456.0 209.8 Q 454.2 165.3 456.0 165.3"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 454.5 172.7 Q 491.1 173.6 491.1 172.7 Q 527.6 170.8 527.6 172.7 Q 564.2 174.5 564.2 172.7 Q 600.8 173.3 600.8 172.7 Q 637.3 171.9 637.3 172.7 Q 673.9 171.0 673.9 172.7 Q 710.5 174.0 710.5 172.7"/><path d="M 707.5 169.7 Q 707.2 211.7 707.5 211.7 Q 706.1 253.7 707.5 253.7"/><path d="M 710.5 250.7 Q 673.9 250.8 673.9 250.7 Q 637.3 249.2 637.3 250.7 Q 600.8 252.2 600.8 250.7 Q 564.2 248.8 564.2 250.7 Q 527.6 250.6 527.6 250.7 Q 491.1 252.5 491.1 250.7 Q 454.5 249.9 454.5 250.7"/><path d="M 457.5 253.7 Q 456.4 211.7 457.5 211.7 Q 455.5 169.7 457.5 169.7"/>
+  </g>
+</g>
+<text x="470" y="204" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">multi_agent</text>
+<text x="470" y="227" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">路由 + 真并行</text>
+<g transform="rotate(0.07 847 211)">
+  <path d="M 719 169 L 975 169 L 975 253 L 719 253 Z" fill="#5eb2f7" opacity="0.34" stroke="none"/>
+  <path d="M 719 169 L 975 169 L 975 253 L 719 253 Z" fill="#5eb2f7" opacity="0.17" stroke="none"
+        transform="translate(1.4 1.7)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 716.6 172.0 Q 754.1 172.0 754.1 172.0 Q 791.6 171.4 791.6 172.0 Q 829.1 171.6 829.1 172.0 Q 866.6 170.9 866.6 172.0 Q 904.2 170.1 904.2 172.0 Q 941.7 172.3 941.7 172.0 Q 979.2 171.7 979.2 172.0"/><path d="M 972.0 165.0 Q 974.0 210.6 972.0 210.6 Q 970.8 256.1 972.0 256.1"/><path d="M 978.8 250.0 Q 941.0 251.3 941.0 250.0 Q 903.2 248.6 903.2 250.0 Q 865.3 248.1 865.3 250.0 Q 827.5 249.6 827.5 250.0 Q 789.7 251.4 789.7 250.0 Q 751.8 248.2 751.8 250.0 Q 714.0 248.7 714.0 250.0"/><path d="M 722.0 256.6 Q 723.4 211.2 722.0 211.2 Q 721.7 165.7 722.0 165.7"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 719.1 173.1 Q 755.7 171.9 755.7 173.1 Q 792.2 171.8 792.2 173.1 Q 828.8 173.7 828.8 173.1 Q 865.4 172.9 865.4 173.1 Q 901.9 172.9 901.9 173.1 Q 938.5 172.6 938.5 173.1 Q 975.1 171.6 975.1 173.1"/><path d="M 972.1 170.1 Q 974.0 212.1 972.1 212.1 Q 972.3 254.1 972.1 254.1"/><path d="M 975.1 251.1 Q 938.5 251.8 938.5 251.1 Q 901.9 250.8 901.9 251.1 Q 865.4 251.7 865.4 251.1 Q 828.8 249.3 828.8 251.1 Q 792.2 250.0 792.2 251.1 Q 755.7 249.8 755.7 251.1 Q 719.1 250.5 719.1 251.1"/><path d="M 722.1 254.1 Q 721.3 212.1 722.1 212.1 Q 720.5 170.1 722.1 170.1"/>
+  </g>
+</g>
+<text x="736" y="204" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">pipeline</text>
+<text x="736" y="227" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">串联执行</text>
+<g transform="rotate(0.27 1113 211)">
+  <path d="M 985 169 L 1241 169 L 1241 253 L 985 253 Z" fill="#5eb2f7" opacity="0.34" stroke="none"/>
+  <path d="M 985 169 L 1241 169 L 1241 253 L 985 253 Z" fill="#5eb2f7" opacity="0.17" stroke="none"
+        transform="translate(-1.2 -1.8)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 981.2 172.0 Q 1018.7 173.5 1018.7 172.0 Q 1056.1 171.6 1056.1 172.0 Q 1093.6 173.6 1093.6 172.0 Q 1131.1 173.3 1131.1 172.0 Q 1168.6 173.2 1168.6 172.0 Q 1206.1 172.9 1206.1 172.0 Q 1243.6 170.3 1243.6 172.0"/><path d="M 1238.0 167.1 Q 1236.5 211.9 1238.0 211.9 Q 1238.3 256.7 1238.0 256.7"/><path d="M 1243.1 250.0 Q 1205.4 251.5 1205.4 250.0 Q 1167.8 249.9 1167.8 250.0 Q 1130.1 250.2 1130.1 250.0 Q 1092.4 249.8 1092.4 250.0 Q 1054.8 250.0 1054.8 250.0 Q 1017.1 248.9 1017.1 250.0 Q 979.4 248.5 979.4 250.0"/><path d="M 988.0 256.0 Q 989.5 211.7 988.0 211.7 Q 986.5 167.4 988.0 167.4"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 987.1 171.1 Q 1023.6 169.7 1023.6 171.1 Q 1060.2 170.6 1060.2 171.1 Q 1096.8 172.5 1096.8 171.1 Q 1133.4 170.7 1133.4 171.1 Q 1169.9 171.1 1169.9 171.1 Q 1206.5 171.4 1206.5 171.1 Q 1243.1 170.0 1243.1 171.1"/><path d="M 1240.1 168.1 Q 1238.4 210.1 1240.1 210.1 Q 1239.3 252.1 1240.1 252.1"/><path d="M 1243.1 249.1 Q 1206.5 250.3 1206.5 249.1 Q 1169.9 250.2 1169.9 249.1 Q 1133.4 247.2 1133.4 249.1 Q 1096.8 249.9 1096.8 249.1 Q 1060.2 250.1 1060.2 249.1 Q 1023.6 248.1 1023.6 249.1 Q 987.1 249.2 987.1 249.1"/><path d="M 990.1 252.1 Q 991.3 210.1 990.1 210.1 Q 989.7 168.1 990.1 168.1"/>
+  </g>
+</g>
+<text x="1002" y="204" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">evaluator_critic</text>
+<text x="1002" y="227" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">生成→批判→重做</text>
+<g transform="rotate(-0.47 650 346)">
+  <path d="M 53 289 L 1247 289 L 1247 403 L 53 403 Z" fill="#9c8bf5" opacity="0.2" stroke="none"/>
+  <path d="M 53 289 L 1247 289 L 1247 403 L 53 403 Z" fill="#9c8bf5" opacity="0.1" stroke="none"
+        transform="translate(1.5 -0.5)"/>
+</g>
+<text x="64" y="336" transform="rotate(-0.8 64 336)" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="24" font-weight="700"
+    fill="#3d3a34" opacity="1">引擎层</text>
+<text x="64" y="354" transform="rotate(-0.8 64 354)" font-family="Kalam, sans-serif"
+    font-size="11" font-weight="400"
+    fill="#8a8377" opacity="1">Engine</text>
+<text x="64" y="370" transform="rotate(-0.8 64 370)" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="11" font-weight="400"
+    fill="#8a8377" opacity="1">主干</text>
+<g transform="rotate(0.24 315 351)">
+  <path d="M 187 309 L 443 309 L 443 393 L 187 393 Z" fill="#9c8bf5" opacity="0.34" stroke="none"/>
+  <path d="M 187 309 L 443 309 L 443 393 L 187 393 Z" fill="#9c8bf5" opacity="0.17" stroke="none"
+        transform="translate(-0.2 -1.5)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 182.2 312.0 Q 219.8 310.6 219.8 312.0 Q 257.4 311.9 257.4 312.0 Q 295.0 311.0 295.0 312.0 Q 332.6 311.3 332.6 312.0 Q 370.2 310.7 370.2 312.0 Q 407.8 312.1 407.8 312.0 Q 445.4 312.5 445.4 312.0"/><path d="M 440.0 305.7 Q 439.7 351.5 440.0 351.5 Q 441.9 397.2 440.0 397.2"/><path d="M 444.7 390.0 Q 407.5 388.0 407.5 390.0 Q 370.4 391.0 370.4 390.0 Q 333.2 390.2 333.2 390.0 Q 296.0 389.6 296.0 390.0 Q 258.8 389.1 258.8 390.0 Q 221.7 391.4 221.7 390.0 Q 184.5 388.1 184.5 390.0"/><path d="M 190.0 397.2 Q 191.3 351.4 190.0 351.4 Q 190.2 305.6 190.0 305.6"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 185.1 312.2 Q 221.7 311.6 221.7 312.2 Q 258.2 311.6 258.2 312.2 Q 294.8 313.0 294.8 312.2 Q 331.4 312.5 331.4 312.2 Q 367.9 314.0 367.9 312.2 Q 404.5 310.4 404.5 312.2 Q 441.1 311.6 441.1 312.2"/><path d="M 438.1 309.2 Q 439.3 351.2 438.1 351.2 Q 438.7 393.2 438.1 393.2"/><path d="M 441.1 390.2 Q 404.5 389.0 404.5 390.2 Q 367.9 388.8 367.9 390.2 Q 331.4 390.3 331.4 390.2 Q 294.8 388.6 294.8 390.2 Q 258.2 391.3 258.2 390.2 Q 221.7 390.9 221.7 390.2 Q 185.1 390.8 185.1 390.2"/><path d="M 188.1 393.2 Q 190.0 351.2 188.1 351.2 Q 186.6 309.2 188.1 309.2"/>
+  </g>
+</g>
+<text x="204" y="344" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">core</text>
+<text x="204" y="367" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">ReAct 循环</text>
+<g transform="rotate(-0.05 581 351)">
+  <path d="M 453 309 L 709 309 L 709 393 L 453 393 Z" fill="#9c8bf5" opacity="0.34" stroke="none"/>
+  <path d="M 453 309 L 709 309 L 709 393 L 453 393 Z" fill="#9c8bf5" opacity="0.17" stroke="none"
+        transform="translate(-0.1 -0.6)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 448.4 312.0 Q 486.3 312.0 486.3 312.0 Q 524.2 310.3 524.2 312.0 Q 562.1 312.0 562.1 312.0 Q 600.0 313.7 600.0 312.0 Q 637.8 312.0 637.8 312.0 Q 675.7 313.9 675.7 312.0 Q 713.6 312.9 713.6 312.0"/><path d="M 706.0 304.9 Q 705.6 351.1 706.0 351.1 Q 708.0 397.4 706.0 397.4"/><path d="M 714.0 390.0 Q 676.2 388.7 676.2 390.0 Q 638.5 391.1 638.5 390.0 Q 600.8 391.9 600.8 390.0 Q 563.1 391.3 563.1 390.0 Q 525.4 391.9 525.4 390.0 Q 487.7 389.7 487.7 390.0 Q 450.0 388.9 450.0 390.0"/><path d="M 456.0 398.6 Q 456.5 353.3 456.0 353.3 Q 454.5 308.0 456.0 308.0"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 452.7 310.9 Q 489.3 310.0 489.3 310.9 Q 525.8 311.0 525.8 310.9 Q 562.4 309.6 562.4 310.9 Q 599.0 311.7 599.0 310.9 Q 635.6 310.2 635.6 310.9 Q 672.1 311.0 672.1 310.9 Q 708.7 309.2 708.7 310.9"/><path d="M 705.7 307.9 Q 707.2 349.9 705.7 349.9 Q 703.7 391.9 705.7 391.9"/><path d="M 708.7 388.9 Q 672.1 390.4 672.1 388.9 Q 635.6 389.0 635.6 388.9 Q 599.0 390.6 599.0 388.9 Q 562.4 387.4 562.4 388.9 Q 525.8 389.9 525.8 388.9 Q 489.3 389.0 489.3 388.9 Q 452.7 388.9 452.7 388.9"/><path d="M 455.7 391.9 Q 455.0 349.9 455.7 349.9 Q 457.2 307.9 455.7 307.9"/>
+  </g>
+</g>
+<text x="470" y="344" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">roles</text>
+<text x="470" y="367" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">角色定义</text>
+<g transform="rotate(0.34 847 351)">
+  <path d="M 719 309 L 975 309 L 975 393 L 719 393 Z" fill="#9c8bf5" opacity="0.34" stroke="none"/>
+  <path d="M 719 309 L 975 309 L 975 393 L 719 393 Z" fill="#9c8bf5" opacity="0.17" stroke="none"
+        transform="translate(-1.1 0.4)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 714.3 312.0 Q 752.2 312.9 752.2 312.0 Q 790.1 310.9 790.1 312.0 Q 828.0 313.6 828.0 312.0 Q 865.9 311.7 865.9 312.0 Q 903.8 313.5 903.8 312.0 Q 941.7 310.9 941.7 312.0 Q 979.7 312.8 979.7 312.0"/><path d="M 972.0 303.7 Q 971.4 351.1 972.0 351.1 Q 973.1 398.5 972.0 398.5"/><path d="M 980.8 390.0 Q 943.1 389.7 943.1 390.0 Q 905.5 391.2 905.5 390.0 Q 867.8 389.2 867.8 390.0 Q 830.1 391.8 830.1 390.0 Q 792.4 388.8 792.4 390.0 Q 754.8 391.7 754.8 390.0 Q 717.1 391.0 717.1 390.0"/><path d="M 722.0 395.9 Q 722.6 350.1 722.0 350.1 Q 722.2 304.2 722.0 304.2"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 717.5 311.3 Q 754.1 312.6 754.1 311.3 Q 790.7 311.3 790.7 311.3 Q 827.3 311.2 827.3 311.3 Q 863.8 313.2 863.8 311.3 Q 900.4 310.1 900.4 311.3 Q 937.0 311.5 937.0 311.3 Q 973.5 310.5 973.5 311.3"/><path d="M 970.5 308.3 Q 969.2 350.3 970.5 350.3 Q 969.0 392.3 970.5 392.3"/><path d="M 973.5 389.3 Q 937.0 388.2 937.0 389.3 Q 900.4 389.0 900.4 389.3 Q 863.8 391.1 863.8 389.3 Q 827.3 387.5 827.3 389.3 Q 790.7 387.6 790.7 389.3 Q 754.1 388.5 754.1 389.3 Q 717.5 390.1 717.5 389.3"/><path d="M 720.5 392.3 Q 719.4 350.3 720.5 350.3 Q 718.7 308.3 720.5 308.3"/>
+  </g>
+</g>
+<text x="736" y="344" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">json_mode</text>
+<text x="736" y="367" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">结构化输出</text>
+<g transform="rotate(0.02 1113 351)">
+  <path d="M 985 309 L 1241 309 L 1241 393 L 985 393 Z" fill="#9c8bf5" opacity="0.34" stroke="none"/>
+  <path d="M 985 309 L 1241 309 L 1241 393 L 985 393 Z" fill="#9c8bf5" opacity="0.17" stroke="none"
+        transform="translate(0.7 1.3)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 982.9 312.0 Q 1020.0 312.9 1020.0 312.0 Q 1057.0 313.5 1057.0 312.0 Q 1094.1 311.7 1094.1 312.0 Q 1131.1 312.8 1131.1 312.0 Q 1168.2 310.6 1168.2 312.0 Q 1205.3 311.4 1205.3 312.0 Q 1242.3 310.7 1242.3 312.0"/><path d="M 1238.0 306.7 Q 1239.9 351.2 1238.0 351.2 Q 1236.0 395.7 1238.0 395.7"/><path d="M 1243.0 390.0 Q 1205.5 390.1 1205.5 390.0 Q 1167.9 389.0 1167.9 390.0 Q 1130.4 391.4 1130.4 390.0 Q 1092.9 391.2 1092.9 390.0 Q 1055.3 389.3 1055.3 390.0 Q 1017.8 388.1 1017.8 390.0 Q 980.3 389.8 980.3 390.0"/><path d="M 988.0 394.6 Q 988.0 349.3 988.0 349.3 Q 989.8 304.1 988.0 304.1"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 983.1 313.0 Q 1019.7 312.8 1019.7 313.0 Q 1056.2 314.3 1056.2 313.0 Q 1092.8 312.0 1092.8 313.0 Q 1129.4 311.3 1129.4 313.0 Q 1165.9 314.6 1165.9 313.0 Q 1202.5 314.5 1202.5 313.0 Q 1239.1 311.5 1239.1 313.0"/><path d="M 1236.1 310.0 Q 1235.5 352.0 1236.1 352.0 Q 1234.7 394.0 1236.1 394.0"/><path d="M 1239.1 391.0 Q 1202.5 391.3 1202.5 391.0 Q 1165.9 391.2 1165.9 391.0 Q 1129.4 391.7 1129.4 391.0 Q 1092.8 391.4 1092.8 391.0 Q 1056.2 389.0 1056.2 391.0 Q 1019.7 391.0 1019.7 391.0 Q 983.1 391.8 983.1 391.0"/><path d="M 986.1 394.0 Q 985.9 352.0 986.1 352.0 Q 986.6 310.0 986.1 310.0"/>
+  </g>
+</g>
+<text x="1002" y="344" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">router_prefilter</text>
+<text x="1002" y="367" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">路由预筛</text>
+<g transform="rotate(0.33 650 486)">
+  <path d="M 53 429 L 1247 429 L 1247 543 L 53 543 Z" fill="#f7a94b" opacity="0.2" stroke="none"/>
+  <path d="M 53 429 L 1247 429 L 1247 543 L 53 543 Z" fill="#f7a94b" opacity="0.1" stroke="none"
+        transform="translate(0.2 1.1)"/>
+</g>
+<text x="64" y="476" transform="rotate(-0.8 64 476)" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="24" font-weight="700"
+    fill="#3d3a34" opacity="1">能力层</text>
+<text x="64" y="494" transform="rotate(-0.8 64 494)" font-family="Kalam, sans-serif"
+    font-size="11" font-weight="400"
+    fill="#8a8377" opacity="1">Capability</text>
+<text x="64" y="510" transform="rotate(-0.8 64 510)" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="11" font-weight="400"
+    fill="#8a8377" opacity="1">有状态</text>
+<g transform="rotate(0.13 315 491)">
+  <path d="M 187 449 L 443 449 L 443 533 L 187 533 Z" fill="#f7a94b" opacity="0.34" stroke="none"/>
+  <path d="M 187 449 L 443 449 L 443 533 L 187 533 Z" fill="#f7a94b" opacity="0.17" stroke="none"
+        transform="translate(-0.7 -1.3)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 182.0 452.0 Q 219.6 451.4 219.6 452.0 Q 257.3 451.8 257.3 452.0 Q 295.0 452.4 295.0 452.0 Q 332.6 453.5 332.6 452.0 Q 370.3 452.7 370.3 452.0 Q 408.0 452.2 408.0 452.0 Q 445.6 452.7 445.6 452.0"/><path d="M 440.0 445.3 Q 441.1 489.7 440.0 489.7 Q 439.2 534.1 440.0 534.1"/><path d="M 448.8 530.0 Q 410.6 531.5 410.6 530.0 Q 372.4 529.0 372.4 530.0 Q 334.3 528.1 334.3 530.0 Q 296.1 529.1 296.1 530.0 Q 257.9 528.5 257.9 530.0 Q 219.7 531.4 219.7 530.0 Q 181.6 531.5 181.6 530.0"/><path d="M 190.0 537.4 Q 190.6 490.5 190.0 490.5 Q 189.0 443.6 190.0 443.6"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 186.3 453.4 Q 222.9 455.0 222.9 453.4 Q 259.5 452.6 259.5 453.4 Q 296.1 454.9 296.1 453.4 Q 332.6 451.9 332.6 453.4 Q 369.2 454.4 369.2 453.4 Q 405.8 454.8 405.8 453.4 Q 442.3 455.3 442.3 453.4"/><path d="M 439.3 450.4 Q 437.8 492.4 439.3 492.4 Q 438.3 534.4 439.3 534.4"/><path d="M 442.3 531.4 Q 405.8 531.9 405.8 531.4 Q 369.2 532.5 369.2 531.4 Q 332.6 530.4 332.6 531.4 Q 296.1 530.3 296.1 531.4 Q 259.5 530.4 259.5 531.4 Q 222.9 532.5 222.9 531.4 Q 186.3 530.4 186.3 531.4"/><path d="M 189.3 534.4 Q 188.2 492.4 189.3 492.4 Q 189.6 450.4 189.3 450.4"/>
+  </g>
+</g>
+<text x="204" y="484" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">memory</text>
+<text x="204" y="507" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">长期记忆</text>
+<g transform="rotate(0.46 581 491)">
+  <path d="M 453 449 L 709 449 L 709 533 L 453 533 Z" fill="#f7a94b" opacity="0.34" stroke="none"/>
+  <path d="M 453 449 L 709 449 L 709 533 L 453 533 Z" fill="#f7a94b" opacity="0.17" stroke="none"
+        transform="translate(-0.4 0.5)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 449.3 452.0 Q 486.8 450.8 486.8 452.0 Q 524.3 451.8 524.3 452.0 Q 561.9 450.2 561.9 452.0 Q 599.4 451.7 599.4 452.0 Q 636.9 451.0 636.9 452.0 Q 674.5 451.8 674.5 452.0 Q 712.0 453.6 712.0 452.0"/><path d="M 706.0 443.6 Q 706.7 488.9 706.0 488.9 Q 707.3 534.2 706.0 534.2"/><path d="M 713.3 530.0 Q 675.3 529.1 675.3 530.0 Q 637.3 529.3 637.3 530.0 Q 599.2 529.1 599.2 530.0 Q 561.2 530.7 561.2 530.0 Q 523.2 528.2 523.2 530.0 Q 485.1 529.1 485.1 530.0 Q 447.1 531.1 447.1 530.0"/><path d="M 456.0 538.7 Q 457.8 492.7 456.0 492.7 Q 455.0 446.8 456.0 446.8"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 450.8 453.3 Q 487.4 454.1 487.4 453.3 Q 524.0 454.2 524.0 453.3 Q 560.6 453.2 560.6 453.3 Q 597.1 454.1 597.1 453.3 Q 633.7 454.8 633.7 453.3 Q 670.3 451.7 670.3 453.3 Q 706.8 454.3 706.8 453.3"/><path d="M 703.8 450.3 Q 702.6 492.3 703.8 492.3 Q 704.1 534.3 703.8 534.3"/><path d="M 706.8 531.3 Q 670.3 530.1 670.3 531.3 Q 633.7 531.5 633.7 531.3 Q 597.1 531.0 597.1 531.3 Q 560.6 531.0 560.6 531.3 Q 524.0 530.4 524.0 531.3 Q 487.4 531.1 487.4 531.3 Q 450.8 532.6 450.8 531.3"/><path d="M 453.8 534.3 Q 452.4 492.3 453.8 492.3 Q 452.5 450.3 453.8 450.3"/>
+  </g>
+</g>
+<text x="470" y="484" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">tools</text>
+<text x="470" y="507" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">工具执行</text>
+<g transform="rotate(0.33 847 491)">
+  <path d="M 719 449 L 975 449 L 975 533 L 719 533 Z" fill="#f7a94b" opacity="0.34" stroke="none"/>
+  <path d="M 719 449 L 975 449 L 975 533 L 719 533 Z" fill="#f7a94b" opacity="0.17" stroke="none"
+        transform="translate(-1.1 1.5)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 714.9 452.0 Q 752.8 453.2 752.8 452.0 Q 790.8 452.0 790.8 452.0 Q 828.7 452.2 828.7 452.0 Q 866.7 450.2 866.7 452.0 Q 904.6 453.2 904.6 452.0 Q 942.6 452.0 942.6 452.0 Q 980.5 450.7 980.5 452.0"/><path d="M 972.0 446.2 Q 970.6 491.7 972.0 491.7 Q 973.3 537.2 972.0 537.2"/><path d="M 979.9 530.0 Q 941.9 529.8 941.9 530.0 Q 903.8 528.3 903.8 530.0 Q 865.8 531.3 865.8 530.0 Q 827.8 531.4 827.8 530.0 Q 789.8 531.7 789.8 530.0 Q 751.7 531.9 751.7 530.0 Q 713.7 530.6 713.7 530.0"/><path d="M 722.0 536.5 Q 722.7 490.5 722.0 490.5 Q 723.9 444.5 722.0 444.5"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 718.2 451.6 Q 754.8 451.5 754.8 451.6 Q 791.4 451.8 791.4 451.6 Q 828.0 450.5 828.0 451.6 Q 864.5 452.4 864.5 451.6 Q 901.1 450.3 901.1 451.6 Q 937.7 452.1 937.7 451.6 Q 974.2 450.6 974.2 451.6"/><path d="M 971.2 448.6 Q 969.3 490.6 971.2 490.6 Q 971.9 532.6 971.2 532.6"/><path d="M 974.2 529.6 Q 937.7 529.6 937.7 529.6 Q 901.1 528.4 901.1 529.6 Q 864.5 530.2 864.5 529.6 Q 828.0 531.2 828.0 529.6 Q 791.4 528.1 791.4 529.6 Q 754.8 529.4 754.8 529.6 Q 718.2 530.1 718.2 529.6"/><path d="M 721.2 532.6 Q 720.6 490.6 721.2 490.6 Q 721.7 448.6 721.2 448.6"/>
+  </g>
+</g>
+<text x="736" y="484" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">mcp_bridge</text>
+<text x="736" y="507" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">MCP 桥接</text>
+<g transform="rotate(-0.29 1113 491)">
+  <path d="M 985 449 L 1241 449 L 1241 533 L 985 533 Z" fill="#f7a94b" opacity="0.34" stroke="none"/>
+  <path d="M 985 449 L 1241 449 L 1241 533 L 985 533 Z" fill="#f7a94b" opacity="0.17" stroke="none"
+        transform="translate(-1.5 -1.9)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 981.2 452.0 Q 1018.7 453.1 1018.7 452.0 Q 1056.3 450.8 1056.3 452.0 Q 1093.8 453.4 1093.8 452.0 Q 1131.4 450.4 1131.4 452.0 Q 1169.0 453.1 1169.0 452.0 Q 1206.5 451.3 1206.5 452.0 Q 1244.1 451.2 1244.1 452.0"/><path d="M 1238.0 447.9 Q 1237.9 493.0 1238.0 493.0 Q 1238.3 538.1 1238.0 538.1"/><path d="M 1242.5 530.0 Q 1204.9 528.8 1204.9 530.0 Q 1167.3 528.8 1167.3 530.0 Q 1129.7 529.2 1129.7 530.0 Q 1092.1 528.3 1092.1 530.0 Q 1054.5 529.7 1054.5 530.0 Q 1016.9 531.6 1016.9 530.0 Q 979.3 531.0 979.3 530.0"/><path d="M 988.0 538.2 Q 989.1 491.7 988.0 491.7 Q 986.7 445.3 988.0 445.3"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 986.1 453.1 Q 1022.6 452.2 1022.6 453.1 Q 1059.2 455.0 1059.2 453.1 Q 1095.8 454.4 1095.8 453.1 Q 1132.4 452.9 1132.4 453.1 Q 1168.9 452.6 1168.9 453.1 Q 1205.5 454.3 1205.5 453.1 Q 1242.1 454.2 1242.1 453.1"/><path d="M 1239.1 450.1 Q 1238.3 492.1 1239.1 492.1 Q 1241.0 534.1 1239.1 534.1"/><path d="M 1242.1 531.1 Q 1205.5 530.4 1205.5 531.1 Q 1168.9 532.2 1168.9 531.1 Q 1132.4 529.8 1132.4 531.1 Q 1095.8 530.8 1095.8 531.1 Q 1059.2 532.4 1059.2 531.1 Q 1022.6 529.4 1022.6 531.1 Q 986.1 531.6 986.1 531.1"/><path d="M 989.1 534.1 Q 988.1 492.1 989.1 492.1 Q 988.4 450.1 989.1 450.1"/>
+  </g>
+</g>
+<text x="1002" y="484" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">extractor</text>
+<text x="1002" y="507" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">记忆过滤</text>
+<g transform="rotate(0.16 650 626)">
+  <path d="M 53 569 L 1247 569 L 1247 683 L 53 683 Z" fill="#5fc97a" opacity="0.2" stroke="none"/>
+  <path d="M 53 569 L 1247 569 L 1247 683 L 53 683 Z" fill="#5fc97a" opacity="0.1" stroke="none"
+        transform="translate(1.0 0.2)"/>
+</g>
+<text x="64" y="616" transform="rotate(-0.8 64 616)" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="24" font-weight="700"
+    fill="#3d3a34" opacity="1">组件层</text>
+<text x="64" y="634" transform="rotate(-0.8 64 634)" font-family="Kalam, sans-serif"
+    font-size="11" font-weight="400"
+    fill="#8a8377" opacity="1">Component</text>
+<text x="64" y="650" transform="rotate(-0.8 64 650)" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="11" font-weight="400"
+    fill="#8a8377" opacity="1">纯叶子 · 可替换</text>
+<g transform="rotate(0.09 315 631)">
+  <path d="M 187 589 L 443 589 L 443 673 L 187 673 Z" fill="#5fc97a" opacity="0.34" stroke="none"/>
+  <path d="M 187 589 L 443 589 L 443 673 L 187 673 Z" fill="#5fc97a" opacity="0.17" stroke="none"
+        transform="translate(-2.0 0.2)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 184.3 592.0 Q 221.8 593.3 221.8 592.0 Q 259.3 590.1 259.3 592.0 Q 296.8 590.1 296.8 592.0 Q 334.3 592.4 334.3 592.0 Q 371.8 593.6 371.8 592.0 Q 409.3 590.5 409.3 592.0 Q 446.8 590.3 446.8 592.0"/><path d="M 440.0 587.5 Q 438.8 632.5 440.0 632.5 Q 440.5 677.5 440.0 677.5"/><path d="M 445.8 670.0 Q 408.0 668.3 408.0 670.0 Q 370.3 670.2 370.3 670.0 Q 332.5 671.4 332.5 670.0 Q 294.7 671.5 294.7 670.0 Q 256.9 669.4 256.9 670.0 Q 219.2 669.5 219.2 670.0 Q 181.4 669.4 181.4 670.0"/><path d="M 190.0 675.7 Q 192.0 630.0 190.0 630.0 Q 191.9 584.4 190.0 584.4"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 187.4 590.5 Q 223.9 590.7 223.9 590.5 Q 260.5 591.8 260.5 590.5 Q 297.1 592.4 297.1 590.5 Q 333.6 590.2 333.6 590.5 Q 370.2 590.3 370.2 590.5 Q 406.8 591.4 406.8 590.5 Q 443.4 590.6 443.4 590.5"/><path d="M 440.4 587.5 Q 441.4 629.5 440.4 629.5 Q 441.8 671.5 440.4 671.5"/><path d="M 443.4 668.5 Q 406.8 668.6 406.8 668.5 Q 370.2 668.1 370.2 668.5 Q 333.6 670.0 333.6 668.5 Q 297.1 667.9 297.1 668.5 Q 260.5 667.0 260.5 668.5 Q 223.9 667.3 223.9 668.5 Q 187.4 669.1 187.4 668.5"/><path d="M 190.4 671.5 Q 190.4 629.5 190.4 629.5 Q 190.0 587.5 190.4 587.5"/>
+  </g>
+</g>
+<text x="204" y="624" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">embedding_backends</text>
+<text x="204" y="647" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">向量化</text>
+<g transform="rotate(-0.40 581 631)">
+  <path d="M 453 589 L 709 589 L 709 673 L 453 673 Z" fill="#5fc97a" opacity="0.34" stroke="none"/>
+  <path d="M 453 589 L 709 589 L 709 673 L 453 673 Z" fill="#5fc97a" opacity="0.17" stroke="none"
+        transform="translate(-1.7 0.2)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 450.8 592.0 Q 488.5 592.1 488.5 592.0 Q 526.3 590.6 526.3 592.0 Q 564.0 591.7 564.0 592.0 Q 601.7 590.5 601.7 592.0 Q 639.5 592.1 639.5 592.0 Q 677.2 592.4 677.2 592.0 Q 714.9 592.9 714.9 592.0"/><path d="M 706.0 583.9 Q 705.7 630.7 706.0 630.7 Q 706.9 677.5 706.0 677.5"/><path d="M 710.0 670.0 Q 673.0 669.8 673.0 670.0 Q 636.0 669.2 636.0 670.0 Q 599.0 670.8 599.0 670.0 Q 562.0 669.0 562.0 670.0 Q 525.0 671.4 525.0 670.0 Q 488.0 670.9 488.0 670.0 Q 451.0 671.3 451.0 670.0"/><path d="M 456.0 674.4 Q 454.1 630.0 456.0 630.0 Q 458.0 585.6 456.0 585.6"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 452.1 592.8 Q 488.7 591.7 488.7 592.8 Q 525.3 592.7 525.3 592.8 Q 561.8 594.3 561.8 592.8 Q 598.4 591.3 598.4 592.8 Q 635.0 591.0 635.0 592.8 Q 671.5 592.9 671.5 592.8 Q 708.1 592.1 708.1 592.8"/><path d="M 705.1 589.8 Q 705.3 631.8 705.1 631.8 Q 705.4 673.8 705.1 673.8"/><path d="M 708.1 670.8 Q 671.5 670.9 671.5 670.8 Q 635.0 670.2 635.0 670.8 Q 598.4 669.4 598.4 670.8 Q 561.8 669.9 561.8 670.8 Q 525.3 671.7 525.3 670.8 Q 488.7 669.3 488.7 670.8 Q 452.1 670.3 452.1 670.8"/><path d="M 455.1 673.8 Q 455.7 631.8 455.1 631.8 Q 453.8 589.8 455.1 589.8"/>
+  </g>
+</g>
+<text x="470" y="624" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">tool_selector</text>
+<text x="470" y="647" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">工具裁剪</text>
+<g transform="rotate(0.45 847 631)">
+  <path d="M 719 589 L 975 589 L 975 673 L 719 673 Z" fill="#5fc97a" opacity="0.34" stroke="none"/>
+  <path d="M 719 589 L 975 589 L 975 673 L 719 673 Z" fill="#5fc97a" opacity="0.17" stroke="none"
+        transform="translate(0.4 -1.8)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 717.0 592.0 Q 754.0 590.9 754.0 592.0 Q 791.1 593.0 791.1 592.0 Q 828.2 590.7 828.2 592.0 Q 865.2 592.5 865.2 592.0 Q 902.3 591.6 902.3 592.0 Q 939.4 593.2 939.4 592.0 Q 976.4 590.6 976.4 592.0"/><path d="M 972.0 583.5 Q 970.6 629.7 972.0 629.7 Q 972.7 676.0 972.0 676.0"/><path d="M 979.9 670.0 Q 942.1 671.1 942.1 670.0 Q 904.2 671.5 904.2 670.0 Q 866.4 671.2 866.4 670.0 Q 828.5 671.8 828.5 670.0 Q 790.7 671.0 790.7 670.0 Q 752.8 668.3 752.8 670.0 Q 715.0 669.2 715.0 670.0"/><path d="M 722.0 676.3 Q 720.5 630.1 722.0 630.1 Q 722.9 583.9 722.0 583.9"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 718.1 591.9 Q 754.7 592.0 754.7 591.9 Q 791.2 593.1 791.2 591.9 Q 827.8 592.0 827.8 591.9 Q 864.4 590.9 864.4 591.9 Q 900.9 590.5 900.9 591.9 Q 937.5 590.8 937.5 591.9 Q 974.1 593.8 974.1 591.9"/><path d="M 971.1 588.9 Q 970.6 630.9 971.1 630.9 Q 972.0 672.9 971.1 672.9"/><path d="M 974.1 669.9 Q 937.5 669.2 937.5 669.9 Q 900.9 669.4 900.9 669.9 Q 864.4 669.1 864.4 669.9 Q 827.8 671.4 827.8 669.9 Q 791.2 670.7 791.2 669.9 Q 754.7 670.2 754.7 669.9 Q 718.1 670.1 718.1 669.9"/><path d="M 721.1 672.9 Q 720.6 630.9 721.1 630.9 Q 720.0 588.9 721.1 588.9"/>
+  </g>
+</g>
+<text x="736" y="624" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">rerank</text>
+<text x="736" y="647" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">精排(默认关)</text>
+<g transform="rotate(-0.06 1113 631)">
+  <path d="M 985 589 L 1241 589 L 1241 673 L 985 673 Z" fill="#5fc97a" opacity="0.34" stroke="none"/>
+  <path d="M 985 589 L 1241 589 L 1241 673 L 985 673 Z" fill="#5fc97a" opacity="0.17" stroke="none"
+        transform="translate(-0.8 1.6)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 979.7 592.0 Q 1017.5 592.6 1017.5 592.0 Q 1055.3 592.2 1055.3 592.0 Q 1093.1 591.5 1093.1 592.0 Q 1130.9 590.8 1130.9 592.0 Q 1168.8 593.7 1168.8 592.0 Q 1206.6 592.3 1206.6 592.0 Q 1244.4 593.3 1244.4 592.0"/><path d="M 1238.0 586.1 Q 1236.1 631.6 1238.0 631.6 Q 1239.3 677.0 1238.0 677.0"/><path d="M 1243.3 670.0 Q 1206.1 671.5 1206.1 670.0 Q 1168.9 670.9 1168.9 670.0 Q 1131.6 670.2 1131.6 670.0 Q 1094.4 670.8 1094.4 670.0 Q 1057.1 668.4 1057.1 670.0 Q 1019.9 671.3 1019.9 670.0 Q 982.7 671.2 982.7 670.0"/><path d="M 988.0 675.6 Q 986.3 629.6 988.0 629.6 Q 987.6 583.6 988.0 583.6"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 985.3 593.3 Q 1021.9 595.1 1021.9 593.3 Q 1058.4 593.3 1058.4 593.3 Q 1095.0 591.4 1095.0 593.3 Q 1131.6 594.6 1131.6 593.3 Q 1168.1 595.2 1168.1 593.3 Q 1204.7 593.8 1204.7 593.3 Q 1241.3 592.8 1241.3 593.3"/><path d="M 1238.3 590.3 Q 1236.8 632.3 1238.3 632.3 Q 1240.1 674.3 1238.3 674.3"/><path d="M 1241.3 671.3 Q 1204.7 670.8 1204.7 671.3 Q 1168.1 671.7 1168.1 671.3 Q 1131.6 669.9 1131.6 671.3 Q 1095.0 672.7 1095.0 671.3 Q 1058.4 670.1 1058.4 671.3 Q 1021.9 673.2 1021.9 671.3 Q 985.3 673.0 985.3 671.3"/><path d="M 988.3 674.3 Q 987.7 632.3 988.3 632.3 Q 986.5 590.3 988.3 590.3"/>
+  </g>
+</g>
+<text x="1002" y="624" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">tracing</text>
+<text x="1002" y="647" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">轨迹记录</text>
+<g transform="rotate(0.14 1417 416)">
+  <path d="M 1283 149 L 1551 149 L 1551 683 L 1283 683 Z" fill="#f2809f" opacity="0.2" stroke="none"/>
+  <path d="M 1283 149 L 1551 149 L 1551 683 L 1283 683 Z" fill="#f2809f" opacity="0.1" stroke="none"
+        transform="translate(-1.0 -1.1)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 1277.7 152.0 Q 1312.3 151.5 1312.3 152.0 Q 1346.9 150.5 1346.9 152.0 Q 1381.5 151.6 1381.5 152.0 Q 1416.1 150.6 1416.1 152.0 Q 1450.7 152.7 1450.7 152.0 Q 1485.3 152.4 1485.3 152.0 Q 1519.9 151.9 1519.9 152.0 Q 1554.5 150.4 1554.5 152.0"/><path d="M 1548.0 147.4 Q 1548.9 181.2 1548.0 181.2 Q 1549.6 215.0 1548.0 215.0 Q 1549.3 248.8 1548.0 248.8 Q 1548.6 282.6 1548.0 282.6 Q 1549.3 316.3 1548.0 316.3 Q 1549.3 350.1 1548.0 350.1 Q 1548.9 383.9 1548.0 383.9 Q 1547.2 417.7 1548.0 417.7 Q 1548.4 451.5 1548.0 451.5 Q 1548.5 485.3 1548.0 485.3 Q 1547.2 519.1 1548.0 519.1 Q 1549.7 552.8 1548.0 552.8 Q 1547.5 586.6 1548.0 586.6 Q 1548.8 620.4 1548.0 620.4 Q 1546.6 654.2 1548.0 654.2 Q 1547.3 688.0 1548.0 688.0"/><path d="M 1552.5 680.0 Q 1518.4 679.7 1518.4 680.0 Q 1484.2 678.2 1484.2 680.0 Q 1450.1 681.6 1450.1 680.0 Q 1415.9 679.8 1415.9 680.0 Q 1381.7 680.1 1381.7 680.0 Q 1347.6 680.4 1347.6 680.0 Q 1313.4 680.7 1313.4 680.0 Q 1279.2 681.2 1279.2 680.0"/><path d="M 1286.0 686.7 Q 1286.0 652.8 1286.0 652.8 Q 1284.7 618.8 1286.0 618.8 Q 1286.0 584.9 1286.0 584.9 Q 1287.3 550.9 1286.0 550.9 Q 1284.4 517.0 1286.0 517.0 Q 1286.2 483.0 1286.0 483.0 Q 1285.1 449.1 1286.0 449.1 Q 1287.8 415.1 1286.0 415.1 Q 1285.6 381.2 1286.0 381.2 Q 1287.5 347.2 1286.0 347.2 Q 1287.6 313.3 1286.0 313.3 Q 1286.6 279.3 1286.0 279.3 Q 1286.7 245.3 1286.0 245.3 Q 1287.2 211.4 1286.0 211.4 Q 1285.2 177.4 1286.0 177.4 Q 1286.7 143.5 1286.0 143.5"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 1283.8 152.6 Q 1317.3 151.4 1317.3 152.6 Q 1350.8 154.1 1350.8 152.6 Q 1384.3 150.8 1384.3 152.6 Q 1417.8 152.0 1417.8 152.6 Q 1451.3 153.8 1451.3 152.6 Q 1484.8 154.1 1484.8 152.6 Q 1518.3 153.3 1518.3 152.6 Q 1551.8 154.0 1551.8 152.6"/><path d="M 1548.8 149.6 Q 1550.4 182.9 1548.8 182.9 Q 1550.5 216.3 1548.8 216.3 Q 1549.1 249.7 1548.8 249.7 Q 1548.8 283.1 1548.8 283.1 Q 1547.1 316.4 1548.8 316.4 Q 1548.1 349.8 1548.8 349.8 Q 1549.6 383.2 1548.8 383.2 Q 1549.5 416.6 1548.8 416.6 Q 1547.7 449.9 1548.8 449.9 Q 1548.9 483.3 1548.8 483.3 Q 1549.0 516.7 1548.8 516.7 Q 1548.3 550.1 1548.8 550.1 Q 1549.3 583.4 1548.8 583.4 Q 1550.5 616.8 1548.8 616.8 Q 1548.0 650.2 1548.8 650.2 Q 1547.2 683.6 1548.8 683.6"/><path d="M 1551.8 680.6 Q 1518.3 682.2 1518.3 680.6 Q 1484.8 678.8 1484.8 680.6 Q 1451.3 680.4 1451.3 680.6 Q 1417.8 681.8 1417.8 680.6 Q 1384.3 679.2 1384.3 680.6 Q 1350.8 680.7 1350.8 680.6 Q 1317.3 679.5 1317.3 680.6 Q 1283.8 679.5 1283.8 680.6"/><path d="M 1286.8 683.6 Q 1286.4 650.2 1286.8 650.2 Q 1286.6 616.8 1286.8 616.8 Q 1285.3 583.4 1286.8 583.4 Q 1285.4 550.1 1286.8 550.1 Q 1287.8 516.7 1286.8 516.7 Q 1287.1 483.3 1286.8 483.3 Q 1285.5 449.9 1286.8 449.9 Q 1285.8 416.6 1286.8 416.6 Q 1286.1 383.2 1286.8 383.2 Q 1287.0 349.8 1286.8 349.8 Q 1286.8 316.4 1286.8 316.4 Q 1286.9 283.1 1286.8 283.1 Q 1288.5 249.7 1286.8 249.7 Q 1285.9 216.3 1286.8 216.3 Q 1288.1 182.9 1286.8 182.9 Q 1288.2 149.6 1286.8 149.6"/>
+  </g>
+</g>
+<text x="1417" y="124" text-anchor="middle" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="21" font-weight="700"
+    fill="#3d3a34" opacity="1">可观测 · 评测</text>
+<text x="1417" y="142" text-anchor="middle" font-family="Kalam, sans-serif"
+    font-size="12" font-weight="400"
+    fill="#8a8377" opacity="1">Observability</text>
+<g transform="rotate(0.32 1417 221)">
+  <path d="M 1297 179 L 1537 179 L 1537 263 L 1297 263 Z" fill="#f2809f" opacity="0.34" stroke="none"/>
+  <path d="M 1297 179 L 1537 179 L 1537 263 L 1297 263 Z" fill="#f2809f" opacity="0.17" stroke="none"
+        transform="translate(-0.7 -0.7)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 1293.6 182.0 Q 1328.5 181.6 1328.5 182.0 Q 1363.4 181.3 1363.4 182.0 Q 1398.3 180.4 1398.3 182.0 Q 1433.3 182.8 1433.3 182.0 Q 1468.2 181.1 1468.2 182.0 Q 1503.1 181.3 1503.1 182.0 Q 1538.0 181.0 1538.0 182.0"/><path d="M 1534.0 173.2 Q 1533.6 219.6 1534.0 219.6 Q 1533.5 265.9 1534.0 265.9"/><path d="M 1541.4 260.0 Q 1505.8 260.4 1505.8 260.0 Q 1470.2 258.5 1470.2 260.0 Q 1434.6 260.0 1434.6 260.0 Q 1399.1 260.8 1399.1 260.0 Q 1363.5 258.3 1363.5 260.0 Q 1327.9 260.3 1327.9 260.0 Q 1292.3 260.3 1292.3 260.0"/><path d="M 1300.0 267.5 Q 1298.2 222.6 1300.0 222.6 Q 1301.6 177.7 1300.0 177.7"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 1297.2 182.7 Q 1331.5 183.5 1331.5 182.7 Q 1365.7 183.4 1365.7 182.7 Q 1400.0 182.3 1400.0 182.7 Q 1434.3 184.0 1434.3 182.7 Q 1468.6 183.7 1468.6 182.7 Q 1502.9 183.9 1502.9 182.7 Q 1537.2 181.9 1537.2 182.7"/><path d="M 1534.2 179.7 Q 1532.2 221.7 1534.2 221.7 Q 1535.7 263.7 1534.2 263.7"/><path d="M 1537.2 260.7 Q 1502.9 259.7 1502.9 260.7 Q 1468.6 259.9 1468.6 260.7 Q 1434.3 260.0 1434.3 260.7 Q 1400.0 261.6 1400.0 260.7 Q 1365.7 261.4 1365.7 260.7 Q 1331.5 261.2 1331.5 260.7 Q 1297.2 260.6 1297.2 260.7"/><path d="M 1300.2 263.7 Q 1301.5 221.7 1300.2 221.7 Q 1299.5 179.7 1300.2 179.7"/>
+  </g>
+</g>
+<text x="1314" y="214" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="17" font-weight="700"
+    fill="#3d3a34" opacity="1">tracing</text>
+<text x="1314" y="237" font-family="Kalam, sans-serif"
+    font-size="12" font-weight="400"
+    fill="#7d766a" opacity="1">轨迹</text>
+<g transform="rotate(0.08 1417 317)">
+  <path d="M 1297 275 L 1537 275 L 1537 359 L 1297 359 Z" fill="#f2809f" opacity="0.34" stroke="none"/>
+  <path d="M 1297 275 L 1537 275 L 1537 359 L 1297 359 Z" fill="#f2809f" opacity="0.17" stroke="none"
+        transform="translate(0.9 0.4)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 1292.9 278.0 Q 1328.2 279.2 1328.2 278.0 Q 1363.5 276.2 1363.5 278.0 Q 1398.8 278.5 1398.8 278.0 Q 1434.0 276.3 1434.0 278.0 Q 1469.3 276.7 1469.3 278.0 Q 1504.6 277.0 1504.6 278.0 Q 1539.9 279.8 1539.9 278.0"/><path d="M 1534.0 272.3 Q 1535.7 317.5 1534.0 317.5 Q 1533.7 362.6 1534.0 362.6"/><path d="M 1542.9 356.0 Q 1507.1 355.0 1507.1 356.0 Q 1471.3 356.7 1471.3 356.0 Q 1435.6 355.7 1435.6 356.0 Q 1399.8 357.4 1399.8 356.0 Q 1364.1 355.8 1364.1 356.0 Q 1328.3 354.3 1328.3 356.0 Q 1292.6 354.6 1292.6 356.0"/><path d="M 1300.0 360.7 Q 1301.4 317.1 1300.0 317.1 Q 1300.5 273.5 1300.0 273.5"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 1299.0 276.0 Q 1333.3 276.4 1333.3 276.0 Q 1367.6 277.2 1367.6 276.0 Q 1401.9 275.7 1401.9 276.0 Q 1436.2 276.8 1436.2 276.0 Q 1470.4 276.4 1470.4 276.0 Q 1504.7 276.7 1504.7 276.0 Q 1539.0 275.4 1539.0 276.0"/><path d="M 1536.0 273.0 Q 1537.5 315.0 1536.0 315.0 Q 1535.3 357.0 1536.0 357.0"/><path d="M 1539.0 354.0 Q 1504.7 353.4 1504.7 354.0 Q 1470.4 354.0 1470.4 354.0 Q 1436.2 352.2 1436.2 354.0 Q 1401.9 354.4 1401.9 354.0 Q 1367.6 352.7 1367.6 354.0 Q 1333.3 354.1 1333.3 354.0 Q 1299.0 353.8 1299.0 354.0"/><path d="M 1302.0 357.0 Q 1301.7 315.0 1302.0 315.0 Q 1303.9 273.0 1302.0 273.0"/>
+  </g>
+</g>
+<text x="1314" y="310" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="17" font-weight="700"
+    fill="#3d3a34" opacity="1">Langfuse</text>
+<text x="1314" y="333" font-family="Kalam, sans-serif"
+    font-size="12" font-weight="400"
+    fill="#7d766a" opacity="1">上报</text>
+<g transform="rotate(-0.19 1417 413)">
+  <path d="M 1297 371 L 1537 371 L 1537 455 L 1297 455 Z" fill="#f2809f" opacity="0.34" stroke="none"/>
+  <path d="M 1297 371 L 1537 371 L 1537 455 L 1297 455 Z" fill="#f2809f" opacity="0.17" stroke="none"
+        transform="translate(1.6 -2.0)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 1291.4 374.0 Q 1326.8 372.4 1326.8 374.0 Q 1362.1 373.9 1362.1 374.0 Q 1397.5 375.0 1397.5 374.0 Q 1432.9 375.3 1432.9 374.0 Q 1468.2 375.5 1468.2 374.0 Q 1503.6 375.0 1503.6 374.0 Q 1539.0 373.1 1539.0 374.0"/><path d="M 1534.0 367.4 Q 1533.2 413.2 1534.0 413.2 Q 1535.5 459.0 1534.0 459.0"/><path d="M 1542.3 452.0 Q 1506.6 452.0 1506.6 452.0 Q 1470.9 453.6 1470.9 452.0 Q 1435.2 450.6 1435.2 452.0 Q 1399.5 452.5 1399.5 452.0 Q 1363.8 450.8 1363.8 452.0 Q 1328.1 452.9 1328.1 452.0 Q 1292.4 453.5 1292.4 452.0"/><path d="M 1300.0 456.7 Q 1300.4 413.2 1300.0 413.2 Q 1300.1 369.7 1300.0 369.7"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 1297.1 375.8 Q 1331.4 376.8 1331.4 375.8 Q 1365.7 375.7 1365.7 375.8 Q 1400.0 374.7 1400.0 375.8 Q 1434.2 375.7 1434.2 375.8 Q 1468.5 376.9 1468.5 375.8 Q 1502.8 377.4 1502.8 375.8 Q 1537.1 375.7 1537.1 375.8"/><path d="M 1534.1 372.8 Q 1533.5 414.8 1534.1 414.8 Q 1533.1 456.8 1534.1 456.8"/><path d="M 1537.1 453.8 Q 1502.8 453.2 1502.8 453.8 Q 1468.5 453.5 1468.5 453.8 Q 1434.2 454.7 1434.2 453.8 Q 1400.0 452.7 1400.0 453.8 Q 1365.7 453.0 1365.7 453.8 Q 1331.4 453.2 1331.4 453.8 Q 1297.1 454.6 1297.1 453.8"/><path d="M 1300.1 456.8 Q 1299.4 414.8 1300.1 414.8 Q 1300.4 372.8 1300.1 372.8"/>
+  </g>
+</g>
+<text x="1314" y="406" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="17" font-weight="700"
+    fill="#3d3a34" opacity="1">judge</text>
+<text x="1314" y="429" font-family="Kalam, sans-serif"
+    font-size="12" font-weight="400"
+    fill="#7d766a" opacity="1">评分</text>
+<g transform="rotate(-0.18 1417 509)">
+  <path d="M 1297 467 L 1537 467 L 1537 551 L 1297 551 Z" fill="#f2809f" opacity="0.34" stroke="none"/>
+  <path d="M 1297 467 L 1537 467 L 1537 551 L 1297 551 Z" fill="#f2809f" opacity="0.17" stroke="none"
+        transform="translate(1.8 -1.8)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 1293.8 470.0 Q 1329.0 468.5 1329.0 470.0 Q 1364.1 470.4 1364.1 470.0 Q 1399.3 469.1 1399.3 470.0 Q 1434.5 470.1 1434.5 470.0 Q 1469.7 468.8 1469.7 470.0 Q 1504.8 468.6 1504.8 470.0 Q 1540.0 468.7 1540.0 470.0"/><path d="M 1534.0 462.3 Q 1531.9 507.4 1534.0 507.4 Q 1533.7 552.4 1534.0 552.4"/><path d="M 1538.6 548.0 Q 1503.3 548.4 1503.3 548.0 Q 1468.1 547.8 1468.1 548.0 Q 1432.9 548.5 1432.9 548.0 Q 1397.6 546.4 1397.6 548.0 Q 1362.4 549.4 1362.4 548.0 Q 1327.2 548.8 1327.2 548.0 Q 1292.0 547.8 1292.0 548.0"/><path d="M 1300.0 555.1 Q 1300.9 508.3 1300.0 508.3 Q 1298.4 461.6 1300.0 461.6"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 1295.2 469.8 Q 1329.5 471.4 1329.5 469.8 Q 1363.8 470.7 1363.8 469.8 Q 1398.1 468.2 1398.1 469.8 Q 1432.4 469.0 1432.4 469.8 Q 1466.6 469.2 1466.6 469.8 Q 1500.9 469.7 1500.9 469.8 Q 1535.2 470.8 1535.2 469.8"/><path d="M 1532.2 466.8 Q 1534.3 508.8 1532.2 508.8 Q 1532.6 550.8 1532.2 550.8"/><path d="M 1535.2 547.8 Q 1500.9 546.0 1500.9 547.8 Q 1466.6 549.3 1466.6 547.8 Q 1432.4 547.2 1432.4 547.8 Q 1398.1 547.1 1398.1 547.8 Q 1363.8 548.1 1363.8 547.8 Q 1329.5 548.9 1329.5 547.8 Q 1295.2 546.4 1295.2 547.8"/><path d="M 1298.2 550.8 Q 1298.8 508.8 1298.2 508.8 Q 1296.3 466.8 1298.2 466.8"/>
+  </g>
+</g>
+<text x="1314" y="502" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="17" font-weight="700"
+    fill="#3d3a34" opacity="1">golden_set</text>
+<text x="1314" y="525" font-family="Kalam, sans-serif"
+    font-size="12" font-weight="400"
+    fill="#7d766a" opacity="1">题集</text>
+<g stroke="#7a746b" fill="none" stroke-linecap="round">
+  <path d="M 581 253 Q 573.0 281.0 581 309" stroke-width="2"/>
+  <path d="M 581 309 L 572.6 299.0
+           M 581 309 L 582.8 296.1"
+        stroke-width="2"/>
+</g>
+<text x="593" y="286" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="11.5" font-weight="400"
+    fill="#8a8377" opacity="1">依赖</text>
+<g stroke="#7a746b" fill="none" stroke-linecap="round">
+  <path d="M 581 393 Q 573.0 421.0 581 449" stroke-width="2"/>
+  <path d="M 581 449 L 572.6 439.0
+           M 581 449 L 582.8 436.1"
+        stroke-width="2"/>
+</g>
+<text x="593" y="426" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="11.5" font-weight="400"
+    fill="#8a8377" opacity="1">依赖</text>
+<g stroke="#7a746b" fill="none" stroke-linecap="round">
+  <path d="M 581 533 Q 573.0 561.0 581 589" stroke-width="2"/>
+  <path d="M 581 589 L 572.6 579.0
+           M 581 589 L 582.8 576.1"
+        stroke-width="2"/>
+</g>
+<text x="593" y="566" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="11.5" font-weight="400"
+    fill="#8a8377" opacity="1">依赖</text>
+<text x="56" y="736" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#7d766a" opacity="1">② 运行时 · 数据流</text>
+<path d="M 56 750 L 1544 750" stroke="#c9c0b0"
+    stroke-width="1.6" stroke-dasharray="10 8" opacity="0.7"/>
+<g transform="rotate(-0.12 800 820)">
+  <path d="M 537 779 L 1063 779 L 1063 861 L 537 861 Z" fill="#8b96a3" opacity="0.3" stroke="none"/>
+  <path d="M 537 779 L 1063 779 L 1063 861 L 537 861 Z" fill="#8b96a3" opacity="0.15" stroke="none"
+        transform="translate(1.1 1.5)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 531.8 782.0 Q 567.5 782.7 567.5 782.0 Q 603.2 783.5 603.2 782.0 Q 639.0 781.0 639.0 782.0 Q 674.7 780.2 674.7 782.0 Q 710.4 780.1 710.4 782.0 Q 746.1 782.5 746.1 782.0 Q 781.9 782.5 781.9 782.0 Q 817.6 782.7 817.6 782.0 Q 853.3 780.8 853.3 782.0 Q 889.0 781.9 889.0 782.0 Q 924.7 781.6 924.7 782.0 Q 960.5 783.7 960.5 782.0 Q 996.2 780.4 996.2 782.0 Q 1031.9 783.9 1031.9 782.0 Q 1067.6 782.9 1067.6 782.0"/><path d="M 1060.0 774.8 Q 1059.2 820.1 1060.0 820.1 Q 1061.9 865.5 1060.0 865.5"/><path d="M 1068.5 858.0 Q 1032.7 856.2 1032.7 858.0 Q 996.9 856.8 996.9 858.0 Q 961.0 859.1 961.0 858.0 Q 925.2 857.5 925.2 858.0 Q 889.4 857.6 889.4 858.0 Q 853.6 856.1 853.6 858.0 Q 817.8 856.5 817.8 858.0 Q 782.0 857.7 782.0 858.0 Q 746.2 857.0 746.2 858.0 Q 710.4 858.4 710.4 858.0 Q 674.6 856.3 674.6 858.0 Q 638.8 859.5 638.8 858.0 Q 602.9 857.4 602.9 858.0 Q 567.1 857.4 567.1 858.0 Q 531.3 856.9 531.3 858.0"/><path d="M 540.0 864.2 Q 539.6 819.8 540.0 819.8 Q 541.3 775.5 540.0 775.5"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 538.4 781.2 Q 573.5 781.6 573.5 781.2 Q 608.6 780.5 608.6 781.2 Q 643.6 780.1 643.6 781.2 Q 678.7 779.7 678.7 781.2 Q 713.8 782.8 713.8 781.2 Q 748.8 780.8 748.8 781.2 Q 783.9 783.2 783.9 781.2 Q 819.0 779.7 819.0 781.2 Q 854.0 780.7 854.0 781.2 Q 889.1 783.0 889.1 781.2 Q 924.2 779.5 924.2 781.2 Q 959.2 781.4 959.2 781.2 Q 994.3 779.5 994.3 781.2 Q 1029.4 780.8 1029.4 781.2 Q 1064.4 780.7 1064.4 781.2"/><path d="M 1061.4 778.2 Q 1062.5 819.2 1061.4 819.2 Q 1062.5 860.2 1061.4 860.2"/><path d="M 1064.4 857.2 Q 1029.4 857.1 1029.4 857.2 Q 994.3 857.4 994.3 857.2 Q 959.2 855.9 959.2 857.2 Q 924.2 856.7 924.2 857.2 Q 889.1 859.0 889.1 857.2 Q 854.0 857.5 854.0 857.2 Q 819.0 858.9 819.0 857.2 Q 783.9 857.8 783.9 857.2 Q 748.8 858.0 748.8 857.2 Q 713.8 858.8 713.8 857.2 Q 678.7 859.0 678.7 857.2 Q 643.6 856.4 643.6 857.2 Q 608.6 858.5 608.6 857.2 Q 573.5 858.6 573.5 857.2 Q 538.4 856.2 538.4 857.2"/><path d="M 541.4 860.2 Q 540.1 819.2 541.4 819.2 Q 539.4 778.2 541.4 778.2"/>
+  </g>
+</g>
+<path d="M 549 792 L 549 848" stroke="#8b96a3"
+      stroke-width="5" opacity="0.75" stroke-linecap="round"/>
+<text x="566" y="828" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">用户输入</text>
+<g stroke="#7a746b" fill="none" stroke-linecap="round">
+  <path d="M 800 858 Q 792.0 877.0 800 896" stroke-width="2.4"/>
+  <path d="M 800 896 L 790.5 887.1
+           M 800 896 L 800.3 883.0"
+        stroke-width="2.4"/>
+</g>
+<g transform="rotate(0.43 800 934)">
+  <path d="M 537 893 L 1063 893 L 1063 975 L 537 975 Z" fill="#5eb2f7" opacity="0.3" stroke="none"/>
+  <path d="M 537 893 L 1063 893 L 1063 975 L 537 975 Z" fill="#5eb2f7" opacity="0.15" stroke="none"
+        transform="translate(-1.4 1.5)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 534.0 896.0 Q 569.6 897.0 569.6 896.0 Q 605.2 896.4 605.2 896.0 Q 640.8 896.0 640.8 896.0 Q 676.4 894.3 676.4 896.0 Q 711.9 895.1 711.9 896.0 Q 747.5 895.4 747.5 896.0 Q 783.1 894.1 783.1 896.0 Q 818.7 895.4 818.7 896.0 Q 854.3 896.7 854.3 896.0 Q 889.9 897.1 889.9 896.0 Q 925.5 895.2 925.5 896.0 Q 961.1 894.9 961.1 896.0 Q 996.7 896.6 996.7 896.0 Q 1032.2 897.4 1032.2 896.0 Q 1067.8 895.6 1067.8 896.0"/><path d="M 1060.0 891.0 Q 1059.1 935.1 1060.0 935.1 Q 1059.1 979.2 1060.0 979.2"/><path d="M 1065.6 972.0 Q 1030.1 973.7 1030.1 972.0 Q 994.6 972.6 994.6 972.0 Q 959.1 972.1 959.1 972.0 Q 923.7 972.6 923.7 972.0 Q 888.2 972.2 888.2 972.0 Q 852.7 971.3 852.7 972.0 Q 817.2 973.5 817.2 972.0 Q 781.7 972.9 781.7 972.0 Q 746.3 970.3 746.3 972.0 Q 710.8 970.3 710.8 972.0 Q 675.3 971.9 675.3 972.0 Q 639.8 973.1 639.8 972.0 Q 604.3 971.9 604.3 972.0 Q 568.9 970.4 568.9 972.0 Q 533.4 970.4 533.4 972.0"/><path d="M 540.0 978.5 Q 539.8 933.5 540.0 933.5 Q 540.3 888.6 540.0 888.6"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 537.7 898.0 Q 572.8 896.6 572.8 898.0 Q 607.8 899.7 607.8 898.0 Q 642.9 899.5 642.9 898.0 Q 678.0 896.3 678.0 898.0 Q 713.0 897.7 713.0 898.0 Q 748.1 898.9 748.1 898.0 Q 783.2 897.0 783.2 898.0 Q 818.2 899.2 818.2 898.0 Q 853.3 898.3 853.3 898.0 Q 888.4 899.0 888.4 898.0 Q 923.4 897.1 923.4 898.0 Q 958.5 899.0 958.5 898.0 Q 993.6 898.3 993.6 898.0 Q 1028.6 899.9 1028.6 898.0 Q 1063.7 896.8 1063.7 898.0"/><path d="M 1060.7 895.0 Q 1062.5 936.0 1060.7 936.0 Q 1060.4 977.0 1060.7 977.0"/><path d="M 1063.7 974.0 Q 1028.6 972.5 1028.6 974.0 Q 993.6 973.4 993.6 974.0 Q 958.5 975.5 958.5 974.0 Q 923.4 974.5 923.4 974.0 Q 888.4 974.0 888.4 974.0 Q 853.3 973.6 853.3 974.0 Q 818.2 974.1 818.2 974.0 Q 783.2 974.6 783.2 974.0 Q 748.1 974.9 748.1 974.0 Q 713.0 973.2 713.0 974.0 Q 678.0 975.3 678.0 974.0 Q 642.9 973.0 642.9 974.0 Q 607.8 975.7 607.8 974.0 Q 572.8 972.2 572.8 974.0 Q 537.7 972.6 537.7 974.0"/><path d="M 540.7 977.0 Q 541.2 936.0 540.7 936.0 Q 541.5 895.0 540.7 895.0"/>
+  </g>
+</g>
+<path d="M 549 906 L 549 962" stroke="#5eb2f7"
+      stroke-width="5" opacity="0.75" stroke-linecap="round"/>
+<text x="566" y="928" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">multi_agent._plan()</text>
+<text x="566" y="951" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">先跑规则预筛 → 不确定才问 LLM Router</text>
+<g stroke="#7a746b" fill="none" stroke-linecap="round">
+  <path d="M 800 972 Q 792.0 991.0 800 1010" stroke-width="2.4"/>
+  <path d="M 800 1010 L 790.5 1001.1
+           M 800 1010 L 800.3 997.0"
+        stroke-width="2.4"/>
+</g>
+<g transform="rotate(-0.11 800 1048)">
+  <path d="M 537 1007 L 1063 1007 L 1063 1089 L 537 1089 Z" fill="#5fc97a" opacity="0.3" stroke="none"/>
+  <path d="M 537 1007 L 1063 1007 L 1063 1089 L 537 1089 Z" fill="#5fc97a" opacity="0.15" stroke="none"
+        transform="translate(0.8 -0.8)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 533.3 1010.0 Q 568.8 1011.2 568.8 1010.0 Q 604.3 1011.1 604.3 1010.0 Q 639.8 1008.7 639.8 1010.0 Q 675.3 1010.5 675.3 1010.0 Q 710.8 1011.2 710.8 1010.0 Q 746.2 1009.0 746.2 1010.0 Q 781.7 1011.6 781.7 1010.0 Q 817.2 1010.1 817.2 1010.0 Q 852.7 1009.7 852.7 1010.0 Q 888.2 1011.8 888.2 1010.0 Q 923.6 1011.8 923.6 1010.0 Q 959.1 1011.7 959.1 1010.0 Q 994.6 1011.3 994.6 1010.0 Q 1030.1 1011.6 1030.1 1010.0 Q 1065.6 1008.6 1065.6 1010.0"/><path d="M 1060.0 1004.7 Q 1062.0 1048.5 1060.0 1048.5 Q 1058.1 1092.4 1060.0 1092.4"/><path d="M 1064.7 1086.0 Q 1029.2 1087.4 1029.2 1086.0 Q 993.8 1087.3 993.8 1086.0 Q 958.3 1085.1 958.3 1086.0 Q 922.8 1087.6 922.8 1086.0 Q 887.3 1087.4 887.3 1086.0 Q 851.8 1086.5 851.8 1086.0 Q 816.3 1087.7 816.3 1086.0 Q 780.9 1084.4 780.9 1086.0 Q 745.4 1084.4 745.4 1086.0 Q 709.9 1085.8 709.9 1086.0 Q 674.4 1084.1 674.4 1086.0 Q 638.9 1086.4 638.9 1086.0 Q 603.4 1086.7 603.4 1086.0 Q 568.0 1084.1 568.0 1086.0 Q 532.5 1086.5 532.5 1086.0"/><path d="M 540.0 1093.3 Q 538.5 1049.3 540.0 1049.3 Q 540.1 1005.2 540.0 1005.2"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 536.9 1009.3 Q 571.9 1007.6 571.9 1009.3 Q 607.0 1008.9 607.0 1009.3 Q 642.1 1007.5 642.1 1009.3 Q 677.1 1008.1 677.1 1009.3 Q 712.2 1010.7 712.2 1009.3 Q 747.3 1008.9 747.3 1009.3 Q 782.3 1008.3 782.3 1009.3 Q 817.4 1010.2 817.4 1009.3 Q 852.5 1010.2 852.5 1009.3 Q 887.5 1008.5 887.5 1009.3 Q 922.6 1010.6 922.6 1009.3 Q 957.7 1009.3 957.7 1009.3 Q 992.7 1011.0 992.7 1009.3 Q 1027.8 1009.9 1027.8 1009.3 Q 1062.9 1010.5 1062.9 1009.3"/><path d="M 1059.9 1006.3 Q 1059.3 1047.3 1059.9 1047.3 Q 1058.4 1088.3 1059.9 1088.3"/><path d="M 1062.9 1085.3 Q 1027.8 1085.1 1027.8 1085.3 Q 992.7 1086.5 992.7 1085.3 Q 957.7 1084.3 957.7 1085.3 Q 922.6 1086.8 922.6 1085.3 Q 887.5 1087.0 887.5 1085.3 Q 852.5 1083.5 852.5 1085.3 Q 817.4 1084.9 817.4 1085.3 Q 782.3 1084.0 782.3 1085.3 Q 747.3 1085.7 747.3 1085.3 Q 712.2 1085.6 712.2 1085.3 Q 677.1 1083.9 677.1 1085.3 Q 642.1 1085.0 642.1 1085.3 Q 607.0 1086.3 607.0 1085.3 Q 571.9 1085.6 571.9 1085.3 Q 536.9 1084.6 536.9 1085.3"/><path d="M 539.9 1088.3 Q 539.9 1047.3 539.9 1047.3 Q 540.2 1006.3 539.9 1006.3"/>
+  </g>
+</g>
+<path d="M 549 1020 L 549 1076" stroke="#5fc97a"
+      stroke-width="5" opacity="0.75" stroke-linecap="round"/>
+<text x="566" y="1042" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">core.Agent.run()</text>
+<text x="566" y="1065" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">★ 记忆时点 ① — 提问前，先召回记忆</text>
+<g stroke="#7a746b" fill="none" stroke-linecap="round">
+  <path d="M 800 1086 Q 792.0 1105.0 800 1124" stroke-width="2.4"/>
+  <path d="M 800 1124 L 790.5 1115.1
+           M 800 1124 L 800.3 1111.0"
+        stroke-width="2.4"/>
+</g>
+<g transform="rotate(-0.41 800 1162)">
+  <path d="M 537 1121 L 1063 1121 L 1063 1203 L 537 1203 Z" fill="#f7a94b" opacity="0.3" stroke="none"/>
+  <path d="M 537 1121 L 1063 1121 L 1063 1203 L 537 1203 Z" fill="#f7a94b" opacity="0.15" stroke="none"
+        transform="translate(-1.3 -1.9)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 535.1 1124.0 Q 570.7 1124.3 570.7 1124.0 Q 606.2 1122.4 606.2 1124.0 Q 641.8 1124.1 641.8 1124.0 Q 677.3 1125.0 677.3 1124.0 Q 712.9 1122.6 712.9 1124.0 Q 748.5 1123.5 748.5 1124.0 Q 784.0 1124.1 784.0 1124.0 Q 819.6 1124.5 819.6 1124.0 Q 855.1 1122.2 855.1 1124.0 Q 890.7 1124.5 890.7 1124.0 Q 926.2 1122.7 926.2 1124.0 Q 961.8 1123.2 961.8 1124.0 Q 997.3 1125.2 997.3 1124.0 Q 1032.9 1125.1 1032.9 1124.0 Q 1068.5 1124.9 1068.5 1124.0"/><path d="M 1060.0 1119.8 Q 1060.8 1163.9 1060.0 1163.9 Q 1061.5 1208.0 1060.0 1208.0"/><path d="M 1064.1 1200.0 Q 1028.7 1198.2 1028.7 1200.0 Q 993.2 1201.7 993.2 1200.0 Q 957.8 1201.6 957.8 1200.0 Q 922.3 1198.5 922.3 1200.0 Q 886.9 1198.5 886.9 1200.0 Q 851.4 1198.3 851.4 1200.0 Q 816.0 1201.4 816.0 1200.0 Q 780.5 1200.9 780.5 1200.0 Q 745.0 1199.1 745.0 1200.0 Q 709.6 1200.8 709.6 1200.0 Q 674.1 1198.5 674.1 1200.0 Q 638.7 1198.2 638.7 1200.0 Q 603.2 1199.5 603.2 1200.0 Q 567.8 1199.3 567.8 1200.0 Q 532.3 1200.6 532.3 1200.0"/><path d="M 540.0 1204.4 Q 540.0 1161.6 540.0 1161.6 Q 537.9 1118.7 540.0 1118.7"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 539.1 1125.1 Q 574.2 1125.7 574.2 1125.1 Q 609.2 1124.6 609.2 1125.1 Q 644.3 1125.5 644.3 1125.1 Q 679.4 1125.8 679.4 1125.1 Q 714.4 1123.7 714.4 1125.1 Q 749.5 1123.4 749.5 1125.1 Q 784.6 1124.6 784.6 1125.1 Q 819.6 1126.5 819.6 1125.1 Q 854.7 1124.3 854.7 1125.1 Q 889.8 1125.3 889.8 1125.1 Q 924.8 1125.7 924.8 1125.1 Q 959.9 1124.3 959.9 1125.1 Q 995.0 1124.5 995.0 1125.1 Q 1030.0 1126.4 1030.0 1125.1 Q 1065.1 1124.0 1065.1 1125.1"/><path d="M 1062.1 1122.1 Q 1061.3 1163.1 1062.1 1163.1 Q 1062.4 1204.1 1062.1 1204.1"/><path d="M 1065.1 1201.1 Q 1030.0 1201.1 1030.0 1201.1 Q 995.0 1200.5 995.0 1201.1 Q 959.9 1202.1 959.9 1201.1 Q 924.8 1203.0 924.8 1201.1 Q 889.8 1200.0 889.8 1201.1 Q 854.7 1199.2 854.7 1201.1 Q 819.6 1201.6 819.6 1201.1 Q 784.6 1201.2 784.6 1201.1 Q 749.5 1200.9 749.5 1201.1 Q 714.4 1202.1 714.4 1201.1 Q 679.4 1202.9 679.4 1201.1 Q 644.3 1200.5 644.3 1201.1 Q 609.2 1199.6 609.2 1201.1 Q 574.2 1202.2 574.2 1201.1 Q 539.1 1202.1 539.1 1201.1"/><path d="M 542.1 1204.1 Q 542.2 1163.1 542.1 1163.1 Q 542.5 1122.1 542.1 1122.1"/>
+  </g>
+</g>
+<path d="M 549 1134 L 549 1190" stroke="#f7a94b"
+      stroke-width="5" opacity="0.75" stroke-linecap="round"/>
+<text x="566" y="1156" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">ReAct 循环（core 主干）</text>
+<text x="566" y="1179" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">LLM 调用 ⇄ 工具执行 ⇄ 结果回流</text>
+<g stroke="#7a746b" fill="none" stroke-linecap="round">
+  <path d="M 800 1200 Q 792.0 1219.0 800 1238" stroke-width="2.4"/>
+  <path d="M 800 1238 L 790.5 1229.1
+           M 800 1238 L 800.3 1225.0"
+        stroke-width="2.4"/>
+</g>
+<g transform="rotate(-0.08 800 1276)">
+  <path d="M 537 1235 L 1063 1235 L 1063 1317 L 537 1317 Z" fill="#8b96a3" opacity="0.3" stroke="none"/>
+  <path d="M 537 1235 L 1063 1235 L 1063 1317 L 537 1317 Z" fill="#8b96a3" opacity="0.15" stroke="none"
+        transform="translate(2.0 1.7)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 532.2 1238.0 Q 567.8 1238.8 567.8 1238.0 Q 603.4 1236.9 603.4 1238.0 Q 638.9 1238.4 638.9 1238.0 Q 674.5 1238.2 674.5 1238.0 Q 710.1 1238.3 710.1 1238.0 Q 745.7 1238.7 745.7 1238.0 Q 781.2 1239.9 781.2 1238.0 Q 816.8 1236.3 816.8 1238.0 Q 852.4 1239.7 852.4 1238.0 Q 888.0 1237.0 888.0 1238.0 Q 923.6 1239.6 923.6 1238.0 Q 959.1 1238.1 959.1 1238.0 Q 994.7 1236.6 994.7 1238.0 Q 1030.3 1238.3 1030.3 1238.0 Q 1065.9 1236.6 1065.9 1238.0"/><path d="M 1060.0 1231.4 Q 1058.3 1276.6 1060.0 1276.6 Q 1059.6 1321.9 1060.0 1321.9"/><path d="M 1067.0 1314.0 Q 1031.5 1315.3 1031.5 1314.0 Q 996.1 1315.0 996.1 1314.0 Q 960.7 1313.9 960.7 1314.0 Q 925.2 1312.3 925.2 1314.0 Q 889.8 1313.1 889.8 1314.0 Q 854.3 1315.5 854.3 1314.0 Q 818.9 1314.4 818.9 1314.0 Q 783.5 1315.6 783.5 1314.0 Q 748.0 1313.2 748.0 1314.0 Q 712.6 1314.2 712.6 1314.0 Q 677.1 1314.5 677.1 1314.0 Q 641.7 1314.7 641.7 1314.0 Q 606.3 1315.7 606.3 1314.0 Q 570.8 1313.5 570.8 1314.0 Q 535.4 1312.9 535.4 1314.0"/><path d="M 540.0 1321.5 Q 541.3 1276.8 540.0 1276.8 Q 539.3 1232.0 540.0 1232.0"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 536.2 1236.3 Q 571.3 1235.7 571.3 1236.3 Q 606.3 1236.1 606.3 1236.3 Q 641.4 1235.2 641.4 1236.3 Q 676.5 1236.2 676.5 1236.3 Q 711.5 1236.5 711.5 1236.3 Q 746.6 1238.0 746.6 1236.3 Q 781.7 1237.1 781.7 1236.3 Q 816.7 1236.6 816.7 1236.3 Q 851.8 1236.7 851.8 1236.3 Q 886.9 1235.2 886.9 1236.3 Q 921.9 1237.0 921.9 1236.3 Q 957.0 1236.2 957.0 1236.3 Q 992.1 1237.8 992.1 1236.3 Q 1027.1 1236.3 1027.1 1236.3 Q 1062.2 1236.5 1062.2 1236.3"/><path d="M 1059.2 1233.3 Q 1057.3 1274.3 1059.2 1274.3 Q 1060.9 1315.3 1059.2 1315.3"/><path d="M 1062.2 1312.3 Q 1027.1 1310.7 1027.1 1312.3 Q 992.1 1310.9 992.1 1312.3 Q 957.0 1311.4 957.0 1312.3 Q 921.9 1311.4 921.9 1312.3 Q 886.9 1311.2 886.9 1312.3 Q 851.8 1311.9 851.8 1312.3 Q 816.7 1311.1 816.7 1312.3 Q 781.7 1312.4 781.7 1312.3 Q 746.6 1313.4 746.6 1312.3 Q 711.5 1312.9 711.5 1312.3 Q 676.5 1310.9 676.5 1312.3 Q 641.4 1311.5 641.4 1312.3 Q 606.3 1310.5 606.3 1312.3 Q 571.3 1310.5 571.3 1312.3 Q 536.2 1312.6 536.2 1312.3"/><path d="M 539.2 1315.3 Q 537.9 1274.3 539.2 1274.3 Q 538.8 1233.3 539.2 1233.3"/>
+  </g>
+</g>
+<path d="M 549 1248 L 549 1304" stroke="#8b96a3"
+      stroke-width="5" opacity="0.75" stroke-linecap="round"/>
+<text x="566" y="1284" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">返回回答</text>
+<g stroke="#7a746b" fill="none" stroke-linecap="round">
+  <path d="M 800 1314 Q 792.0 1333.0 800 1352" stroke-width="2.4" stroke-dasharray="8 7"/>
+  <path d="M 800 1352 L 790.5 1343.1
+           M 800 1352 L 800.3 1339.0"
+        stroke-width="2.4"/>
+</g>
+<text x="814" y="1338" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="12" font-weight="400"
+    fill="#8a8377" opacity="1">异步（后台线程）</text>
+<g transform="rotate(-0.03 800 1390)">
+  <path d="M 537 1349 L 1063 1349 L 1063 1431 L 537 1431 Z" fill="#5fc97a" opacity="0.3" stroke="none"/>
+  <path d="M 537 1349 L 1063 1349 L 1063 1431 L 537 1431 Z" fill="#5fc97a" opacity="0.15" stroke="none"
+        transform="translate(-0.3 1.2)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 531.7 1352.0 Q 567.3 1350.4 567.3 1352.0 Q 602.9 1353.4 602.9 1352.0 Q 638.5 1353.6 638.5 1352.0 Q 674.1 1353.1 674.1 1352.0 Q 709.7 1353.7 709.7 1352.0 Q 745.3 1350.3 745.3 1352.0 Q 780.8 1352.8 780.8 1352.0 Q 816.4 1352.5 816.4 1352.0 Q 852.0 1351.6 852.0 1352.0 Q 887.6 1350.7 887.6 1352.0 Q 923.2 1353.9 923.2 1352.0 Q 958.8 1351.7 958.8 1352.0 Q 994.3 1350.5 994.3 1352.0 Q 1029.9 1350.8 1029.9 1352.0 Q 1065.5 1352.8 1065.5 1352.0"/><path d="M 1060.0 1348.0 Q 1060.4 1391.6 1060.0 1391.6 Q 1058.4 1435.2 1060.0 1435.2"/><path d="M 1065.5 1428.0 Q 1029.9 1427.7 1029.9 1428.0 Q 994.4 1427.0 994.4 1428.0 Q 958.8 1426.4 958.8 1428.0 Q 923.3 1426.7 923.3 1428.0 Q 887.7 1427.4 887.7 1428.0 Q 852.2 1426.4 852.2 1428.0 Q 816.6 1428.7 816.6 1428.0 Q 781.1 1428.7 781.1 1428.0 Q 745.5 1427.2 745.5 1428.0 Q 710.0 1426.3 710.0 1428.0 Q 674.5 1428.9 674.5 1428.0 Q 638.9 1428.0 638.9 1428.0 Q 603.4 1427.9 603.4 1428.0 Q 567.8 1429.3 567.8 1428.0 Q 532.3 1429.0 532.3 1428.0"/><path d="M 540.0 1435.6 Q 539.0 1391.7 540.0 1391.7 Q 538.9 1347.7 540.0 1347.7"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 538.5 1352.6 Q 573.5 1351.7 573.5 1352.6 Q 608.6 1351.5 608.6 1352.6 Q 643.7 1352.9 643.7 1352.6 Q 678.7 1352.2 678.7 1352.6 Q 713.8 1352.6 713.8 1352.6 Q 748.9 1354.0 748.9 1352.6 Q 783.9 1350.7 783.9 1352.6 Q 819.0 1352.7 819.0 1352.6 Q 854.1 1354.4 854.1 1352.6 Q 889.1 1353.2 889.1 1352.6 Q 924.2 1354.2 924.2 1352.6 Q 959.3 1354.2 959.3 1352.6 Q 994.3 1354.0 994.3 1352.6 Q 1029.4 1354.4 1029.4 1352.6 Q 1064.5 1351.0 1064.5 1352.6"/><path d="M 1061.5 1349.6 Q 1059.6 1390.6 1061.5 1390.6 Q 1061.5 1431.6 1061.5 1431.6"/><path d="M 1064.5 1428.6 Q 1029.4 1429.9 1029.4 1428.6 Q 994.3 1429.8 994.3 1428.6 Q 959.3 1429.5 959.3 1428.6 Q 924.2 1429.1 924.2 1428.6 Q 889.1 1429.3 889.1 1428.6 Q 854.1 1428.3 854.1 1428.6 Q 819.0 1429.6 819.0 1428.6 Q 783.9 1428.7 783.9 1428.6 Q 748.9 1429.3 748.9 1428.6 Q 713.8 1429.7 713.8 1428.6 Q 678.7 1428.1 678.7 1428.6 Q 643.7 1427.3 643.7 1428.6 Q 608.6 1430.5 608.6 1428.6 Q 573.5 1429.9 573.5 1428.6 Q 538.5 1429.8 538.5 1428.6"/><path d="M 541.5 1431.6 Q 540.1 1390.6 541.5 1390.6 Q 541.5 1349.6 541.5 1349.6"/>
+  </g>
+</g>
+<path d="M 549 1362 L 549 1418" stroke="#5fc97a"
+      stroke-width="5" opacity="0.75" stroke-linecap="round"/>
+<text x="566" y="1384" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">★ 记忆时点 ② — 回答后（后台线程）</text>
+<text x="566" y="1407" font-family="Kalam, sans-serif"
+    font-size="12.5" font-weight="400"
+    fill="#7d766a" opacity="1">extractor.extract() → memory.add()</text>
+<g transform="rotate(0.05 270 934)">
+  <path d="M 117 897 L 423 897 L 423 971 L 117 971 Z" fill="#5eb2f7" opacity="0.3" stroke="none"/>
+  <path d="M 117 897 L 423 897 L 423 971 L 117 971 Z" fill="#5eb2f7" opacity="0.15" stroke="none"
+        transform="translate(-0.9 1.1)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 111.4 900.0 Q 146.5 901.4 146.5 900.0 Q 181.7 898.7 181.7 900.0 Q 216.8 900.7 216.8 900.0 Q 252.0 900.8 252.0 900.0 Q 287.1 900.2 287.1 900.0 Q 322.3 901.3 322.3 900.0 Q 357.5 899.4 357.5 900.0 Q 392.6 900.0 392.6 900.0 Q 427.8 899.4 427.8 900.0"/><path d="M 420.0 895.8 Q 421.3 936.4 420.0 936.4 Q 421.6 977.0 420.0 977.0"/><path d="M 427.7 968.0 Q 392.8 966.3 392.8 968.0 Q 357.9 969.6 357.9 968.0 Q 323.0 968.5 323.0 968.0 Q 288.0 967.4 288.0 968.0 Q 253.1 968.7 253.1 968.0 Q 218.2 969.7 218.2 968.0 Q 183.2 967.5 183.2 968.0 Q 148.3 968.8 148.3 968.0 Q 113.4 967.5 113.4 968.0"/><path d="M 120.0 976.6 Q 120.9 934.5 120.0 934.5 Q 119.5 892.4 120.0 892.4"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 116.0 899.0 Q 150.0 898.5 150.0 899.0 Q 184.0 900.0 184.0 899.0 Q 218.0 898.9 218.0 899.0 Q 252.0 899.0 252.0 899.0 Q 286.0 900.1 286.0 899.0 Q 320.0 897.4 320.0 899.0 Q 354.0 897.3 354.0 899.0 Q 388.0 898.9 388.0 899.0 Q 422.0 898.1 422.0 899.0"/><path d="M 419.0 896.0 Q 417.3 933.0 419.0 933.0 Q 419.5 970.0 419.0 970.0"/><path d="M 422.0 967.0 Q 388.0 968.1 388.0 967.0 Q 354.0 966.8 354.0 967.0 Q 320.0 965.4 320.0 967.0 Q 286.0 966.0 286.0 967.0 Q 252.0 966.1 252.0 967.0 Q 218.0 968.6 218.0 967.0 Q 184.0 968.8 184.0 967.0 Q 150.0 968.2 150.0 967.0 Q 116.0 966.4 116.0 967.0"/><path d="M 119.0 970.0 Q 119.4 933.0 119.0 933.0 Q 118.4 896.0 119.0 896.0"/>
+  </g>
+</g>
+<text x="136" y="928" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="17" font-weight="700"
+    fill="#3d3a34" opacity="1">router_prefilter</text>
+<text x="136" y="950" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="12" font-weight="400"
+    fill="#7d766a" opacity="1">规则筛（零 token）</text>
+<g stroke="#7a746b" fill="none" stroke-linecap="round">
+  <path d="M 540 934 Q 480.0 926.0 420 934" stroke-width="2"/>
+  <path d="M 420 934 L 431.1 927.2
+           M 420 934 L 432.5 937.7"
+        stroke-width="2"/>
+</g>
+<g transform="rotate(0.48 258 1058)">
+  <path d="M 93 1007 L 423 1007 L 423 1109 L 93 1109 Z" fill="#5fc97a" opacity="0.3" stroke="none"/>
+  <path d="M 93 1007 L 423 1007 L 423 1109 L 93 1109 Z" fill="#5fc97a" opacity="0.15" stroke="none"
+        transform="translate(1.1 -1.8)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 88.4 1010.0 Q 122.2 1010.3 122.2 1010.0 Q 155.9 1009.5 155.9 1010.0 Q 189.7 1010.6 189.7 1010.0 Q 223.5 1011.0 223.5 1010.0 Q 257.2 1009.5 257.2 1010.0 Q 291.0 1011.3 291.0 1010.0 Q 324.7 1009.0 324.7 1010.0 Q 358.5 1010.0 358.5 1010.0 Q 392.3 1010.2 392.3 1010.0 Q 426.0 1011.4 426.0 1010.0"/><path d="M 420.0 1003.3 Q 420.2 1040.3 420.0 1040.3 Q 420.6 1077.3 420.0 1077.3 Q 419.1 1114.3 420.0 1114.3"/><path d="M 426.5 1106.0 Q 393.0 1105.4 393.0 1106.0 Q 359.6 1107.1 359.6 1106.0 Q 326.1 1107.5 326.1 1106.0 Q 292.6 1105.5 292.6 1106.0 Q 259.2 1104.9 259.2 1106.0 Q 225.7 1104.8 225.7 1106.0 Q 192.2 1107.4 192.2 1106.0 Q 158.8 1104.7 158.8 1106.0 Q 125.3 1104.3 125.3 1106.0 Q 91.8 1106.8 91.8 1106.0"/><path d="M 96.0 1111.3 Q 94.3 1075.2 96.0 1075.2 Q 95.9 1039.0 96.0 1039.0 Q 95.3 1002.9 96.0 1002.9"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 93.7 1008.6 Q 126.7 1010.0 126.7 1008.6 Q 159.7 1007.4 159.7 1008.6 Q 192.7 1007.9 192.7 1008.6 Q 225.7 1010.3 225.7 1008.6 Q 258.7 1008.4 258.7 1008.6 Q 291.7 1007.0 291.7 1008.6 Q 324.7 1006.9 324.7 1008.6 Q 357.7 1010.2 357.7 1008.6 Q 390.7 1009.8 390.7 1008.6 Q 423.7 1008.9 423.7 1008.6"/><path d="M 420.7 1005.6 Q 421.3 1039.6 420.7 1039.6 Q 420.9 1073.6 420.7 1073.6 Q 421.8 1107.6 420.7 1107.6"/><path d="M 423.7 1104.6 Q 390.7 1104.0 390.7 1104.6 Q 357.7 1105.2 357.7 1104.6 Q 324.7 1104.2 324.7 1104.6 Q 291.7 1103.0 291.7 1104.6 Q 258.7 1105.7 258.7 1104.6 Q 225.7 1103.4 225.7 1104.6 Q 192.7 1103.0 192.7 1104.6 Q 159.7 1103.3 159.7 1104.6 Q 126.7 1105.3 126.7 1104.6 Q 93.7 1105.2 93.7 1104.6"/><path d="M 96.7 1107.6 Q 98.0 1073.6 96.7 1073.6 Q 97.2 1039.6 96.7 1039.6 Q 96.3 1005.6 96.7 1005.6"/>
+  </g>
+</g>
+<text x="112" y="1038" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="17" font-weight="700"
+    fill="#3d3a34" opacity="1">memory.search()</text>
+<text x="112" y="1058" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="11.5" font-weight="400"
+    fill="#7d766a" opacity="1">· embedding_backends</text>
+<text x="112" y="1075" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="11.5" font-weight="400"
+    fill="#7d766a" opacity="1">· ChromaDB top-K</text>
+<text x="112" y="1092" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="11.5" font-weight="400"
+    fill="#7d766a" opacity="1">· rerank（默认关）</text>
+<g stroke="#7a746b" fill="none" stroke-linecap="round">
+  <path d="M 540 1054 Q 480.0 1046.0 420 1054" stroke-width="2"/>
+  <path d="M 420 1054 L 431.1 1047.2
+           M 420 1054 L 432.5 1057.7"
+        stroke-width="2"/>
+</g>
+<text x="96" y="1126" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="11.5" font-weight="400"
+    fill="#7d766a" opacity="1">↑ 召回结果注入 system prompt</text>
+<path d="M 1498.0 121.0 L 1501.3 128.7 L 1509.0 132.0 L 1501.3 135.3 L 1498.0 143.0 L 1494.7 135.3 L 1487.0 132.0 L 1494.7 128.7 Z" fill="#e8590c" opacity="0.85"/>
+<path d="M 74.0 691.0 L 76.7 697.3 L 83.0 700.0 L 76.7 702.7 L 74.0 709.0 L 71.3 702.7 L 65.0 700.0 L 71.3 697.3 Z" fill="#e8590c" opacity="0.85"/>
+<path d="M 1556.0 1229.0 L 1559.3 1236.7 L 1567.0 1240.0 L 1559.3 1243.3 L 1556.0 1251.0 L 1552.7 1243.3 L 1545.0 1240.0 L 1552.7 1236.7 Z" fill="#e8590c" opacity="0.85"/>
+<text x="96" y="1314" transform="rotate(-0.6 96 1314)" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="18" font-weight="700"
+    fill="#3d3a34" opacity="1">图例</text>
+<g stroke="#7a746b" fill="none" stroke-linecap="round">
+  <path d="M 100 1340 Q 132.0 1348.0 164 1340" stroke-width="2"/>
+  <path d="M 164 1340 L 153.8 1348.0
+           M 164 1340 L 151.2 1337.7"
+        stroke-width="2"/>
+</g>
+<text x="178" y="1346" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="15.5" font-weight="400"
+    fill="#3d3a34" opacity="1">同步调用</text>
+<g stroke="#7a746b" fill="none" stroke-linecap="round">
+  <path d="M 286 1340 Q 318.0 1348.0 350 1340" stroke-width="2" stroke-dasharray="8 7"/>
+  <path d="M 350 1340 L 339.8 1348.0
+           M 350 1340 L 337.2 1337.7"
+        stroke-width="2"/>
+</g>
+<text x="364" y="1346" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="15.5" font-weight="400"
+    fill="#3d3a34" opacity="1">异步消息</text>
+<path d="M 478.0 1328.0 L 481.0 1335.0 L 488.0 1338.0 L 481.0 1341.0 L 478.0 1348.0 L 475.0 1341.0 L 468.0 1338.0 L 475.0 1335.0 Z" fill="#e8590c" opacity="0.85"/>
+<text x="498" y="1346" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="15.5" font-weight="400"
+    fill="#3d3a34" opacity="1">记忆时点</text>
+<text x="900" y="1492" transform="rotate(-0.5 900 1492)" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="15" font-weight="400"
+    fill="#8a8377" opacity="1">上层依赖下层，下层不认识上层；记忆被用两次：提问前召回、回答后沉淀（异步）。</text>
+<text x="900" y="1518" transform="rotate(-0.4 900 1518)" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="15" font-weight="400"
+    fill="#8a8377" opacity="1">可观测性（tracing / Langfuse）同样为异步上报，不阻塞主链。</text>
+</svg>

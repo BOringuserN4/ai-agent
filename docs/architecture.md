@@ -8,8 +8,12 @@
 
 | 图 | 文件 | 内容 |
 |---|---|---|
+| **架构总览**（合图） | `docs/diagrams/architecture-overview.png` | **上半分层结构 + 下半运行时数据流**（1600×1580 → 3200×3160）|
 | 分层架构图 | `docs/diagrams/architecture-notability.png` | 四层结构 + 10 个纯叶子 |
 | 运行时数据流 | `docs/diagrams/architecture-flow-notability.png` | 一次对话全过程 + 两处记忆时点 |
+
+> 三张均为 **Notability 手写笔记风**（按 `notability-diagram` skill 产出）。
+> 生成器：`docs/gen-arch-all.js`（总览）、`gen-notability.js`（分层）、`gen-flow-notability.js`（数据流）。
 
 > 上述两张为 **Notability 手写笔记风**（3200×2400，按 `notability-diagram` skill 产出）；
 > 生成器：`docs/gen-notability.js`（分层）、`docs/gen-flow-notability.js`（数据流）。
