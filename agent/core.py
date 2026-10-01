@@ -30,6 +30,32 @@ def get_api_key():
     return os.getenv("DEEPSEEK_API_KEY", "")
 
 
+# ---- 约束与收尾（2026/10/02，参考 nanoagent 的分级预算思路）----
+# 为什么需要：
+#   · 工具输出会「爆上下文」——一次 shell 返回 10 万字符，messages 就炸了。
+#   · 只有「撞到上限才停」太粗暴——第 8 步硬停，任务可能做了一半。
+#     → 改成**提前预警 + 主动收敛**：快没预算时提醒模型先给结论。
+TOOL_OUTPUT_MAX_CHARS = 4000   # 单次工具输出上限（约 1000 token）；超出则头尾保留
+REMAINING_STEPS_WARN = 2       # 剩余步数 ≤ 此值时，注入「尽快收尾」提醒
+
+
+def truncate_tool_output(text, limit=TOOL_OUTPUT_MAX_CHARS):
+    """工具输出截断：超长时保留**头 + 尾**。
+
+    为什么不是只留头：错误信息、异常堆栈常在末尾 —— 只留头会把最关键的丢掉。
+    （对照 nanoagent 的 TOOL_TRUNCATE_LENGTH，它只做了长度上限。）
+    """
+    text = str(text if text is not None else "")
+    if len(text) <= limit:
+        return text
+    head_n = limit * 3 // 4
+    tail_n = limit - head_n
+    omitted = len(text) - limit
+    return (f"{text[:head_n]}\n"
+            f"...（中间省略 {omitted} 字符）...\n"
+            f"{text[-tail_n:]}")
+
+
 # ---- Langfuse 客户端（2026/09/14：自 langfuse_obs.py 合并过来）----
 # 原先的 agent/langfuse_obs.py 基于 langfuse 3.x 的 lf.trace() 写，
 # 而本项目已升级到 langfuse 4.15.1（v4 已移除 lf.trace()），该文件已成死代码，故删除，
@@ -184,6 +210,16 @@ class Agent:
             # 发送前先控制上下文长度
             self.trim_history(max_tokens)
 
+            # 【约束与收尾】剩余步数不多 → 注入提醒，让模型**主动收敛**
+            # （而不是等撞到 max_steps 被硬停、任务做一半）
+            remaining = max_steps - _
+            if remaining <= REMAINING_STEPS_WARN:
+                messages[0]["content"] += (
+                    f"\n\n【重要】剩余工具调用次数不多（约 {remaining} 次）。"
+                    "请尽快基于已有信息给出结论；若仍缺关键信息，"
+                    "就明确说明缺什么，不要继续无意义地调工具。"
+                )
+
             # 【Langfuse 埋点】每次 LLM 调用 = 一个 generation 子 span（自动挂在本轮 trace 下）
             # 位置在循环内：Agent 会多轮提问，每一轮都要有自己的节点，否则只看到「整轮」看不到「哪一步」。
             llm_ctx = (self._lf.start_as_current_observation(
@@ -245,7 +281,9 @@ class Agent:
                                 # 提高召回率且**不增加注入 token**。
                                 # 见 docs/memory-recall-fix.md。
                                 stored = f"{tag_prefix}{result['text']}"
-                                embed_src = f"{tag_prefix}{build_embed_text(result['text'], result.get('questions'))}"
+                                enrich = build_embed_text(result['text'],
+                                                          result.get('questions'))
+                                embed_src = f"{tag_prefix}{enrich}"
                                 self.memory.add(stored, meta=meta, embed_text=embed_src)
                                 preview = result["text"][:30]
                                 self.tracer.log(f"记忆抽取：keep=True, tags={tags}, text='{preview}'")
@@ -298,6 +336,13 @@ class Agent:
                         if tspan is not None:
                             tspan.update(level="ERROR", status_message=f"{type(e).__name__}: {e}",
                                          output=result)
+                    # 【约束与收尾】工具输出截断（头尾保留），防「一次输出炸掉上下文」
+                    raw_len = len(str(result))
+                    result = truncate_tool_output(result)
+                    if raw_len > TOOL_OUTPUT_MAX_CHARS:
+                        self.tracer.log(
+                            f"工具 {name} 输出过长（{raw_len} 字符）→ 已截断至 "
+                            f"{len(result)} 字符")
                 took_ms = round((time.time() - t0) * 1000, 1)
                 print(f"🛠️  调用 {name}({args}) -> {result}")
                 self.tracer.add(type="tool_call", detail=f"调用 {name}", tool=name,

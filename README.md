@@ -14,6 +14,26 @@
 - 多个「专家」各司其职、各有独立人格与工具集；
 - 根据意图自动路由给对应专家处理。
 
+### 🪜 从哪开始读？
+
+本项目 17 个模块、约 5000 行，**不建议从头读**。按**能力阶梯**入手：
+
+| 级 | 内容 | 文件 | 代码量 |
+|---|---|---|---|
+| **0** | **最小 Agent** ← **从这里开始** | `minimal.py` | **88 行** |
+| 1 | + 记忆 | `agent/memory.py` | +253 |
+| 2 | + 工具生态（MCP） | `agent/mcp_bridge.py` | +375 |
+| 3 | + 编排（4 种模式） | `agent/multi_agent.py` 等 | +510 |
+| 4 | + 评测与可观测 | `agent/judge.py`、`eval_runner.py` | +600 |
+
+```bash
+# 30 秒看懂 Agent 的本质
+.venv/bin/python minimal.py "帮我算 123 * 456"
+```
+
+> 详见 [`docs/capability-ladder.md`](docs/capability-ladder.md)。
+> Agent 的本质是「**一个循环 + 一份工具清单**」，其余都是在它之上加出来的。
+
 ---
 
 ## 二、环境与依赖
@@ -72,6 +92,7 @@ ai-agent/
 ├── .gitignore
 ├── requirements.txt
 ├── main.py               # 统一命令行入口
+├── minimal.py            # 阶梯 0：最小可运行 Agent（88 行纯代码，一口气读完）
 ├── eval_runner.py        # 评测跑批（golden set + LLM-as-judge，支持 --compare 回归对比）
 ├── eval_memory_recall.py # 召回质量迷你评测（该召回/不该召回 + 阈值扫描）
 ├── eval_evaluator_critic.py # Evaluator-Critic 正反例对照实验（轮次×分数 + token 账）
@@ -111,6 +132,9 @@ ai-agent/
 │   ├── rerank-layer.md        # 实战章讲义：精排层（技术背景 + 实测否决）
 │   ├── issue-log.md           # 已发现问题清单（37 条，按主题归类）
 │   ├── architecture.md        # 架构图：四层结构 + 运行时数据流 + 工具选型
+│   ├── capability-ladder.md   # 能力阶梯：从 88 行到 5000 行（对照 nanoagent）
+│   ├── constraints-and-termination.md # 约束与收尾：工具输出截断 + 预算预警
+│   ├── mcp-boundary.md        # 边界辨析：记忆该不该做成 MCP server
 │   ├── local-inference-chain.html # 本地推理链路图（单文件，浏览器打开）
 │   ├── agent-mainline.html      # Agent 主线图（单文件，浏览器直接打开）
 │   ├── agent-understanding-timeline.html  # 对 Agent 的理解演进时间线（对照纠偏）

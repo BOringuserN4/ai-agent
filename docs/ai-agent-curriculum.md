@@ -191,6 +191,9 @@ Plan → Act → Reflect → Replan
 - [x] 给自己写一份**架构图**（手绘即可）
       ✅ 2026/10/01：`docs/architecture.md` + `docs/diagrams/architecture-sketch.png`
       （四层结构 + 10 个纯叶子 + 运行时数据流；手绘风 roughjs 生成）
+- [x] **最小可运行 Agent**（阶梯 0）
+      ✅ 2026/10/02：`minimal.py`（88 行纯代码）+ `docs/capability-ladder.md`
+      —— 参考 `sanbuphy/nanoAgent` 的递进结构补齐
 - [ ] 完整阅读本项目所有源码，理解每个细节
 - [ ] 跑 10+ 轮真实对话，记录哪些情况 agent 卡住/答错
       （素材已散见于各讲义与 `docs/issue-log.md`，待系统化）
@@ -246,6 +249,10 @@ Plan → Act → Reflect → Replan
 | 实战章 | 记忆召回修复（文本增富）| 2026/09/29 | `agent/extractor.py`、`agent/memory.py`、`docs/memory-recall-fix.md` |
 | 实战章 | 换更强 embedding（v3→v4 + 阈值修正）| 2026/09/29 | `agent/embedding_backends.py`、`eval_embedding_v4.py`、`docs/embedding-upgrade.md` |
 | 实战章 | 精排层 rerank（技术背景 + 实测否决）| 2026/09/29 | `agent/rerank.py`、`eval_rerank.py`、`docs/rerank-layer.md` |
+| 收尾章 | 架构图（分层 + 数据流 + 总览合图）| 2026/10/01 | `docs/architecture.md`、`docs/diagrams/` |
+| 基础章 | 能力阶梯 · 阶梯 0 最小 Agent | 2026/10/02 | `minimal.py`、`docs/capability-ladder.md` |
+| 实战章 | 约束与收尾（截断 + 预算预警）| 2026/10/02 | `agent/core.py`、`docs/constraints-and-termination.md` |
+| 协议章 | 边界辨析：记忆该不该 MCP 化 | 2026/10/02 | `docs/mcp-boundary.md` |
 
 
 ### 5.5 时间投入参考
