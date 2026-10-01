@@ -1,0 +1,100 @@
+# 模块架构图 · ai-agent（D2 源文件）
+#
+# 渲染：d2 docs/architecture.d2 docs/diagrams/architecture.svg
+#        d2 docs/architecture.d2 docs/diagrams/architecture.png   # 直接出 PNG
+#
+# 分层依据：AST 实测的依赖深度（拓扑序）
+#   L0 纯叶子(10) → L1 memory → L2 core → L3 roles/json_mode → L4 入口
+# 规则：**上层可依赖下层，下层绝不依赖上层**（依赖倒置）
+#
+# ⚠️ 两个布局陷阱（实测 2026/10/01）：
+#   1. 各层必须包在一层 root 容器里 + direction: down，否则会被排成一行
+#   2. **绝不能用 grid-columns** —— 它会让容器横排（vB 变体 3.29:1），
+#      改用 direction: right 才能保持竖排（vA 变体 0.69:1）
+
+direction: down
+
+arch: {
+  direction: down
+  style.fill: transparent
+  style.stroke: transparent
+
+  # ---------------- 入口层 ----------------
+  入口层: {
+    style.fill: "#dbeafe"
+    style.stroke: "#2563eb"
+    style.border-radius: 8
+    direction: right
+    main: "main.py（CLI 入口）" {style.fill: "#eff6ff"}
+    multi: "multi_agent（路由+真并行）" {style.fill: "#eff6ff"}
+    pipe: "pipeline（串联）" {style.fill: "#eff6ff"}
+    ec: "evaluator_critic（生成→批判→重做）" {style.fill: "#eff6ff"}
+  }
+
+  # ---------------- 引擎层 ----------------
+  引擎层: {
+    style.fill: "#fef3c7"
+    style.stroke: "#d97706"
+    style.border-radius: 8
+    direction: right
+    core: "core（ReAct 主干）" {style.fill: "#fffbeb"}
+    roles: "roles（角色→产 Agent）" {style.fill: "#fffbeb"}
+    jm: "json_mode（结构化输出）" {style.fill: "#fffbeb"}
+  }
+
+  # ---------------- 能力层 ----------------
+  能力层: {
+    style.fill: "#dcfce7"
+    style.stroke: "#16a34a"
+    style.border-radius: 8
+    direction: right
+    memory: "memory（长期记忆：检索 + 阈值闸门 + 空间隔离）" {style.fill: "#f0fdf4"}
+  }
+
+  # ---------------- 组件层（纯叶子 10 个，两行）----------------
+  组件层: 组件层 · 纯叶子（无内部依赖，可独立测试/替换） {
+    style.fill: "#f1f5f9"
+    style.stroke: "#64748b"
+    style.border-radius: 8
+    direction: down
+
+    row1: {
+      direction: right
+      style.fill: transparent
+      style.stroke: transparent
+      eb: "embedding_backends" {style.fill: "#ffffff"}
+      ex: "extractor" {style.fill: "#ffffff"}
+      tl: "tools" {style.fill: "#ffffff"}
+      tr: "tracing" {style.fill: "#ffffff"}
+      rp: "router_prefilter" {style.fill: "#ffffff"}
+    }
+    row2: {
+      direction: right
+      style.fill: transparent
+      style.stroke: transparent
+      rr: "rerank" {style.fill: "#ffffff"}
+      ts: "tool_selector" {style.fill: "#ffffff"}
+      mb: "mcp_bridge" {style.fill: "#ffffff"}
+      jd: "judge" {style.fill: "#ffffff"}
+      gs: "golden_set" {style.fill: "#ffffff"}
+    }
+  }
+
+  # ---------------- 依赖连线（跨层）----------------
+  入口层.multi -> 引擎层.core
+  入口层.multi -> 能力层.memory
+  入口层.multi -> 引擎层.roles
+  入口层.multi -> 组件层.row1.rp
+  入口层.pipe -> 引擎层.jm
+  入口层.ec -> 引擎层.jm
+
+  引擎层.core -> 能力层.memory
+  引擎层.core -> 组件层.row1.ex
+  引擎层.core -> 组件层.row1.tl
+  引擎层.core -> 组件层.row1.tr
+  引擎层.jm -> 组件层.row1.tr
+  引擎层.roles -> 引擎层.core
+
+  能力层.memory -> 组件层.row1.eb
+  能力层.memory -> 组件层.row2.rr
+}

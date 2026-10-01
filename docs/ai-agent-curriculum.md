@@ -188,7 +188,9 @@ Plan → Act → Reflect → Replan
       ✅ 2026/09/08：`agent/json_mode.py`（本项目已有，原清单遗漏）
 - [x] 写一份**已发现问题清单**（驱动后续学习）
       ✅ 2026/09/29：`docs/issue-log.md`（37 条，按主题归类）
-- [ ] 给自己写一份**架构图**（手绘即可） ← **剩余的主要缺口**
+- [x] 给自己写一份**架构图**（手绘即可）
+      ✅ 2026/10/01：`docs/architecture.md` + `docs/diagrams/architecture-sketch.png`
+      （四层结构 + 10 个纯叶子 + 运行时数据流；手绘风 roughjs 生成）
 - [ ] 完整阅读本项目所有源码，理解每个细节
 - [ ] 跑 10+ 轮真实对话，记录哪些情况 agent 卡住/答错
       （素材已散见于各讲义与 `docs/issue-log.md`，待系统化）

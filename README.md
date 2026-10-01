@@ -110,13 +110,17 @@ ai-agent/
 │   ├── embedding-upgrade.md   # 实战章讲义：换更强 embedding（v3→v4 + 阈值修正）
 │   ├── rerank-layer.md        # 实战章讲义：精排层（技术背景 + 实测否决）
 │   ├── issue-log.md           # 已发现问题清单（37 条，按主题归类）
+│   ├── architecture.md        # 架构图：四层结构 + 运行时数据流 + 工具选型
 │   ├── local-inference-chain.html # 本地推理链路图（单文件，浏览器打开）
 │   ├── agent-mainline.html      # Agent 主线图（单文件，浏览器直接打开）
 │   ├── agent-understanding-timeline.html  # 对 Agent 的理解演进时间线（对照纠偏）
 │   └── diagrams/
 │       ├── agent-mainline.svg
 │       ├── agent-understanding-timeline.png
-│       └── local-inference-chain.png
+│       ├── local-inference-chain.png
+│       ├── architecture-sketch.png   # 分层架构图（手绘风，主版）
+│       ├── architecture-flow.png     # 运行时数据流（手绘风）
+│       └── architecture-d2.png       # 分层架构图（D2 自动布局，备选）
 ├── langfuse/             # Langfuse 自部署（docker-compose，.env 已 gitignore）
 └── agent/
     ├── __init__.py

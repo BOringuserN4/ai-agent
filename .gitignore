@@ -50,3 +50,6 @@ memory_backup_*.json
 #图表渲染QA的临时产物
 tmp-artifacts/
 chroma_data_memcases/
+
+# Node 依赖（图表生成器用，按需 npm install）
+node_modules/
