@@ -37,6 +37,8 @@ def get_api_key():
 #     → 改成**提前预警 + 主动收敛**：快没预算时提醒模型先给结论。
 TOOL_OUTPUT_MAX_CHARS = 4000   # 单次工具输出上限（约 1000 token）；超出则头尾保留
 REMAINING_STEPS_WARN = 2       # 剩余步数 ≤ 此值时，注入「尽快收尾」提醒
+ANSWER_STEP = True             # 预算耗尽后，额外给一步「只能作答、不许调工具」的收尾步
+                               # （B 方案：不改 max_steps 的工具预算，代价只落在失败路径）
 
 
 def truncate_tool_output(text, limit=TOOL_OUTPUT_MAX_CHARS):
@@ -198,7 +200,13 @@ class Agent:
             messages[0]["content"] += "\n\n" + memory_context
         messages.extend(self.history[1:])  # history[0] 是原始 system，跳过
 
-        for _ in range(max_steps):
+        # B 方案（2026/10/03）：在 max_steps 之外**额外给一步「只能作答」的收尾步**。
+        # 为什么：实验证明「预算预警」只有在模型**有一个可作答的步**时才有用
+        # （否则最后一步被工具调用占用 → 硬停、零答复）。见 docs/constraints-and-termination.md §12。
+        # 不动 max_steps 的工具预算（仍是 max_steps 次），代价只落在「跑满预算」的失败路径上。
+        total_iters = max_steps + (1 if ANSWER_STEP else 0)
+
+        for _ in range(total_iters):
             # 【修复】每轮都重新构建 messages，保证模型能看到最新历史（含上一步工具结果）
             # 之前 messages 在循环外只构建了一次，导致模型每轮看到的上下文相同，
             # 看不到工具已返回，于是反复调用同一工具。
@@ -213,9 +221,17 @@ class Agent:
             # 【约束与收尾】剩余步数不多 → 注入提醒，让模型**主动收敛**
             # （而不是等撞到 max_steps 被硬停、任务做一半）
             remaining = max_steps - _
-            if remaining <= REMAINING_STEPS_WARN:
+            answer_only = ANSWER_STEP and remaining <= 0   # 多出来的那一步：强制作答
+            if answer_only:
+                # 最后一步：撤掉工具 + 明确告知「必须作答」—— 给它一个「该停」的理由
                 messages[0]["content"] += (
-                    f"\n\n【重要】剩余工具调用次数不多（约 {remaining} 次）。"
+                    "\n\n【最后一步】工具预算已用尽，本轮**不能再调用任何工具**。"
+                    "请立即基于已有信息给出最终结论；若信息不全，"
+                    "就如实说明已完成到哪、还缺什么。"
+                )
+            elif remaining <= REMAINING_STEPS_WARN:
+                messages[0]["content"] += (
+                    f"\n\n【重要】剩余轮次不多（约 {remaining} 轮）。"
                     "请尽快基于已有信息给出结论；若仍缺关键信息，"
                     "就明确说明缺什么，不要继续无意义地调工具。"
                 )
@@ -228,13 +244,16 @@ class Agent:
                        "last_message": str(messages[-1].get("content") or "")[:500]},
             ) if self._lf else contextlib.nullcontext())
             with llm_ctx as gen:
-                response = self.client.chat.completions.create(
-                    model="deepseek-flash",
-                    messages=messages,
-                    tools=self.tools_spec,
-                    tool_choice="auto",
-                    temperature=0.3,
-                )
+                # 【收尾步】answer_only 时撤掉工具（不传 tools/tool_choice）→ 强制作答
+                _llm_kwargs = {
+                    "model": "deepseek-flash",
+                    "messages": messages,
+                    "temperature": 0.3,
+                }
+                if not answer_only:
+                    _llm_kwargs["tools"] = self.tools_spec
+                    _llm_kwargs["tool_choice"] = "auto"
+                response = self.client.chat.completions.create(**_llm_kwargs)
                 # 记录 token 用量
                 u = response.usage
                 if u:
