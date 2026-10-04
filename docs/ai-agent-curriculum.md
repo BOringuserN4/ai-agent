@@ -48,7 +48,11 @@
 - ✅ 工具调用（calculator / get_weather / current_time）
 - ✅ 记忆（短期 `self.history` + 长期 MemoryStore 远程 embedding）
 - ✅ ReAct 主循环 + `max_steps` 兜底
-- 🔜 **下一步**：规划、感知-行动回路的**结构化输出**
+- 🔜 **下一步**：感知-行动回路的**结构化输出**
+- 🧪 **显式规划**：2026/10/04 做过专题调查（6 陷阱族 + 长依赖链边界）——
+  **实测当前不需要**：小任务上贪心 ReAct 全对且稳，长任务上规划也救不了
+  （边界悬崖 = `max_steps`，与有无计划无关）。规划的舞台是「控制/审计/规模」，非小任务正确性。
+  详见 [`docs/planning-investigation.md`](planning-investigation.md)。
 
 ---
 
@@ -442,7 +446,7 @@ Plan → Act → Reflect → Replan
 
 | 大纲要求 | 本项目当前状态 | 差距 |
 |---------|--------------|------|
-| 第 1 节：Agent 本质 | ✅ ReAct 循环 + history + 记忆 + 工具 | 缺：显式规划、感知回路结构化 |
+| 第 1 节：Agent 本质 | ✅ ReAct 循环 + history + 记忆 + 工具 | 缺：感知回路结构化；**显式规划已实测不需要**（2026/10/04）|
 | 第 2 节：Multi-Agent 入门 | ✅ Router + Worker + solo 兜底 | 缺：去中心化协商 demo |
 | 第 3 节：10 种编排 | ✅ **4 种**：Router / Pipeline / Fan-out（真并行）/ Evaluator-Critic | 缺 6 种（大纲标「高级」，本项目任务触不到）|
 | 第 4 节：协作机制 | ✅ 记忆分层 + **MCP 协议**（方案 A/B）+ 结构化 JSON | ✅ 已齐 |
@@ -469,6 +473,7 @@ Plan → Act → Reflect → Replan
 | **实证否决** | rerank 层（实现了但实测否决）| Top-1 14→13，延迟 +296ms |
 | **静默失败模式** | 两次识别「思考吃光输出预算」| 09-19 本地 / 09-29 云端 |
 | **资源感知** | 工具输出截断（头尾保留）+ 预算预警 + 收尾步（`ANSWER_STEP`）| 预警需「可作答的步」：33% vs 0%；成功路径零额外调用 |
+| **实测否决（规划）** | 显式规划（Planner-Executor）专题调查 | 6 陷阱族贪心全过；长链悬崖=max_steps，规划**零增益** |
 
 ### 阶段一剩余（真实缺口）
 
