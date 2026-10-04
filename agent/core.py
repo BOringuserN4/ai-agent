@@ -148,6 +148,24 @@ class Agent:
         """清空对话历史，但保留系统提示。"""
         self.history = [self.history[0]]
 
+    def _recent_turns(self, n: int = 3):
+        """从历史中取最近 n 个完整的「用户+助手」轮，供记忆抽取消解指代用。
+
+        2026/10/04：背景仅用于理解当前轮的指代（如「它」指什么），
+        见 docs/constraints-and-termination.md 之外的记忆切分专题。
+        末尾那个尚未配对的 user（当前轮）自然被排除。
+        """
+        pairs = []
+        pending = None
+        for m in self.history[1:]:           # 跳过 system
+            role = m.get("role")
+            if role == "user":
+                pending = m.get("content", "")
+            elif role == "assistant" and pending is not None and (m.get("content") or "").strip():
+                pairs.append((pending, m.get("content")))
+                pending = None
+        return pairs[-n:] if n else []
+
     # ---- 上下文预算控制 ----
     def trim_history(self, max_tokens: int = 6000):
         """当历史太长时，精简掉旧消息，只保留最近若干条 + 系统提示。
@@ -281,12 +299,17 @@ class Agent:
                 # 导致回复后迟迟不回到「你：」提示符。
                 # 重要：不再无脑存全部对话，而是用 LLM 过滤出「值得长期记」的信息。
                 if self.memory:
+                    # 先快照「最近几轮」作为上下文（此时当前轮 assistant 尚未入 history）
+                    context_turns = self._recent_turns(3)
+
                     def _persist():
                         try:
                             from agent.extractor import (MemoryExtractor,
                                                          build_embed_text)
                             extractor = MemoryExtractor()
-                            result = extractor.extract(user_input, msg.content)
+                            # 传入最近 3 轮作背景 → 消解「它」「那个」等指代
+                            result = extractor.extract(user_input, msg.content,
+                                                       context=context_turns)
                             if result["keep"] and result["text"]:
                                 tags = result.get("tags", [])
                                 tag_prefix = f"[{','.join(tags)}] " if tags else ""

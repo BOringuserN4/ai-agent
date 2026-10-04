@@ -42,7 +42,13 @@ questions 的写法要求（重要）：
 判断标准（按优先级，只保留前三档）：
 1. 用户的明确偏好/个人信息（姓名、职业、习惯、口味）
 2. 跨会话有用的具体事实（项目阶段、关键决策、技术偏好）
-3. 不要记的：问候、寒暄、"你好""谢谢"、一次性数学计算、模糊回复("嗯""哦")"""
+3. 不要记的：问候、寒暄、"你好""谢谢"、一次性数学计算、模糊回复("嗯""哦")
+
+关于「前文背景」（若提供）：
+- 背景**仅用于理解当前轮中的指代**（"它""那个""他"指的是什么）。
+- **只从【当前轮】抽取事实，绝不要把背景轮次的内容重复抽取。**
+- 若当前轮换掉了指代，抽取时用背景把指代替换成具体对象
+  （例：背景有"养了一只英短猫"，当前轮"它叫毛毛" → 抽成"用户的英短猫叫毛毛"）。"""
 
 
 QUESTIONS_PROMPT = """你是「记忆检索助手」。给定一条已记住的事实，写出用户日后**可能怎么问**它。
@@ -154,19 +160,40 @@ class MemoryExtractor:
             self.client = OpenAI(api_key=key, base_url="https://api.deepseek.com")
         return self.client
 
-    def extract(self, user_input: str, assistant_reply: str) -> dict:
+    def extract(self, user_input: str, assistant_reply: str, context=None) -> dict:
         """让 LLM 判断这轮对话是否值得记。
+
+        Args:
+            user_input: 当前轮用户输入。
+            assistant_reply: 当前轮助手回复。
+            context: 可选。**最近若干轮**的背景，形如 [(user, assistant), ...]，
+                顺序由旧到新。**仅用于消解当前轮中的指代**（2026/10/04 新增）。
 
         Returns:
             dict: {keep: bool, text: str, tags: list[str], _error?: str}
         """
         client = self._ensure_client()
+
+        # 构造当前轮内容；有背景时在前面加一段「仅供理解指代」的前文
+        if context:
+            lines = ["【前文背景】（仅供理解指代，不要从这些轮次抽取事实）"]
+            for u, a in context[-3:]:
+                lines.append(f"用户：{u}")
+                lines.append(f"助手：{a}")
+            lines.append("")
+            lines.append("【当前轮】（只抽取这一轮）")
+            lines.append(f"用户说：{user_input}")
+            lines.append(f"助手答：{assistant_reply}")
+            user_content = "\n".join(lines) + "\n\n请判断【当前轮】是否值得长期记。"
+        else:
+            user_content = (f"用户说：{user_input}\n助手答：{assistant_reply}\n\n"
+                            f"请判断是否值得长期记。")
+
         kwargs = dict(
             model=self.model,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content":
-                    f"用户说：{user_input}\n助手答：{assistant_reply}\n\n请判断是否值得长期记。"}
+                {"role": "user", "content": user_content}
             ],
             temperature=0,
             max_tokens=self.max_tokens,
