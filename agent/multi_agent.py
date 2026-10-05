@@ -16,11 +16,22 @@ agent/multi_agent.py — 多 Agent 调度器（Router + Worker 架构）
 于是漏答一半。根本原因不是「跨域」，是调度策略把跨域当成了判据。
 """
 import json
+import os
 import time
 from agent.core import Agent
 from agent.roles import ROLE_FACTORIES
 from agent.memory import MemoryStore
 from agent.router_prefilter import RouterPrefilter
+
+# 工人池开关（2026/10/05）
+# 实测结论：**工人池在当前负载下净成本**——同域多子任务改用「合并」而非新建 worker，
+#          可修复同一正确性 bug 且只多 ~30% token（工人池要 3×）。故默认**关**。
+# 背景：原结构专家是「每角色一个共享单例」→ _plan 必须按 expert 去重（否则并发争用同一 history）。
+# 去重旧实现是「**丢弃**后面的同域子任务」→ 丢数据（正确性 bug，被 solo 兜底掩盖）。
+# 现改为「**合并**」同域子任务（保留全部信息，1 个 worker 处理）。
+# 开启本开关 = 改用「工人池」（同域多子任务×独立 worker），仅在「大量同域且工具慢」时才值得。
+# 见 docs/hierarchical-investigation.md。
+ALLOW_PARALLEL_SAME_ROLE = os.getenv("WORKER_POOL", "").lower() in ("1", "true", "yes")
 
 
 class MultiAgent:
@@ -79,6 +90,7 @@ class MultiAgent:
         self.merger.tool_registry = {}
         # 专家 Worker 们（懒加载，复用同一份配置）
         self.experts = {}
+        self._run_workers = []   # 本轮实际用到的 worker（工人池）
         for name, factory in ROLE_FACTORIES.items():
             # 给专家接入共享的记忆库
             if self.memory:
@@ -129,8 +141,18 @@ class MultiAgent:
             for t in (raw or []):
                 exp = t.get("expert")
                 sub = t.get("subtask") or user_input
-                if exp in self.experts and not any(x["expert"] == exp for x in tasks):
+                if exp not in self.experts:
+                    continue
+                if ALLOW_PARALLEL_SAME_ROLE:
+                    # 工人池：同域也各建独立 worker
                     tasks.append({"expert": exp, "subtask": sub})
+                    continue
+                # 默认：同域子任务**合并**（而非丢弃）—— 修复「多子任务被去重丢数据」
+                existing = next((x for x in tasks if x["expert"] == exp), None)
+                if existing is None:
+                    tasks.append({"expert": exp, "subtask": sub})
+                elif sub not in existing["subtask"]:
+                    existing["subtask"] = existing["subtask"].rstrip("；; ") + "；" + sub
         except Exception:
             pass
         if not tasks:
@@ -146,11 +168,13 @@ class MultiAgent:
         tasks = self._plan(user_input)
         experts = [t["expert"] for t in tasks]
         print(f"→ 交给专家：{', '.join(experts)}")
+        self._run_workers = []   # 本轮实际用到的 worker（工人池）
 
         if len(tasks) == 1:
             expert = tasks[0]["expert"]
-            worker = self.experts[expert]
+            worker = self._worker_for(expert)
             worker.reset()
+            self._run_workers.append((expert, worker))
             answer = worker.run_traced(user_input, trace_name=f"expert-{expert}", user_id="demo")
             print(f"\n👥 [Multi-Agent] 汇总：「{expert}」专家完成：")
             print(f"   {answer}")
@@ -187,6 +211,22 @@ class MultiAgent:
         print(f"   {answer}")
         return answer
 
+    def _new_worker(self, expert: str):
+        """为单个子任务创建**独立** worker 实例（工人池，2026/10/05）。
+
+        原结构专家是「每角色一个共享单例」，并发会争用同一 worker 的 history，
+        所以 _plan 必须按 expert 去重。改为按子任务动态派生后，同角色可并发多工。
+        """
+        factory = ROLE_FACTORIES.get(expert) or ROLE_FACTORIES["solo"]
+        w = factory()
+        if self.memory:
+            w.memory = self.memory
+        return w
+
+    def _worker_for(self, expert: str):
+        """按开关取 worker：开=每子任务新实例；关=复用旧单例（旧行为）。"""
+        return self._new_worker(expert) if ALLOW_PARALLEL_SAME_ROLE else self.experts[expert]
+
     def _fanout_parallel(self, tasks: list, max_workers: int = None) -> list:
         """把各专家的子任务**并发**跑掉，返回 [(expert, subtask, answer, 耗时)]。
 
@@ -200,8 +240,9 @@ class MultiAgent:
 
         def _run_one(t):
             expert, subtask = t["expert"], t["subtask"]
-            worker = self.experts[expert]
-            worker.reset()          # 各专家实例独立，这里并发无竞争
+            worker = self._worker_for(expert)   # 工人池：每子任务独立实例
+            worker.reset()
+            self._run_workers.append((expert, worker))
             t0 = time.time()
             ans = worker.run_traced(subtask, trace_name=f"expert-{expert}",
                                     user_id="demo")
@@ -232,10 +273,17 @@ class MultiAgent:
         print("════════ Router 轨迹 ════════")
         self.router.print_trace()
         print("════════ Worker 轨迹 ════════")
-        for name, w in self.experts.items():
-            if w.tracer.steps:
-                print(f"--- {name} ---")
-                w.print_trace()
+        workers = getattr(self, "_run_workers", None)
+        if workers:
+            for name, w in workers:
+                if w.tracer.steps:
+                    print(f"--- {name} ---")
+                    w.print_trace()
+        else:
+            for name, w in self.experts.items():
+                if w.tracer.steps:
+                    print(f"--- {name} ---")
+                    w.print_trace()
 
 def main():
     ma = MultiAgent()
