@@ -2,7 +2,7 @@
 """
 scripts/check_local_llm_host.py — Mac 侧：诊断局域网 Ollama 主机是否可用
 
-2026/09/19 · 配合 docs/local-inference.md
+2026/09/19 · 配合 docs/03-实战章/local-inference.md
 
 用法：
     .venv/bin/python scripts/check_local_llm_host.py http://192.168.1.50:11434

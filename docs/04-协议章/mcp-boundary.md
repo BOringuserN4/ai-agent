@@ -81,7 +81,7 @@ MCP 解决的是 **N 个客户端 × M 个工具 = N×M 份适配** 的问题，
 
 ### 3.3 一个本项目独有的考量：**记忆是"热路径"上的**
 
-回忆数据流（`docs/architecture.md`）：
+回忆数据流（`docs/05-收尾章/architecture.md`）：
 
 ```
 用户输入 → core.Agent.run()

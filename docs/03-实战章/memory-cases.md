@@ -190,7 +190,7 @@ mem2 失败的原因**不是模型没用记忆，而是记忆根本没被检索�
 > ① 「记忆文本增富」：该问法 0.5051 → **0.6690**，mem2 从 ❌❌ 变 ✅❌；
 > ② 「换更强 embedding + 修正阈值」：合并空档由 +0.0116 扩到 **+0.0653**，
 >    并发现旧的 0.6 阈值**建立在退化扫描之上**（所有阈值行结果相同）。
-> 详见 `docs/memory-recall-fix.md`、`docs/embedding-upgrade.md`。
+> 详见 `docs/03-实战章/memory-recall-fix.md`、`docs/03-实战章/embedding-upgrade.md`。
 
 ---
 

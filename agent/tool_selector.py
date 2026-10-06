@@ -10,7 +10,7 @@ agent/tool_selector.py — 工具裁剪（按需加载），省掉「工具清�
 
 裁剪的判据从哪来（关键设计决策）：
   **不能用 LLM 判断**。本项目已经吃过这个亏：Router 每次判断要 853 token
-  （见 docs/orchestration-patterns.md §6）。用 LLM 省 token，等于
+  （见 docs/02-编排章/orchestration-patterns.md §6）。用 LLM 省 token，等于
   「花 853 省 3500」——收益被自己的判断成本吃掉，而且判断还会错。
 
   所以用**规则预筛**：查询里的关键词 → 工具分组。零 token、确定性、可测。

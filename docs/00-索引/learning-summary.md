@@ -1,6 +1,6 @@
 # AI Agent 学习总结
 
-> 大纲：`docs/ai-agent-curriculum.md` ｜ 项目：`~/ai-agent`
+> 大纲：`docs/00-索引/ai-agent-curriculum.md` ｜ 项目：`~/ai-agent`
 > 主线图：`docs/agent-mainline.html`
 > 收口日期：2026/09/15
 
@@ -164,17 +164,17 @@
    （b）**规则预筛**（`agent/router_prefilter.py`）：三条判据（无连接词/单意图/无复杂度标记），
        实测 **86% 跳过率**，14 条用例总 token **−25%**，**答对率未退化**。
    核心依据：误判「不拆」只降级（solo 接得住），而工具漏选是硬失败——
-   **后果不对称 ⇒ Router 预筛可以比工具预筛激进。** 详见 `docs/router-cost.md`。
+   **后果不对称 ⇒ Router 预筛可以比工具预筛激进。** 详见 `docs/02-编排章/router-cost.md`。
 2. ~~**真并行 Fan-out**：当前是串行 `for` 循环，判据 2 从未真正成立。~~
    ✅ **2026/09/20 已完成**（`_fanout_parallel`）：墙钟 5.11s → 3.04s（**省 41%**），
    token 不变（+3，符合预期）。
    并补上判据②的成立条件：除「子任务独立」外，还须**被等待的资源能吸收并发**——
    云端 API 8 并发近线性（7.90x），而本地单卡 GPU 会立刻饱和。
-   详见 `docs/fanout-parallel.md`。
+   详见 `docs/02-编排章/fanout-parallel.md`。
 3. ~~**MCP 基础**：协议章尚未跑通 demo。~~
    ✅ **2026/09/17 已完成**（方案 A：`mcp_servers/weather_server.py`；
    方案 B：接第三方 filesystem server；工具裁剪省 42%）。
-   详见 `docs/mcp-basics.md`。
+   详见 `docs/04-协议章/mcp-basics.md`。
 4. ~~**Evaluator-Critic**：编排章未做。~~ ✅ **2026/09/16 已完成**（`agent/evaluator_critic.py`）
    —— 落点确认是判据③「不同视角」：生成者与批判者立场天生冲突，自己批自己会撞上自我确认偏差。
    实测账：正例 84→84→85 收敛（14865 token）；反例（缺信息，命中否决线④）59→59→59 走平（9437 token）；
@@ -188,7 +188,7 @@
    并发现一个**真实召回断层**——「我的职业是什么」对记忆
    「用户是一名测试开发工程师」的相似度仅 0.5051（< 阈值 0.6），
    测 6 种真实问法 5 种召不回，而该分数正落在「不该召回组」区间内，
-   说明 embedding 分不开两种情况。详见 `docs/memory-cases.md`。
+   说明 embedding 分不开两种情况。详见 `docs/03-实战章/memory-cases.md`。
 6. ~~**资源感知（约束与收尾）**：本项目只有「撞上限就硬停」。~~
    ✅ **2026/10/02 → 10/03 完成**（参考 `sanbuphy/nanoAgent` 照出缺口）：
    - **工具输出截断**：超长时**头尾保留**（异常堆栈在尾）；单元 + 真循环双验 ✅
@@ -200,13 +200,13 @@
      不在预警概念 → 新增 `ANSWER_STEP`（预算耗尽后额外一步、**撤工具**强制作答）。
      三层回归全 PASS；成功路径**零额外 LLM 调用**。
    - 关键教训：**软提示压不过行为惯性 —— 要改行为，得改变「可用动作」（撤工具），
-     而不是加一句提醒。** 详见 `docs/constraints-and-termination.md`。
+     而不是加一句提醒。** 详见 `docs/03-实战章/constraints-and-termination.md`。
 
 ---
 
 ## 七、专题：约束与收尾（2026/10/03 收口）
 
-`docs/constraints-and-termination.md` 全文记录了一个「**从证伪到修复**」的完整闭环：
+`docs/03-实战章/constraints-and-termination.md` 全文记录了一个「**从证伪到修复**」的完整闭环：
 
 ```
 参考 nanoAgent 发现缺口 → 实现（截断 + 预警）
@@ -271,7 +271,7 @@
 
 > 一句话：**规划的价值在「控制与规模」，不在「小任务正确性」。**
 
-详见 `docs/planning-investigation.md`。
+详见 `docs/02-编排章/planning-investigation.md`。
 
 ---
 
@@ -318,7 +318,7 @@
 > 否则（快工具 / 非独立 / 单资源饱和）就是**纯负债**。
 
 ⚠️ 教训：**「要加一层」的直觉，常常掩盖着一个更便宜的修法**（合并 vs 工人池）。
-详见 `docs/hierarchical-investigation.md`。
+详见 `docs/02-编排章/hierarchical-investigation.md`。
 
 ---
 
@@ -364,7 +364,7 @@
 ### 产物
 - `agent/group_chat.py`、`main.py`（`/gc`）
 - `docs/experiments/decentral_{probe,self_vs_independent,asymmetry,decisive,prior_flip,random_truth}.py`、`group_chat_validate.py`
-- `docs/decentralized-investigation.md`
+- `docs/02-编排章/decentralized-investigation.md`
 
 ---
 
@@ -404,7 +404,7 @@
 ### 产物
 - `agent/observation.py`；`agent/core.py`；`agent/tracing.py`（`observation` 字段）
 - `docs/experiments/perception_{probe,determinism,contract_validate}.py`
-- `docs/perception-structured-investigation.md`
+- `docs/01-基础章/perception-structured-investigation.md`
 
 ---
 
@@ -424,7 +424,7 @@
 7. **强模型吃掉的是「推理类」脚手架，吃不掉「工程类」** —— 模型变强 → 拆步/规划/自批评的价值消失；
    但工具/上下文/信息获取/可验证性**永远得靠编排**。
    信息分散时集中式只能掷硬币（33%），**去中心化是唯一能汇集分散信息、且来源可审计的结构**。
-   （2026/10/06 去中心化协商：随机真值 33% vs 100%；同文献综述 `docs/model-capability-vs-agents.md`）
+   （2026/10/06 去中心化协商：随机真值 33% vs 100%；同文献综述 `docs/99-番外/model-capability-vs-agents.md`）
 8. **接口契约的价值也取决于「谁来消费」** —— 强模型能识破异常（概率性），
    但**程序消费不能靠概率**：格式漂移会崩、哨兵值会静默算错。
    **模型越强 → 越敢把判断交给下游程序 → 确定性契约反而更值钱。**

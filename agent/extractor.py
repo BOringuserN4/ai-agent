@@ -115,7 +115,7 @@ def build_embed_text(text: str, questions: list = None) -> str:
       ① 它是**纯函数**，可单独测、可 A/B（改拼法不用动抽取器）；
       ② 与「注入上下文的文本」解耦 —— 注入仍用精简 text，省 token。
 
-    实测（docs/memory-recall-fix.md）：命中的问法相似度上升约 +0.10~0.20，
+    实测（docs/03-实战章/memory-recall-fix.md）：命中的问法相似度上升约 +0.10~0.20，
     无关问法保持在阈值以下。
     """
     text = (text or "").strip()

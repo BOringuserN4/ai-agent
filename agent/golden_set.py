@@ -168,7 +168,7 @@ GOLDEN_SET = [
 #   seed:        跑之前要往记忆库种什么（文本 + 元数据 + 可选 questions）
 #                  questions = 用户日后**可能怎么问**这条信息（2026/09/29 新增）
 #                  它会拼进「向量化用文本」，提高召回率但不增加注入 token
-#                  （见 docs/memory-recall-fix.md）
+#                  （见 docs/03-实战章/memory-recall-fix.md）
 #   must_recall: 答案里**必须出现**的关键事实 —— 这是「记忆真的起作用」的判据
 #   cleanup:     跑完是否清空记忆库（**必为 True**，见下）
 #

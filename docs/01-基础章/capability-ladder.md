@@ -18,10 +18,10 @@
 | 级 | 内容 | 代码量 | 对应文件 | 跑法 |
 |---|---|---|---|---|
 | **0** | **最小 Agent** | **88 行**（纯代码） | `minimal.py` | `python minimal.py "算 1+1"` |
-| 1 | + 记忆 | +253 行 | `agent/memory.py` | 见 `docs/memory-cases.md` |
-| 2 | + 工具生态 | +375 行 | `agent/tools.py` + `agent/mcp_bridge.py` | 见 `docs/mcp-basics.md` |
-| 3 | + 编排 | +510 行 | `agent/multi_agent.py` 等 3 个 | 见 `docs/orchestration-patterns.md` |
-| 4 | + 评测与可观测 | +600 行 | `agent/judge.py`、`eval_runner.py` | 见 `docs/learning-summary.md` |
+| 1 | + 记忆 | +253 行 | `agent/memory.py` | 见 `docs/03-实战章/memory-cases.md` |
+| 2 | + 工具生态 | +375 行 | `agent/tools.py` + `agent/mcp_bridge.py` | 见 `docs/04-协议章/mcp-basics.md` |
+| 3 | + 编排 | +510 行 | `agent/multi_agent.py` 等 3 个 | 见 `docs/02-编排章/orchestration-patterns.md` |
+| 4 | + 评测与可观测 | +600 行 | `agent/judge.py`、`eval_runner.py` | 见 `docs/00-索引/learning-summary.md` |
 
 > 行数含注释与空行会更大（`minimal.py` 共 187 行，其中 88 行是纯代码）。
 
@@ -79,7 +79,7 @@ for step in range(1, max_steps + 1):
 
 **增量**：把状态**外置成检索库**，提问前召回、回答后沉淀。
 
-**踩过的坑**（都在 `docs/issue-log.md`）：
+**踩过的坑**（都在 `docs/00-索引/issue-log.md`）：
 - 召回阈值定错（0.6 太高）
 - 向量空间混用
 - 记忆文本措辞影响召回
@@ -142,7 +142,7 @@ nanoagent 的 `.agent/skills/` 是**运行时加载 markdown 技能**——
 **如果你是第一次读这个项目**：
 1. 先读 `minimal.py`（88 行纯代码，一口气读完）
 2. 再按阶梯 1→4 读对应模块 + 讲义
-3. 最后回看 `docs/architecture.md` 的架构图，把整体串起来
+3. 最后回看 `docs/05-收尾章/architecture.md` 的架构图，把整体串起来
 
 **如果你想改这个项目**：
 - 先定位改动落在哪一级
@@ -168,7 +168,7 @@ nanoagent 的 `.agent/skills/` 是**运行时加载 markdown 技能**——
 **纯代码行数**：88 行（比 nanoagent 的 103 行更少）。
 
 > 说明：阶梯 0 **刻意不含**安全护栏 —— 它的工具是纯本地函数（无 shell），
-> 所以攻击面很小。**一旦接 shell 工具，必须先补 `docs/constraints-and-termination.md`
+> 所以攻击面很小。**一旦接 shell 工具，必须先补 `docs/03-实战章/constraints-and-termination.md`
 > 那套约束，以及权限边界。**
 
 ---

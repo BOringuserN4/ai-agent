@@ -31,7 +31,7 @@
 .venv/bin/python minimal.py "帮我算 123 * 456"
 ```
 
-> 详见 [`docs/capability-ladder.md`](docs/capability-ladder.md)。
+> 详见 [`docs/01-基础章/capability-ladder.md`](docs/01-基础章/capability-ladder.md)。
 > Agent 的本质是「**一个循环 + 一份工具清单**」，其余都是在它之上加出来的。
 
 ---
@@ -290,7 +290,7 @@ ai-agent/
 
 ## 九、进阶教材
 
-主体代码完成后，下一步推荐读 [`docs/ai-agent-curriculum.md`](docs/ai-agent-curriculum.md) ——这是一份**章节版进阶路线**：
+主体代码完成后，下一步推荐读 [`docs/00-索引/ai-agent-curriculum.md`](docs/00-索引/ai-agent-curriculum.md) ——这是一份**章节版进阶路线**：
 
 - 10 种多 Agent 编排模式（Router / Pipeline / Evaluator-Critic / Fan-out …）
 - 资源/成本选型对比（DeepSeek / DashScope / LangGraph / Qdrant …）
@@ -302,4 +302,4 @@ ai-agent/
 
 ---
 
-*从 0 到 1 · 2026-09-06 起步，2026-09-07 收敛为 Multi-Agent 工程形态，2026/09/15 完成可观测/评测/召回阈值/多 Agent 判据，学习总结见 `docs/learning-summary.md`。*
+*从 0 到 1 · 2026-09-06 起步，2026-09-07 收敛为 Multi-Agent 工程形态，2026/09/15 完成可观测/评测/召回阈值/多 Agent 判据，学习总结见 `docs/00-索引/learning-summary.md`。*

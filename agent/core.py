@@ -42,7 +42,7 @@ ANSWER_STEP = True             # 预算耗尽后，额外给一步「只能作�
                                # （B 方案：不改 max_steps 的工具预算，代价只落在失败路径）
 OBSERVATION_CONTRACT = True    # 【感知结构化 2026/10/06】工具结果归一化为 {ok,data,error}
                                # 供下游程序确定性消费（见 agent/observation.py、
-                               # docs/perception-structured-investigation.md）。留作开关便于 A/B；
+                               # docs/01-基础章/perception-structured-investigation.md）。留作开关便于 A/B；
                                # 关闭时行为与旧版完全一致（裸字符串回填）。
 
 
@@ -157,7 +157,7 @@ class Agent:
         """从历史中取最近 n 个完整的「用户+助手」轮，供记忆抽取消解指代用。
 
         2026/10/04：背景仅用于理解当前轮的指代（如「它」指什么），
-        见 docs/constraints-and-termination.md 之外的记忆切分专题。
+        见 docs/03-实战章/constraints-and-termination.md 之外的记忆切分专题。
         末尾那个尚未配对的 user（当前轮）自然被排除。
         """
         pairs = []
@@ -225,7 +225,7 @@ class Agent:
 
         # B 方案（2026/10/03）：在 max_steps 之外**额外给一步「只能作答」的收尾步**。
         # 为什么：实验证明「预算预警」只有在模型**有一个可作答的步**时才有用
-        # （否则最后一步被工具调用占用 → 硬停、零答复）。见 docs/constraints-and-termination.md §12。
+        # （否则最后一步被工具调用占用 → 硬停、零答复）。见 docs/03-实战章/constraints-and-termination.md §12。
         # 不动 max_steps 的工具预算（仍是 max_steps 次），代价只落在「跑满预算」的失败路径上。
         total_iters = max_steps + (1 if ANSWER_STEP else 0)
 
@@ -326,7 +326,7 @@ class Agent:
                                 # 存储文本保持精简（注入上下文用）；
                                 # 向量化用增富版（事实 + 可能被怎么问），
                                 # 提高召回率且**不增加注入 token**。
-                                # 见 docs/memory-recall-fix.md。
+                                # 见 docs/03-实战章/memory-recall-fix.md。
                                 stored = f"{tag_prefix}{result['text']}"
                                 enrich = build_embed_text(result['text'],
                                                           result.get('questions'))

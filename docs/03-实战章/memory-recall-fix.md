@@ -212,7 +212,7 @@ print(build_embed_text('用户是一名测试开发工程师', ['我的职业是
 | 候选 | 预期 | 代价 |
 |---|---|---|
 | 换更强 embedding（本地 Qwen3-Embedding-4B） | 可能整体抬升 0.05~0.10 | 需重建向量库、验证质量 |
-| ~~加 rerank 层~~ | ~~可显著改善边缘案例~~ **实测否决** | 见 `docs/rerank-layer.md` |
+| ~~加 rerank 层~~ | ~~可显著改善边缘案例~~ **实测否决** | 见 `docs/03-实战章/rerank-layer.md` |
 
 **最值钱的认知**：
 

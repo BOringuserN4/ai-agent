@@ -55,7 +55,7 @@
 - 🧪 **显式规划**：2026/10/04 做过专题调查（6 陷阱族 + 长依赖链边界）——
   **实测当前不需要**：小任务上贪心 ReAct 全对且稳，长任务上规划也救不了
   （边界悬崖 = `max_steps`，与有无计划无关）。规划的舞台是「控制/审计/规模」，非小任务正确性。
-  详见 [`docs/planning-investigation.md`](planning-investigation.md)。
+  详见 [`docs/02-编排章/planning-investigation.md`](../02-编排章/planning-investigation.md)。
 
 ---
 
@@ -106,7 +106,7 @@
 **学习策略**：先掌握 **Router + Pipeline + Evaluator-Critic** 三种，覆盖 80% 场景。
 
 > 📘 本项目**已落地**的 4 种模式，逐个拆解（是什么/结构定位/为什么/代价/代码位置/实测账）见
-> [`docs/orchestration-patterns.md`](orchestration-patterns.md)。
+> [`docs/02-编排章/orchestration-patterns.md`](../02-编排章/orchestration-patterns.md)。
 
 ### 3.1 推荐路线：模式学习顺序
 ```
@@ -194,16 +194,16 @@ Plan → Act → Reflect → Replan
 - [x] 在本项目上加一个**结构化输出**的 demo（JSON schema）
       ✅ 2026/09/08：`agent/json_mode.py`（本项目已有，原清单遗漏）
 - [x] 写一份**已发现问题清单**（驱动后续学习）
-      ✅ 2026/09/29：`docs/issue-log.md`（37 条，按主题归类）
+      ✅ 2026/09/29：`docs/00-索引/issue-log.md`（37 条，按主题归类）
 - [x] 给自己写一份**架构图**（手绘即可）
-      ✅ 2026/10/01：`docs/architecture.md` + `docs/diagrams/architecture-sketch.png`
+      ✅ 2026/10/01：`docs/05-收尾章/architecture.md` + `docs/diagrams/architecture-sketch.png`
       （四层结构 + 10 个纯叶子 + 运行时数据流；手绘风 roughjs 生成）
 - [x] **最小可运行 Agent**（阶梯 0）
-      ✅ 2026/10/02：`minimal.py`（88 行纯代码）+ `docs/capability-ladder.md`
+      ✅ 2026/10/02：`minimal.py`（88 行纯代码）+ `docs/01-基础章/capability-ladder.md`
       —— 参考 `sanbuphy/nanoAgent` 的递进结构补齐
 - [ ] 完整阅读本项目所有源码，理解每个细节
 - [ ] 跑 10+ 轮真实对话，记录哪些情况 agent 卡住/答错
-      （素材已散见于各讲义与 `docs/issue-log.md`，待系统化）
+      （素材已散见于各讲义与 `docs/00-索引/issue-log.md`，待系统化）
 
 **验收**：能向别人讲清本项目的每个模块为什么这样设计
 
@@ -212,8 +212,8 @@ Plan → Act → Reflect → Replan
 **任务清单**：
 - [x] **编排章 · Pipeline**：在 multi_agent.py 上加 Pipeline 模式（数学→总结）（✅ 已完成 2026/09/08：`pipeline.py`）
 - [x] **编排章 · Evaluator-Critic**：生成→评分→重做（✅ 已完成 2026/09/16：`agent/evaluator_critic.py`；实测见 README 第八节）
-- [x] **编排章 · Fan-out / Fan-in**：跨域任务切分与汇总（✅ 2026/09/10 切分与归并；✅ 2026/09/20 **真并行**：`_fanout_parallel` 实测省 41% 墙钟，见 `docs/fanout-parallel.md`）
-- [x] **协议章 · MCP 基础**：跑通一个 MCP server demo（✅ 已完成 2026/09/17：`mcp_servers/weather_server.py`；讲义 `docs/mcp-basics.md`）
+- [x] **编排章 · Fan-out / Fan-in**：跨域任务切分与汇总（✅ 2026/09/10 切分与归并；✅ 2026/09/20 **真并行**：`_fanout_parallel` 实测省 41% 墙钟，见 `docs/02-编排章/fanout-parallel.md`）
+- [x] **协议章 · MCP 基础**：跑通一个 MCP server demo（✅ 已完成 2026/09/17：`mcp_servers/weather_server.py`；讲义 `docs/04-协议章/mcp-basics.md`）
 
 **验收**：✅ 本项目能演示 4 种编排模式（Router + Pipeline + Evaluator-Critic + Fan-out）
 
@@ -223,7 +223,7 @@ Plan → Act → Reflect → Replan
 - [x] **实战章 · 向量记忆**：选 Chromadb 或 pgvector 替换 numpy 检索（✅ 已完成 2026/09/08：ChromaDB 1.5.9 + DashScope embedding，memory.py 已重构）
 - [x] **实战章 · 可观测性**：接入 Langfuse（自部署）（✅ 已完成 2026/09/09：自部署 + run_traced 上报 trace）
 - [x] **实战章 · 评测框架**：golden set + LLM-as-judge（✅ 已完成 2026/09/10：`golden_set.py` + `judge.py` + `eval_runner.py`）
-- [x] **收尾章 · 学习总结文档**（✅ 已完成 2026/09/15：`docs/learning-summary.md`）
+- [x] **收尾章 · 学习总结文档**（✅ 已完成 2026/09/15：`docs/00-索引/learning-summary.md`）
 
 **验收**：本项目达到"可上线"水平（监控/告警/回退）
 
@@ -243,23 +243,23 @@ Plan → Act → Reflect → Replan
 | 经验章 | 可观测埋点（Langfuse v4）| 2026/09/14 | `agent/core.py` |
 | 记忆章 | 召回质量 + 阈值 | 2026/09/14 | `agent/memory.py`、`eval_memory_recall.py` |
 | 核心章 | 多 Agent 结构（拆与不拆）| 2026/09/15 | `agent/multi_agent.py`、`agent/roles.py` |
-| 收尾章 | 学习总结文档 | 2026/09/15 | `docs/learning-summary.md` |
+| 收尾章 | 学习总结文档 | 2026/09/15 | `docs/00-索引/learning-summary.md` |
 | 编排章 | Evaluator-Critic（生成→批判→重做）| 2026/09/16 | `agent/evaluator_critic.py`、`eval_evaluator_critic.py` |
 | 协议章 | MCP 基础（把天气工具适配为 MCP server）| 2026/09/17 | `mcp_servers/weather_server.py`、`agent/mcp_bridge.py` |
-| 协议章 | MCP 方案 B（接第三方 filesystem server）| 2026/09/17 | `mcp_external_demo.py`、`docs/mcp-basics.md` §8 |
+| 协议章 | MCP 方案 B（接第三方 filesystem server）| 2026/09/17 | `mcp_external_demo.py`、`docs/04-协议章/mcp-basics.md` §8 |
 | 协议章 | 工具裁剪（按需挂载，实测省 42%）| 2026/09/17 | `agent/tool_selector.py`、`mcp_tool_pruning_demo.py` |
-| 延伸 | 本地推理（embedding 挪到局域网主机）| 2026/09/19 | `agent/embedding_backends.py`、`eval_embedding_compare.py`、`docs/local-inference.md` |
-| 延伸 | 记忆抽取评测 + 本地化评估 | 2026/09/19 | `eval_memory_extract.py`、`docs/memory-extraction.md` |
-| 编排章 | 真并行 Fan-out | 2026/09/20 | `agent/multi_agent.py`、`eval_fanout_parallel.py`、`docs/fanout-parallel.md` |
-| 编排章 | Router 成本优化（规则预筛）| 2026/09/22 | `agent/router_prefilter.py`、`eval_router_prefilter.py`、`docs/router-cost.md` |
-| 收尾章 | 记忆用例评测（补评测链路的缝）| 2026/09/23 | `agent/golden_set.py`、`eval_memory_cases.py`、`docs/memory-cases.md` |
-| 实战章 | 记忆召回修复（文本增富）| 2026/09/29 | `agent/extractor.py`、`agent/memory.py`、`docs/memory-recall-fix.md` |
-| 实战章 | 换更强 embedding（v3→v4 + 阈值修正）| 2026/09/29 | `agent/embedding_backends.py`、`eval_embedding_v4.py`、`docs/embedding-upgrade.md` |
-| 实战章 | 精排层 rerank（技术背景 + 实测否决）| 2026/09/29 | `agent/rerank.py`、`eval_rerank.py`、`docs/rerank-layer.md` |
-| 收尾章 | 架构图（分层 + 数据流 + 总览合图）| 2026/10/01 | `docs/architecture.md`、`docs/diagrams/` |
-| 基础章 | 能力阶梯 · 阶梯 0 最小 Agent | 2026/10/02 | `minimal.py`、`docs/capability-ladder.md` |
-| 实战章 | 约束与收尾（截断 + 预算预警）| 2026/10/02 | `agent/core.py`、`docs/constraints-and-termination.md` |
-| 协议章 | 边界辨析：记忆该不该 MCP 化 | 2026/10/02 | `docs/mcp-boundary.md` |
+| 延伸 | 本地推理（embedding 挪到局域网主机）| 2026/09/19 | `agent/embedding_backends.py`、`eval_embedding_compare.py`、`docs/03-实战章/local-inference.md` |
+| 延伸 | 记忆抽取评测 + 本地化评估 | 2026/09/19 | `eval_memory_extract.py`、`docs/03-实战章/memory-extraction.md` |
+| 编排章 | 真并行 Fan-out | 2026/09/20 | `agent/multi_agent.py`、`eval_fanout_parallel.py`、`docs/02-编排章/fanout-parallel.md` |
+| 编排章 | Router 成本优化（规则预筛）| 2026/09/22 | `agent/router_prefilter.py`、`eval_router_prefilter.py`、`docs/02-编排章/router-cost.md` |
+| 收尾章 | 记忆用例评测（补评测链路的缝）| 2026/09/23 | `agent/golden_set.py`、`eval_memory_cases.py`、`docs/03-实战章/memory-cases.md` |
+| 实战章 | 记忆召回修复（文本增富）| 2026/09/29 | `agent/extractor.py`、`agent/memory.py`、`docs/03-实战章/memory-recall-fix.md` |
+| 实战章 | 换更强 embedding（v3→v4 + 阈值修正）| 2026/09/29 | `agent/embedding_backends.py`、`eval_embedding_v4.py`、`docs/03-实战章/embedding-upgrade.md` |
+| 实战章 | 精排层 rerank（技术背景 + 实测否决）| 2026/09/29 | `agent/rerank.py`、`eval_rerank.py`、`docs/03-实战章/rerank-layer.md` |
+| 收尾章 | 架构图（分层 + 数据流 + 总览合图）| 2026/10/01 | `docs/05-收尾章/architecture.md`、`docs/diagrams/` |
+| 基础章 | 能力阶梯 · 阶梯 0 最小 Agent | 2026/10/02 | `minimal.py`、`docs/01-基础章/capability-ladder.md` |
+| 实战章 | 约束与收尾（截断 + 预算预警）| 2026/10/02 | `agent/core.py`、`docs/03-实战章/constraints-and-termination.md` |
+| 协议章 | 边界辨析：记忆该不该 MCP 化 | 2026/10/02 | `docs/04-协议章/mcp-boundary.md` |
 
 
 ### 5.5 时间投入参考
@@ -403,7 +403,7 @@ Plan → Act → Reflect → Replan
 ### 9.1 每个阶段结束自检
 - [x] 我能用一句话说清这个阶段的核心目标
 - [x] 我有可运行的代码（不是只看教程）
-- [x] 我有 1 份书面总结（不是只在心里想）—— 10 份讲义 + `docs/issue-log.md`
+- [x] 我有 1 份书面总结（不是只在心里想）—— 10 份讲义 + `docs/00-索引/issue-log.md`
 - [x] 我能向另一个人讲清（不是只自己懂）—— 每章都有「代价」小节
 
 ### 9.2 阶段间过渡自检
@@ -492,13 +492,13 @@ Plan → Act → Reflect → Replan
 
 ### 待补的收口动作
 
-1. **问题清单汇总**：把散落在各讲义「踩过的坑」收拢成 `docs/issue-log.md`
+1. **问题清单汇总**：把散落在各讲义「踩过的坑」收拢成 `docs/00-索引/issue-log.md`
 2. **架构图**：agent 模块 / 5 层链路 / 数据流
 
 ## 📚 推荐阅读顺序
 
 1. 本项目 README.md（已学）
-2. 本文件 `docs/ai-agent-curriculum.md`（正在学）
+2. 本文件 `docs/00-索引/ai-agent-curriculum.md`（正在学）
 3. 大明王朝五部文档（按需查）
  - 01 兵部原理 → 第 1-4 节辅助阅读
  - 02 礼部计划 → 第 5 节对照

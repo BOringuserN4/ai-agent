@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """agent/observation.py — 感知（Observation）结构化契约
 
-为什么需要它（实测依据，见 docs/perception-structured-investigation.md）：
+为什么需要它（实测依据，见 docs/01-基础章/perception-structured-investigation.md）：
   当前工具结果是**裸字符串**直接回填。LLM 消费时强模型能识破哨兵/缺失/超时，
   但**下游程序**消费时不行：
     · 格式漂移 → 针对旧格式写的正则遇等价写法**静默返回空**；

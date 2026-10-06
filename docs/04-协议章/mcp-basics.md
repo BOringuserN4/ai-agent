@@ -318,7 +318,7 @@ MCP server → tools/list（14 个）→ ✂️ 裁剪器 → 挂载（N 个）�
 **关键决策：裁剪判据不能用 LLM。**
 
 本项目已经吃过这个亏——Router 每次判断要 **853 token**（见
-`docs/orchestration-patterns.md` §6）。若用 LLM 来判断该挂哪些工具，
+`docs/02-编排章/orchestration-patterns.md` §6）。若用 LLM 来判断该挂哪些工具，
 就变成「花 853 去省 3500」：收益被自己的判断成本吃掉一截，而且判断还会错。
 
 所以用**规则预筛**：查询关键词 → 工具分组。**零 token、确定性、可测**。

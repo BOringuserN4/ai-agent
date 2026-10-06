@@ -81,7 +81,7 @@ class DashScopeBackend(EmbeddingBackend):
 
     2026/09/29 从 v3 升到 v4：实测难负例最高分从 0.4693 压到 0.3086，
     空档由 +0.0452 扩到 +0.0653（1024 维）/ +0.0902（2048 维）。
-    即**安全边距翻倍**，而不是"分数变高"。详见 docs/embedding-upgrade.md。
+    即**安全边距翻倍**，而不是"分数变高"。详见 docs/03-实战章/embedding-upgrade.md。
 
     ⚠️ 换模型 = 换向量空间 → 必须使用**不同的 collection**，
        否则新旧向量混表、检索静默崩坏（见 memory.py 的 _space_id）。

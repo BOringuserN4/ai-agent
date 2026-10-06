@@ -30,7 +30,7 @@ from agent.router_prefilter import RouterPrefilter
 # 去重旧实现是「**丢弃**后面的同域子任务」→ 丢数据（正确性 bug，被 solo 兜底掩盖）。
 # 现改为「**合并**」同域子任务（保留全部信息，1 个 worker 处理）。
 # 开启本开关 = 改用「工人池」（同域多子任务×独立 worker），仅在「大量同域且工具慢」时才值得。
-# 见 docs/hierarchical-investigation.md。
+# 见 docs/02-编排章/hierarchical-investigation.md。
 ALLOW_PARALLEL_SAME_ROLE = os.getenv("WORKER_POOL", "").lower() in ("1", "true", "yes")
 
 

@@ -131,7 +131,7 @@
 
 ### 与项目铁律的关系
 - 「多 Agent 是成本结构」的同一逻辑：**接口契约也是成本结构，看消费方而定**；
-- 呼应番外篇（`docs/model-capability-vs-agents.md`）：
+- 呼应番外篇（`docs/99-番外/model-capability-vs-agents.md`）：
   **强模型吃掉「推理类」鲁棒性，吃不掉「接口类」确定性**。
 
 ### 产品

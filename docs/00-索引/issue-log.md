@@ -129,7 +129,7 @@ rerank **救不回阶段一漏召**。
 → 但侦察挖出**另一个**真的切分问题：**写侧逐轮抽取丢指代**
   （「它叫毛毛」→「宠物（或某个对象）名叫毛毛」）——多宠物时导致答不出（0/2）。
   **修法**：抽取器补最近 3 轮「仅作指代理解」的背景（`extract(context=...)`），
-  危害 0/2 → **2/2**，且单轮行为不变、无重复窃取。详见 `docs/memory-chunking.md`。
+  危害 0/2 → **2/2**，且单轮行为不变、无重复窃取。详见 `docs/03-实战章/memory-chunking.md`。
 
 ---
 
@@ -218,13 +218,13 @@ rerank 在自造语料上"提升"、在对抗语料上"变差"。
 
 | 章节 | 文件 |
 |---|---|
-| 编排 · 真并行 Fan-out | `docs/fanout-parallel.md` |
-| 编排 · Router 成本优化 | `docs/router-cost.md` |
-| 协议 · MCP | `docs/mcp-basics.md` |
-| 实战 · 本地推理 | `docs/local-inference.md` |
-| 实战 · 记忆抽取 | `docs/memory-extraction.md` |
-| 实战 · 记忆用例评测 | `docs/memory-cases.md` |
-| 实战 · 记忆召回修复 | `docs/memory-recall-fix.md` |
-| 实战 · 换更强 embedding | `docs/embedding-upgrade.md` |
-| 实战 · 精排层 rerank | `docs/rerank-layer.md` |
-| 收尾 · 学习总结 | `docs/learning-summary.md` |
+| 编排 · 真并行 Fan-out | `docs/02-编排章/fanout-parallel.md` |
+| 编排 · Router 成本优化 | `docs/02-编排章/router-cost.md` |
+| 协议 · MCP | `docs/04-协议章/mcp-basics.md` |
+| 实战 · 本地推理 | `docs/03-实战章/local-inference.md` |
+| 实战 · 记忆抽取 | `docs/03-实战章/memory-extraction.md` |
+| 实战 · 记忆用例评测 | `docs/03-实战章/memory-cases.md` |
+| 实战 · 记忆召回修复 | `docs/03-实战章/memory-recall-fix.md` |
+| 实战 · 换更强 embedding | `docs/03-实战章/embedding-upgrade.md` |
+| 实战 · 精排层 rerank | `docs/03-实战章/rerank-layer.md` |
+| 收尾 · 学习总结 | `docs/00-索引/learning-summary.md` |

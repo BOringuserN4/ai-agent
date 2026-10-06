@@ -13,10 +13,10 @@
 | 运行时数据流 | `docs/diagrams/architecture-flow-notability.png` | 一次对话全过程 + 两处记忆时点 |
 
 > 三张均为 **Notability 手写笔记风**（按 `notability-diagram` skill 产出）。
-> 生成器：`docs/gen-arch-all.js`（总览）、`gen-notability.js`（分层）、`gen-flow-notability.js`（数据流）。
+> 生成器：`docs/tools/gen-arch-all.js`（总览）、`gen-notability.js`（分层）、`gen-flow-notability.js`（数据流）。
 
 > 上述两张为 **Notability 手写笔记风**（3200×2400，按 `notability-diagram` skill 产出）；
-> 生成器：`docs/gen-notability.js`（分层）、`docs/gen-flow-notability.js`（数据流）。
+> 生成器：`docs/tools/gen-notability.js`（分层）、`docs/tools/gen-flow-notability.js`（数据流）。
 > 早期简版手绘：`architecture-sketch.png` / `architecture-flow.png`。
 
 **Notability 手写笔记版**（按用户提供规格绘制，3200×2400）：
@@ -27,7 +27,7 @@
 | 手绘简版 | `architecture-sketch.png` | 纯线条手绘 |
 | D2 自动布局 | `architecture-d2.png` | 工整专业 |
 
-备选（可重渲版）：`docs/architecture.d2`（D2）、`docs/gen-notability.js`（Notability 版生成器）。
+备选（可重渲版）：`docs/architecture.d2`（D2）、`docs/tools/gen-notability.js`（Notability 版生成器）。
 
 ---
 
@@ -123,7 +123,7 @@ tool_selector（规则）     +  工具列表         = 工具决策
 embedding_backends（执行）+  阈值判断         = 检索决策
 ```
 
-→ 正因为决策被拆开，才能做 `docs/rerank-layer.md` 里那个 A/B 实验：
+→ 正因为决策被拆开，才能做 `docs/03-实战章/rerank-layer.md` 里那个 A/B 实验：
 **把 rerank 插进去、拔出来，对比 Top-1 变好还是变坏**。
 如果精排写死在 `memory.py` 里，根本测不了。
 
@@ -174,7 +174,7 @@ ReAct 循环（LLM ⇄ tools 执行 ⇄ 结果回流；每步 tracing + Langfuse
 
 | 文件 | 说明 |
 |---|---|
-| `docs/gen-arch-sketches.js` | 手绘版生成器（roughjs，含两张图） |
+| `docs/tools/gen-arch-sketches.js` | 手绘版生成器（roughjs，含两张图） |
 | `docs/architecture.d2` | D2 版源文件（备选，自动布局） |
 | `docs/diagrams/architecture-sketch.svg/.png` | 分层架构图 |
 | `docs/diagrams/architecture-flow.svg/.png` | 运行时数据流 |
@@ -186,7 +186,7 @@ ReAct 循环（LLM ⇄ tools 执行 ⇄ 结果回流；每步 tracing + Langfuse
 
 ```bash
 # 手绘版（推荐）——需要 roughjs
-cd /tmp/sketch && npm i roughjs && cp ~/ai-agent/docs/gen-arch-sketches.js .
+cd /tmp/sketch && npm i roughjs && cp ~/ai-agent/docs/tools/gen-arch-sketches.js .
 node gen-arch-sketches.js ~/ai-agent/docs/diagrams
 
 # D2 版（备选；自动布局）
