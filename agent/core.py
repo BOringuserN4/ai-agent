@@ -21,6 +21,7 @@ import contextlib
 from openai import OpenAI
 from dotenv import load_dotenv
 from agent.tools import get_tools_spec, get_tool_registry
+from agent.observation import normalize as _normalize_obs, is_observation
 from agent.tracing import Tracer
 load_dotenv()
 
@@ -39,6 +40,10 @@ TOOL_OUTPUT_MAX_CHARS = 4000   # 单次工具输出上限（约 1000 token）；
 REMAINING_STEPS_WARN = 2       # 剩余步数 ≤ 此值时，注入「尽快收尾」提醒
 ANSWER_STEP = True             # 预算耗尽后，额外给一步「只能作答、不许调工具」的收尾步
                                # （B 方案：不改 max_steps 的工具预算，代价只落在失败路径）
+OBSERVATION_CONTRACT = True    # 【感知结构化 2026/10/06】工具结果归一化为 {ok,data,error}
+                               # 供下游程序确定性消费（见 agent/observation.py、
+                               # docs/perception-structured-investigation.md）。留作开关便于 A/B；
+                               # 关闭时行为与旧版完全一致（裸字符串回填）。
 
 
 def truncate_tool_output(text, limit=TOOL_OUTPUT_MAX_CHARS):
@@ -380,6 +385,14 @@ class Agent:
                                          output=result)
                     # 【约束与收尾】工具输出截断（头尾保留），防「一次输出炸掉上下文」
                     raw_len = len(str(result))
+                    # 【感知结构化】先把**未截断**的原始结果归一化为 Observation
+                    # （下游程序要的是完整、确定的契约，而非给 LLM 看的截断串）
+                    obs = None
+                    if OBSERVATION_CONTRACT:
+                        obs = _normalize_obs(result, tool=name)
+                        if raw_len > TOOL_OUTPUT_MAX_CHARS:
+                            obs["truncated"] = True
+                            obs["raw_len"] = raw_len
                     result = truncate_tool_output(result)
                     if raw_len > TOOL_OUTPUT_MAX_CHARS:
                         self.tracer.log(
@@ -390,7 +403,7 @@ class Agent:
                 self.tracer.add(type="tool_call", detail=f"调用 {name}", tool=name,
                                 args=args, duration_ms=took_ms)
                 self.tracer.add(type="tool_result", detail=f"{name} 返回", tool=name,
-                                result=result)
+                                result=result, observation=obs)
                 self.history.append({
                     "role": "tool",
                     "tool_call_id": tc.id,

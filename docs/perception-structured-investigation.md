@@ -83,7 +83,63 @@
 
 ---
 
-## 5. 待决
+## 5. 实现：结构化感知契约（`agent/observation.py`）✅ 2026/10/06
 
-1. 实现最小「结构化感知契约」（工具结果统一 `{ok, data, error}`），对照 D1/D2；
-2. 接受「条件性必要」结论收口。
+### 5.1 契约形态
+
+```
+{"ok": bool, "data": Any, "error": str | None, ...可选元信息}
+```
+
+- 生产者：`ok(data)` / `fail(error)`（推荐显式）
+- 兼容旧工具：`normalize()` 把裸字符串启发式判断，并标 `_normalized=True`
+  （提示"此处走了有损推断"，消费方可据此决定是否信任 `ok`）
+
+### 5.2 接入 `core.py`
+
+- 新增开关 `OBSERVATION_CONTRACT = True`（关闭时与旧版完全一致）
+- 工具结果先在**未截断**时归一化为 Observation（下游要完整契约，非给 LLM 看的截断串），
+  再截断给 LLM；`TraceStep` 新增可选字段 `observation`
+- 长输出时给契约加 `truncated=True` / `raw_len`
+
+### 5.3 验证（`docs/experiments/perception_contract_validate.py`）
+
+| 测试 | 内容 | 结果 |
+|---|---|---|
+| **T1 契约生成** | 显式 fail / 旧字符串 / 成功 → `ok` 正确 | ✅ |
+| **T2 确定性消费** | 下游按 `ok=false` 分支 → "无法计算"（不再静默算错） | ✅ |
+| **T3 无回归** | `123*456=56088` 照常 | ✅ |
+
+> 对照 §3 的 D2：旧式 `-1×10 = -10.0`（静默算错）→ 契约后走正确分支。
+
+### 5.4 诚实边界
+
+- 契约**只在生产者遵守时才确定**；旧工具靠启发式（标 `_normalized=True`）。
+- 想真正确定，得把工具改成返回 `ok()/fail()`（本项目工具已可逐步迁移）。
+- 对 **LLM 消费**几乎无影响（强模型本就能识破）；价值在**程序消费**侧。
+
+---
+
+## 6. 结论（完整）
+
+| 感知的消费者 | 结构化是否必要 |
+|---|---|
+| **LLM** | ❌ 收益小（强模型自己兜住）|
+| **程序** | ✅ **刚需**（格式漂移崩、哨兵静默算错）|
+
+> **「感知结构化」的价值取决于「谁来消费感知」——交给程序则必需，只交给 LLM 则主要是成本。**
+
+### 与项目铁律的关系
+- 「多 Agent 是成本结构」的同一逻辑：**接口契约也是成本结构，看消费方而定**；
+- 呼应番外篇（`docs/model-capability-vs-agents.md`）：
+  **强模型吃掉「推理类」鲁棒性，吃不掉「接口类」确定性**。
+
+### 产品
+- `agent/observation.py`（新模块）；`agent/core.py`（接入 + 开关）；`agent/tracing.py`（`observation` 字段）
+- `docs/experiments/perception_{probe,determinism,contract_validate}.py`
+- 本文件
+
+## 7. 待决
+
+- 将 `agent/tools.py` 现有工具逐步迁移到 `ok()/fail()`（真正确定性）；
+- 接受结论收口本专题。

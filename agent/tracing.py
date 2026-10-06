@@ -24,6 +24,9 @@ class TraceStep:
     args: Optional[dict] = None
     result: Optional[str] = None
     duration_ms: Optional[float] = None
+    # 【感知结构化 2026/10/06】工具结果的结构化 Observation（{ok,data,error}）。
+    # 供**下游程序**确定性消费；None 表示本步不是工具结果或未归一化。
+    observation: Optional[dict] = None
     timestamp: float = field(default_factory=time.time)
 
 
