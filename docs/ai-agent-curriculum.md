@@ -89,16 +89,16 @@
 
 | 模式 | 核心思想 | 本项目对应 |
 |------|---------|-----------|
-| **Router（路由）** | 一个调度者分析请求，分给合适的专家 | ✅ 你的 `multi_agent.py` |
-| **Pipeline（流水线）** | 固定顺序串联，前一个输出 = 后一个输入 | 🔜 可加（数据预处理链）|
-| **Fan-out / Fan-in** | 并行分发多 Agent，最后汇聚 | 🔜 可加（多源调研）|
-| **Evaluator-Critic** | 生成 + 评估循环，不合格就重做 | 🔜 可加（提升回答质量）|
-| **Planner-Executor** | 先规划再执行 | 🔜 可加（复杂任务）|
-| **Hierarchical（层级）** | 多层级管理 | 高级 |
-| **Blackboard（黑板）** | 共享存储，自主决定下一步 | 高级 |
-| **Group Chat（群聊）** | 共享频道自由发言 | 高级（OpenClaw 内阁六部）|
-| **Contract Net** | 任务发布-投标-中标 | 高级 |
-| **Debate（辩论）** | 多 Agent 正反辩论 | 高级 |
+| **Router（路由）** | 一个调度者分析请求，分给合适的专家 | ✅ `multi_agent.py` |
+| **Pipeline（流水线）** | 固定顺序串联，前一个输出 = 后一个输入 | ✅ `pipeline.py` |
+| **Fan-out / Fan-in** | 并行分发多 Agent，最后汇聚 | ✅ 真并行（`_fanout_parallel`）|
+| **Evaluator-Critic** | 生成 + 评估循环，不合格就重做 | ✅ `evaluator_critic.py` |
+| **Planner-Executor** | 先规划再执行 | 🧪 **实测否决**（小任务无病）|
+| **Hierarchical（层级）** | 多层级管理 | ✅ 工人池（**条件性**：慢工具才值）|
+| **Group Chat（群聊）** | 共享频道自由发言 | ✅ `group_chat.py`（去中心化协商）|
+| **Blackboard（黑板）** | 共享存储，自主决定下一步 | ⬜ 未做 |
+| **Contract Net** | 任务发布-投标-中标 | ⬜ 未做 |
+| **Debate（辩论）** | 多 Agent 正反辩论 | ⬜ 未做（`/gc` 三角色小组近似）|
 
 **学习策略**：先掌握 **Router + Pipeline + Evaluator-Critic** 三种，覆盖 80% 场景。
 
@@ -442,13 +442,13 @@ Plan → Act → Reflect → Replan
 
 ## 第 11 节：本项目（`~/ai-agent`）的对齐状态
 
-> 更新时间：2026/10/05（本次修正——新增层级编排专题结论）
+> 更新时间：2026/10/06（本次修正——新增去中心化协商专题结论）
 
 | 大纲要求 | 本项目当前状态 | 差距 |
 |---------|--------------|------|
 | 第 1 节：Agent 本质 | ✅ ReAct 循环 + history + 记忆 + 工具 | 缺：感知回路结构化；**显式规划已实测不需要**（2026/10/04）|
-| 第 2 节：Multi-Agent 入门 | ✅ Router + Worker + solo 兜底 | 缺：去中心化协商 demo |
-| 第 3 节：10 种编排 | ✅ **5 种**：Router / Pipeline / Fan-out / Evaluator-Critic / **工人池（条件性）** | 缺 5 种（大纲标「高级」）|
+| 第 2 节：Multi-Agent 入门 | ✅ Router + Worker + solo 兜底 + **Group Chat（去中心化协商）** | ✅ 去中心化 demo 已补（`/gc`）|
+| 第 3 节：10 种编排 | ✅ **6 种**：Router / Pipeline / Fan-out / Evaluator-Critic / 工人池（条件性）/ **Group Chat** | 缺 4 种（Blackboard / Contract Net / Debate 等）|
 | 第 4 节：协作机制 | ✅ 记忆分层 + **MCP 协议**（方案 A/B）+ 结构化 JSON | ✅ 已齐 |
 | 第 5 节：学习路线 | ✅ 阶段二、阶段三**全部完成** | 阶段一余 2 项（见下）|
 | 第 6 节：选型成本 | ✅ DashScope 云端 + 局域网 Ollama 可插拔 + 自动回退 | ✅ 已超大纲要求 |
@@ -475,6 +475,7 @@ Plan → Act → Reflect → Replan
 | **资源感知** | 工具输出截断（头尾保留）+ 预算预警 + 收尾步（`ANSWER_STEP`）| 预警需「可作答的步」：33% vs 0%；成功路径零额外调用 |
 | **实测否决（规划）** | 显式规划（Planner-Executor）专题调查 | 6 陷阱族贪心全过；长链悬崖=max_steps，规划**零增益** |
 | **条件性编排** | 层级编排专题：同域子任务合并（修正去重丢数据 bug）+ 工人池（慢工具省 61–76%）| 快工具零收益/慢工具省 61–76%；判据②成立条件坐实 |
+| **去中心化协商** | Group Chat 实现（共享频道轮转 + 主持收敛）+ 随机真值决定性实验 | 信息分散时：集中式 33% vs 去中心化 **100%**；成本≈1.25× |
 
 ### 阶段一剩余（真实缺口）
 

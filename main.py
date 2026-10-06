@@ -22,11 +22,43 @@ main.py — 统一命令行入口（Multi-Agent + 长期记忆）
     可用 schema：math / weather / summary。查看可用 /json list。
 
     新增 Evaluator-Critic 模式（2026/09/16）：/ec <任务> 触发「生成→批判→重做」循环。
+
+    新增 Group Chat 模式（2026/10/06）：/gc <议题> 触发去中心化协商（共享频道轮转 + 主持收敛）。
 """
 import os
 from dotenv import load_dotenv
 from agent.multi_agent import MultiAgent
 from agent.json_mode import list_schemas, run_json_mode
+
+
+# ---- Group Chat 内置演示（含分散的私有信息，验证「信息汇集」价值）----
+def _gc_demo():
+    """跑内置案例：信息分散在两位参与者手中，集中式只能猜，Group Chat 能汇集。"""
+    from agent.group_chat import GroupChat
+    gc = GroupChat(max_rounds=1)
+    gc.add_participant(
+        "库存",
+        "你是库存系统负责人。你的私有信息：西仓有现货可立即出库；东仓无现货（补货最快 5 天）。"
+        "只陈述与决策相关的事实，简短。", tools=())
+    gc.add_participant(
+        "风控",
+        "你是风控负责人。你的私有信息：西仓所在区域今日有强降雨预警，出库装车可能延误 1–2 天；"
+        "东仓无此问题。只陈述与决策相关的事实，简短。", tools=())
+    final = gc.run("订单 #A100 应从哪里发货？必须二选一：东仓 / 西仓。最后一行只写：答案=<选项>")
+    print("\n📊 本轮成本：", gc.report()["total_tokens"], "tokens")
+    return final
+
+
+def _gc_panel(topic):
+    """无私有信息时，退化为「支持 / 反对 / 中立」三角色小组。"""
+    from agent.group_chat import GroupChat
+    gc = GroupChat(max_rounds=2)
+    gc.add_participant("支持方", "你是支持方。尽力论证该提议的可行性与收益，可质疑反对意见。", tools=())
+    gc.add_participant("反对方", "你是反对方。尽力找出该提议的风险与漏洞，可质疑支持意见。", tools=())
+    gc.add_participant("中立分析", "你是中立分析者。指出双方论证中的证据缺口，不站队。", tools=())
+    final = gc.run(topic)
+    print("\n📊 本轮成本：", gc.report()["total_tokens"], "tokens")
+    return final
 
 
 def print_help():
@@ -41,6 +73,9 @@ def print_help():
   /ec demo    → 跑内置正例（硬约束文案，能挑错也能改好）
   /ec bad     → 跑内置反例（缺信息，命中否决线④，白烧 token）
   /ec list    → 查看可用示例
+  /gc <议题>   → Group Chat 去中心化协商（共享频道轮转 + 主持收敛）
+  /gc demo    → 内置案例：信息分散在参与者手中（集中式只能猜）
+  /gc list    → 查看 Group Chat 用法说明
   /trace      → 查看本轮运行轨迹
   /usage      → 查看 token 用量
   /memory     → 查看长期记忆（跨会话）
@@ -200,6 +235,27 @@ def main():
             else:
                 task = rest
             EvaluatorCritic(threshold=85, max_rounds=3).run(task)
+            continue
+        # 【Group Chat 模式】 /gc list | /gc demo | /gc <议题>
+        if user_input.startswith("/gc"):
+            rest = user_input[len("/gc"):].strip()
+            if rest in ("list", ""):
+                print("""
+💬 Group Chat（去中心化协商）：
+  · 参与者共享一个「频道」，都能看到全部发言 → 可互相质疑、修订
+  · 与直接提问的区别：买的是「信息汇集 / 独立上下文」而非推理质量
+  · 代价：token 随 参与者×轮数 放大
+
+  /gc demo          → 内置案例（两位参与者各持私有信息）
+  /gc <议题>         → 三角色小组（支持/反对/中立）辩论该议题
+
+  适用：关键信息分散、需多方信息汇集或来源可审计的决策。
+  不适用：单人不确定性推理（那用 solo 更省）。""")
+                continue
+            if rest == "demo":
+                _gc_demo()
+                continue
+            _gc_panel(rest)
             continue
         ma.run(user_input)
 
