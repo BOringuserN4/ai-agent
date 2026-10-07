@@ -24,11 +24,28 @@ main.py — 统一命令行入口（Multi-Agent + 长期记忆）
     新增 Evaluator-Critic 模式（2026/09/16）：/ec <任务> 触发「生成→批判→重做」循环。
 
     新增 Group Chat 模式（2026/10/06）：/gc <议题> 触发去中心化协商（共享频道轮转 + 主持收敛）。
+
+    新增 Contract Net 模式（2026/10/07）：/cn <任务> 触发任务发标-投标-中标（竞价择优分配）。
 """
 import os
 from dotenv import load_dotenv
 from agent.multi_agent import MultiAgent
 from agent.json_mode import list_schemas, run_json_mode
+
+
+# ---- Contract Net 内置演示（候选人各持私有信息，中央无法区分）----
+def _cn_demo():
+    """内置案例：三位工程师各持私有信息，中央靠简介无法区分谁最合适。"""
+    from agent.contract_net import ContractNet
+    cn = ContractNet()
+    cn.add_bidder("甲", "你是工程师「甲」。你的私有信息：你精通 Flink，当前无其他任务，预估 1 天可定位修复。")
+    cn.add_bidder("乙", "你是工程师「乙」。你的私有信息：你不熟 Flink（只做过 Spark），手头有两个 deadline 今晚到期，预估至少 5 天。")
+    cn.add_bidder("丙", "你是工程师「丙」。你的私有信息：你懂一点 Flink 但不深，正在休假中（明天起三天不在），预估 3 天且需远程。")
+    briefs = {n: f"{n}：数据平台工程师，工龄 4 年，参与过若干数据项目。" for n in ["甲", "乙", "丙"]}
+    r = cn.run("公司有一台 Flink 实时管道的消费延迟异常（积压 ~2 小时），需要一位工程师接手排查并修复。",
+               briefs=briefs)
+    print(f"\n📊 本轮成本：{r['total_tokens']} tokens（报价臂 ≈ 集中式的 5×）")
+    return r
 
 
 # ---- Group Chat 内置演示（含分散的私有信息，验证「信息汇集」价值）----
@@ -76,6 +93,9 @@ def print_help():
   /gc <议题>   → Group Chat 去中心化协商（共享频道轮转 + 主持收敛）
   /gc demo    → 内置案例：信息分散在参与者手中（集中式只能猜）
   /gc list    → 查看 Group Chat 用法说明
+  /cn <任务>   → Contract Net 任务发标-投标-中标（竞价择优分配）
+  /cn demo    → 内置案例：三位工程师各持私有信息（中央无法区分）
+  /cn list    → 查看 Contract Net 用法说明
   /trace      → 查看本轮运行轨迹
   /usage      → 查看 token 用量
   /memory     → 查看长期记忆（跨会话）
@@ -256,6 +276,30 @@ def main():
                 _gc_demo()
                 continue
             _gc_panel(rest)
+            continue
+        # 【Contract Net 模式】 /cn list | /cn demo | /cn <任务>
+        if user_input.startswith("/cn"):
+            rest = user_input[len("/cn"):].strip()
+            if rest in ("list", ""):
+                print("""
+📣 Contract Net（任务发标-投标-中标）：
+  · 中央**不指定**，而是公告任务 → 候选人各自**报价** → 择优
+  · 治的病：中央无法评估「这活该谁干」（能力/负载/工期是执行者的私有信息）
+  · 与 Group Chat 的区别：那是协商「共识」，这是竞价「分配」（效率导向）
+  · 代价：token ≈ 候选人数 × 单次（实测 ≈5×）
+
+  /cn demo    → 内置案例（三位工程师各持私有信息）
+  /cn <任务>   → 就该任务征集报价并择优（候选人按通用模板）
+
+  适用：中央信息不足、需逼出执行者真实评估的分配问题。
+  不适用：中央**能**评估时（直接指派更省）。""")
+                continue
+            if rest == "demo":
+                _cn_demo()
+                continue
+            # 通用任务：默认三位候选人（需用户补充候选人/私有信息时，用 demo 模板）
+            print("⚠️ 通用 /cn <任务> 需要候选人及其私有信息。")
+            print("   请用 /cn demo 看内置案例，或在代码中按 ContractNet.add_bidder 方式接入。")
             continue
         ma.run(user_input)
 
