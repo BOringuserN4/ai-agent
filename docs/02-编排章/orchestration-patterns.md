@@ -212,8 +212,8 @@ Evaluator-Critic 这类循环，踩任意一条就别做：
 2. Pipeline         → 线性工作流，理解「结构化输出是基础设施」
 3. Evaluator-Critic → 质量提升，理解「监督关系」与判据③
 4. Fan-out / Fan-in → 并行加速，理解「真并行 vs 串行」
-5. Planner-Executor → 复杂任务（未做）
-6. Hierarchical     → 生产级（未做）
+5. Planner-Executor → 🧪 **实测否决**（小任务无病；10/04 收口，见 `docs/00-索引/learning-summary.md` §八）
+6. Hierarchical     → ✅ 工人池（**条件性**：慢工具才值；10/05 收口，见 `hierarchical-investigation.md`）
 7. 其余高级模式按需
 ```
 
