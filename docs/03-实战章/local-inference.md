@@ -16,7 +16,7 @@
 
 ```
 记忆写入/检索 → embedding 后端（可插拔）
-                    ├── dashscope（云端 text-embedding-v3）  ← 现状
+                    ├── dashscope（云端 text-embedding-v3）  ← 当时现状（已升 v4，见 embedding-upgrade.md）
                     └── ollama   （局域网 Qwen3-Embedding-0.6B）
 ```
 

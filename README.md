@@ -190,7 +190,7 @@ ai-agent/
 
 ### 3. 记忆机制
 - **短期记忆**：`self.history` 列表，每轮把整个历史再喂给模型（LLM 自身无记忆）。
-- **长期记忆**：外部存储 + 远程 embedding（阿里云 DashScope `text-embedding-v3`），通过检索（RAG）调回相关片段。
+- **长期记忆**：外部存储 + 远程 embedding（阿里云 DashScope `text-embedding-v4`，2026/09/29 由 v3 升级），通过检索（RAG）调回相关片段。
 - **上下文预算**：`trim_history()` 抹旧保新，防 token 爆炸。
 - **智能抽取**（`extractor.py`）：回答后调一次轻量 LLM，让模型决定本轮对话是否值得记，输出结构化 JSON（`keep/text/tags`）。从「无脑存」升级为「只存高价值」。决策原则：明确偏好/个人信息/跨会话事实才记；问候、寒暄、一次性计算不记。
 

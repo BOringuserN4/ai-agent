@@ -10,7 +10,7 @@ eval_embedding_v4.py — 换更强 embedding 的 A/B（2026/09/29）
   本脚本检验候选 1：**换更强的 embedding 模型**能否根治。
 
 === 对比三个配置 ===
-  甲 · text-embedding-v3 @1024（现状）
+  甲 · text-embedding-v3 @1024（当时的现状，本实验的基线）
   乙 · text-embedding-v4 @1024（同维度，可复用旧集合结构）
   丙 · text-embedding-v4 @2048（更强，但维度变了）
 
@@ -190,7 +190,7 @@ def main():
 
     rows = []
     for model, dim, label in (
-        ("text-embedding-v3", 1024, "甲 · 现状"),
+        ("text-embedding-v3", 1024, "甲 · 基线"),
         ("text-embedding-v4", 1024, "乙 · 换 v4（同维度）"),
         ("text-embedding-v4", 2048, "丙 · 换 v4（2048维）"),
     ):

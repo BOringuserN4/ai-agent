@@ -13,7 +13,7 @@ agent/embedding_backends.py — 可插拔的 embedding 后端（云端 / 本地�
   ⇒ 这也让「回滚」变成改一个环境变量的事，而不是一次代码手术。
 
 两个后端：
-  - DashScopeBackend：阿里云 text-embedding-v3（现状，1024 维）
+  - DashScopeBackend：阿里云 text-embedding-**v4**（现状，1024 维；v3→v4 于 2026/09/29 完成）
   - OllamaBackend   ：局域网 Ollama（Qwen3-Embedding-0.6B，1024 维）
     ⚠️ 维度必须对齐（都是 1024），否则 ChromaDB 的集合互不兼容。
 

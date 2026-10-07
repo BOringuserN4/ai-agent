@@ -9,8 +9,9 @@ agent/memory.py — 长期记忆（LTM）模块（RAG 实现，ChromaDB 版本�
   - 检索：用户提问时，用远程 embedding 生成查询向量，交给 ChromaDB 做近似最近邻（HNSW）检索，取 top-k 注入上下文。
 
 技术栈：
-  - embedding 后端**可插拔**（2026/09/19）：云端 DashScope text-embedding-v3 或
+  - embedding 后端**可插拔**（2026/09/19）：云端 DashScope text-embedding-**v4**（现状）或
     局域网 Ollama（Qwen3-Embedding-0.6B），见 agent/embedding_backends.py。
+    （注：本地推理后端 2026/09/19 已停用，当前默认云端；v3→v4 于 2026/09/29 完成。）
     用环境变量 EMBEDDING_BACKEND=dashscope|ollama 切换，默认 dashscope。
     ⚠️ 两个后端的向量**不可混用**，故各自用独立的 ChromaDB collection。
   - ChromaDB：本地向量数据库（PersistentClient 持久化），内置 HNSW 索引，
