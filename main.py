@@ -26,11 +26,25 @@ main.py — 统一命令行入口（Multi-Agent + 长期记忆）
     新增 Group Chat 模式（2026/10/06）：/gc <议题> 触发去中心化协商（共享频道轮转 + 主持收敛）。
 
     新增 Contract Net 模式（2026/10/07）：/cn <任务> 触发任务发标-投标-中标（竞价择优分配）。
+
+    新增 Debate 模式（2026/10/08）：/debate <议题> 触发正反辩论（结构化对抗 + 裁决）。
 """
 import os
 from dotenv import load_dotenv
 from agent.multi_agent import MultiAgent
 from agent.json_mode import list_schemas, run_json_mode
+
+
+# ---- Debate 内置演示（正反围绕一个争议议题辩论）----
+def _debate_panel(topic):
+    """默认正反双方就议题辩论，再裁决。"""
+    from agent.debate import Debate
+    d = Debate(topic=topic, rounds=1)
+    d.add_side("正方", "你是**正方**。尽力论证该议题的“赞成”一面，反驳对方。")
+    d.add_side("反方", "你是**反方**。尽力论证该议题的“反对”一面，找出对方的致命问题。")
+    d.run()
+    print(f"\n📊 本轮成本：{d.report()['total_tokens']} tokens（≈ 角色数 × 轮数 倍）")
+    return d
 
 
 # ---- Contract Net 内置演示（候选人各持私有信息，中央无法区分）----
@@ -96,6 +110,8 @@ def print_help():
   /cn <任务>   → Contract Net 任务发标-投标-中标（竞价择优分配）
   /cn demo    → 内置案例：三位工程师各持私有信息（中央无法区分）
   /cn list    → 查看 Contract Net 用法说明
+  /debate <议题> → Debate 正反辩论（结构化对抗 + 裁决）
+  /debate list   → 查看 Debate 用法说明
   /trace      → 查看本轮运行轨迹
   /usage      → 查看 token 用量
   /memory     → 查看长期记忆（跨会话）
@@ -300,6 +316,26 @@ def main():
             # 通用任务：默认三位候选人（需用户补充候选人/私有信息时，用 demo 模板）
             print("⚠️ 通用 /cn <任务> 需要候选人及其私有信息。")
             print("   请用 /cn demo 看内置案例，或在代码中按 ContractNet.add_bidder 方式接入。")
+            continue
+        # 【Debate 模式】 /debate list | /debate <议题>
+        if user_input.startswith("/debate"):
+            rest = user_input[len("/debate"):].strip()
+            if rest in ("list", ""):
+                print("""
+⚔️  Debate（多 Agent 正反辩论）：
+  · 结构化对抗：**立论 → 交叉反驳 → 中立裁决**（有固定轮次）
+  · 与邻近结构的区别：Evaluator-Critic=自己批自己；Group Chat=自由协商；
+    **Debate=强制对立立场 + 交叉攻击**
+  · 代价：token ≈ 角色数 × 轮数（每次发言都带历史）
+
+  /debate <议题>   → 正反双方就议题辩论并裁决
+
+  ⚠️ 实测提醒：在强模型下，Debate 的必要性**未复现**——
+     对有教科书答案的问题，单 Agent 自己就会质疑错误前提。
+     它可能值得的场景：红队/安全审查、模型有已知偏见的领域、需攻防审计。
+     详见 docs/02-编排章/debate-investigation.md。""")
+                continue
+            _debate_panel(rest)
             continue
         ma.run(user_input)
 
