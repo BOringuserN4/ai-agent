@@ -107,7 +107,7 @@
 - 🧪 **感知-行动结构化**：2026/10/06 做过专题 —— **条件性必要**：
   强模型能识破异常（A 探针未中），但**下游代码**消费时会翻车（格式漂移崩、哨兵静默算错）。
   已落地 `agent/observation.py`（`{ok,data,error}` 契约）。
-- 🔜 **下一步**：无硬缺口（大纲主体已覆盖）；剩余为高级模式（Blackboard/Contract Net/Debate）与 LangGraph。
+- 🔜 **下一步**：无硬缺口（大纲主体已覆盖）；剩余为高级模式（Blackboard/Debate）与 LangGraph。
 - 🧪 **显式规划**：2026/10/04 做过专题调查（6 陷阱族 + 长依赖链边界）——
   **实测当前不需要**：小任务上贪心 ReAct 全对且稳，长任务上规划也救不了
   （边界悬崖 = `max_steps`，与有无计划无关）。规划的舞台是「控制/审计/规模」，非小任务正确性。
@@ -156,7 +156,7 @@
 | **Hierarchical（层级）** | 多层级管理 | ✅ 工人池（**条件性**：慢工具才值）|
 | **Group Chat（群聊）** | 共享频道自由发言 | ✅ `group_chat.py`（去中心化协商）|
 | **Blackboard（黑板）** | 共享存储，自主决定下一步 | ⬜ 未做 |
-| **Contract Net** | 任务发布-投标-中标 | ⬜ 未做 |
+| **Contract Net** | 任务发布-投标-中标 | ✅ `contract_net.py`（`/cn`）|
 | **Debate（辩论）** | 多 Agent 正反辩论 | ⬜ 未做（`/gc` 三角色小组近似）|
 
 **学习策略**：先掌握 **Router + Pipeline + Evaluator-Critic** 三种，覆盖 80% 场景。
@@ -507,7 +507,7 @@ Plan → Act → Reflect → Replan
 |---------|--------------|------|
 | 第 1 节：Agent 本质 | ✅ ReAct 循环 + history + 记忆 + 工具 + **感知结构化契约** | ✅ 感知回路已补（`observation.py`）；显式规划已实测不需要 |
 | 第 2 节：Multi-Agent 入门 | ✅ Router + Worker + solo 兜底 + **Group Chat（去中心化协商）** | ✅ 去中心化 demo 已补（`/gc`）|
-| 第 3 节：10 种编排 | ✅ **6 种**：Router / Pipeline / Fan-out / Evaluator-Critic / 工人池（条件性）/ **Group Chat** | 缺 4 种（Blackboard / Contract Net / Debate 等）|
+| 第 3 节：10 种编排 | ✅ **7 种**：Router / Pipeline / Fan-out / Evaluator-Critic / 工人池（条件性）/ **Group Chat** / **Contract Net** | 缺 3 种（Blackboard / Debate 等）|
 | 第 4 节：协作机制 | ✅ 记忆分层 + **MCP 协议**（方案 A/B）+ 结构化 JSON | ✅ 已齐 |
 | 第 5 节：学习路线 | ✅ 阶段二、阶段三**全部完成** | 阶段一余 2 项（见下）|
 | 第 6 节：选型成本 | ✅ DashScope 云端 + 局域网 Ollama 可插拔 + 自动回退 | ✅ 已超大纲要求 |
