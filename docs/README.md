@@ -69,6 +69,7 @@
 | [`decentralized-investigation.md`](02-编排章/decentralized-investigation.md) | 去中心化协商（Group Chat）→ 信息分散时不可替代 |
 | [`contract-net-investigation.md`](02-编排章/contract-net-investigation.md) | Contract Net（发标-投标-中标）→ 中央无法评估时必要 |
 | [`debate-investigation.md`](02-编排章/debate-investigation.md) | Debate（正反辩论）→ **必要性未复现**（强模型自己就会质疑前提）|
+| [`blackboard-investigation.md`](02-编排章/blackboard-investigation.md) | Blackboard（黑板）→ 关键变量是「反应式控制」非黑板结构（静态预排 0/6）|
 
 ### 📕 03-实战章/（记忆 · 成本 · 稳定性）
 
