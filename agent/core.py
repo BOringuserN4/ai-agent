@@ -15,6 +15,7 @@ agent/core.py — Agent 核心引擎
 - ReAct 循环有 max_steps 兜底，防止死循环。
 """
 import json
+import os
 import time
 import threading
 import contextlib
@@ -37,6 +38,11 @@ def get_api_key():
 #   · 只有「撞到上限才停」太粗暴——第 8 步硬停，任务可能做了一半。
 #     → 改成**提前预警 + 主动收敛**：快没预算时提醒模型先给结论。
 TOOL_OUTPUT_MAX_CHARS = 4000   # 单次工具输出上限（约 1000 token）；超出则头尾保留
+
+# 【模型可切换 2026/10/11】默认模型名。用于「弱模型 vs 强模型」对照实验。
+# 说明：本项目的执行模型原为硬编码 "deepseek-flash"；提成常量后，
+# Agent(model=..., client=...) 可覆盖（跨供应商需同时传 client）。
+LLM_MODEL = os.getenv("LLM_MODEL", "deepseek-flash")
 REMAINING_STEPS_WARN = 2       # 剩余步数 ≤ 此值时，注入「尽快收尾」提醒
 ANSWER_STEP = True             # 预算耗尽后，额外给一步「只能作答、不许调工具」的收尾步
                                # （B 方案：不改 max_steps 的工具预算，代价只落在失败路径）
@@ -109,7 +115,8 @@ def get_langfuse():
 
 
 class Agent:
-    def __init__(self, system_prompt="你是一个乐于助人的 AI 助手。", tools=None, memory=None):
+    def __init__(self, system_prompt="你是一个乐于助人的 AI 助手。", tools=None, memory=None,
+                 model=None, client=None):
         """
         Args:
             system_prompt: 这个 Agent 的人格/角色说明。
@@ -117,11 +124,18 @@ class Agent:
                    "get_weather")。不传则默认用全部工具。
             memory: 可选。传一个 agent.memory.MemoryStore 实例，则启用长期记忆。
                    会：提问前检索相关历史，回答后写入重要信息。
+            model: 可选。【2026/10/11】覆盖默认模型名（对照实验用）。
+            client: 可选。【2026/10/11】注入自定义 OpenAI 客户端（跨供应商时
+                   与 model 一起传，如 DashScope）。
         """
-        key = get_api_key()
-        if not key or len(key) < 10:
-            raise SystemExit("❌ 请先配置 .env 里的 DEEPSEEK_API_KEY")
-        self.client = OpenAI(api_key=key, base_url="https://api.deepseek.com")
+        if client is not None:
+            self.client = client
+        else:
+            key = get_api_key()
+            if not key or len(key) < 10:
+                raise SystemExit("❌ 请先配置 .env 里的 DEEPSEEK_API_KEY")
+            self.client = OpenAI(api_key=key, base_url="https://api.deepseek.com")
+        self.model = model or LLM_MODEL
         self.tools = set(tools) if tools else None  # None=全部
         self.tools_spec = self._filter_spec(get_tools_spec())
         self.tool_registry = self._filter_registry(get_tool_registry())
@@ -262,14 +276,14 @@ class Agent:
             # 【Langfuse 埋点】每次 LLM 调用 = 一个 generation 子 span（自动挂在本轮 trace 下）
             # 位置在循环内：Agent 会多轮提问，每一轮都要有自己的节点，否则只看到「整轮」看不到「哪一步」。
             llm_ctx = (self._lf.start_as_current_observation(
-                name="llm", as_type="generation", model="deepseek-flash",
+                name="llm", as_type="generation", model=self.model,
                 input={"n_messages": len(messages),
                        "last_message": str(messages[-1].get("content") or "")[:500]},
             ) if self._lf else contextlib.nullcontext())
             with llm_ctx as gen:
                 # 【收尾步】answer_only 时撤掉工具（不传 tools/tool_choice）→ 强制作答
                 _llm_kwargs = {
-                    "model": "deepseek-flash",
+                    "model": self.model,
                     "messages": messages,
                     "temperature": 0.3,
                 }
