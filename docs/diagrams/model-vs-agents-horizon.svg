@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900"
+  width="2800" height="1800">
+<defs>
+  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+    <circle cx="1.6" cy="1.6" r="1.25" fill="#b9b2a6" opacity="0.5"/>
+  </pattern>
+  <filter id="noisetile" x="0" y="0" width="256" height="256"
+          filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3"
+                  seed="11" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <pattern id="noisepat" width="256" height="256" patternUnits="userSpaceOnUse">
+    <rect width="256" height="256" filter="url(#noisetile)" opacity="0.05"/>
+  </pattern>
+  <radialGradient id="vignette" cx="50%" cy="46%" r="72%">
+    <stop offset="55%" stop-color="#fbf7ef" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#e6ddcd" stop-opacity="0.55"/>
+  </radialGradient>
+</defs>
+<rect width="1400" height="900" fill="#fbf7ef"/><rect width="1400" height="900" fill="url(#grid)"/><rect width="1400" height="900" fill="url(#noisepat)"/><rect width="1400" height="900" fill="url(#vignette)"/>
+<text x="60" y="80" letter-spacing="1.5" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="50" font-weight="700"
+    fill="#3d3a34" opacity="1">长任务的崩塌：p&lt;1 就是数学必然</text>
+<text x="62" y="108" font-family="Kalam, sans-serif"
+    font-size="15.5" font-weight="400"
+    fill="#8a8377" opacity="1">Success ≈ p^steps · the driver is steps, not window size</text>
+<g fill="none" stroke-linecap="round">
+  <path d="M 58 124 Q 69.2 115, 80.4 124 Q 91.6 115, 102.8 124 Q 114 115, 125.19999999999999 124 Q 136.39999999999998 115, 147.6 124 Q 158.8 115, 170 124 Q 181.2 115, 192.39999999999998 124 Q 203.59999999999997 115, 214.79999999999998 124 Q 226 115, 237.2 124 Q 248.4 115, 259.6 124 Q 270.8 115, 282 124 Q 293.2 115, 304.4 124 Q 315.59999999999997 115, 326.79999999999995 124 Q 338 115, 349.2 124 Q 360.4 115, 371.59999999999997 124 Q 382.79999999999995 115, 394 124 Q 405.2 115, 416.4 124 Q 427.59999999999997 115, 438.79999999999995 124 Q 450 115, 461.2 124 Q 472.4 115, 483.59999999999997 124 Q 494.79999999999995 115, 506 124 Q 517.2 115, 528.4 124 Q 539.5999999999999 115, 550.8 124 Q 562 115, 573.1999999999999 124 Q 584.3999999999999 115, 595.5999999999999 124 Q 606.8 115, 618 124" stroke="#e8590c" stroke-width="3.4" opacity="0.9"/>
+  <path d="M 58 131 Q 69.2 123.8, 80.4 131 Q 91.6 123.8, 102.8 131 Q 114 123.8, 125.19999999999999 131 Q 136.39999999999998 123.8, 147.6 131 Q 158.8 123.8, 170 131 Q 181.2 123.8, 192.39999999999998 131 Q 203.59999999999997 123.8, 214.79999999999998 131 Q 226 123.8, 237.2 131 Q 248.4 123.8, 259.6 131 Q 270.8 123.8, 282 131 Q 293.2 123.8, 304.4 131 Q 315.59999999999997 123.8, 326.79999999999995 131 Q 338 123.8, 349.2 131 Q 360.4 123.8, 371.59999999999997 131 Q 382.79999999999995 123.8, 394 131 Q 405.2 123.8, 416.4 131 Q 427.59999999999997 123.8, 438.79999999999995 131 Q 450 123.8, 461.2 131 Q 472.4 123.8, 483.59999999999997 131 Q 494.79999999999995 123.8, 506 131 Q 517.2 123.8, 528.4 131 Q 539.5999999999999 123.8, 550.8 131 Q 562 123.8, 573.1999999999999 131 Q 584.3999999999999 123.8, 595.5999999999999 131 Q 606.8 123.8, 618 131" stroke="#e8590c" stroke-width="2.2" opacity="0.4"/>
+</g>
+<g transform="rotate(3.2 1235 65)" opacity="0.55">
+    <rect x="1120" y="34" width="230" height="62" fill="#efe3cd"/>
+    <rect x="1120" y="34" width="230" height="62" fill="none"
+      stroke="#d8c7a8" stroke-width="1.6" stroke-dasharray="6 5"/>
+  </g>
+<g stroke="#7a746b" fill="none" stroke-linecap="round">
+  <path d="M 200 760 Q 750.0 768.0 1300 760" stroke-width="2.6"/>
+  <path d="M 1300 760 L 1288.2 765.5
+           M 1300 760 L 1288.1 754.9"
+        stroke-width="2.6"/>
+</g>
+<g stroke="#7a746b" fill="none" stroke-linecap="round">
+  <path d="M 200 760 Q 208.0 475.0 200 190" stroke-width="2.6"/>
+  <path d="M 200 190 L 205.6 201.7
+           M 200 190 L 195.0 202.0"
+        stroke-width="2.6"/>
+</g>
+<text x="1294" y="802" text-anchor="end" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="21" font-weight="400"
+    fill="#7a746b" opacity="1">步数 →</text>
+<text x="186" y="176" text-anchor="middle" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="21" font-weight="400"
+    fill="#7a746b" opacity="1">任务成功率</text>
+<path d="M 200 760 L 1300 760" stroke="#cfc6b8" stroke-width="1.4"
+    stroke-dasharray="7 7" fill="none" opacity="0.8" stroke-linecap="round"/>
+<text x="182" y="766" text-anchor="end" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="15" font-weight="400"
+    fill="#8a8377" opacity="1">0%</text>
+<path d="M 200 480 L 1300 480" stroke="#cfc6b8" stroke-width="1.4"
+    stroke-dasharray="7 7" fill="none" opacity="0.8" stroke-linecap="round"/>
+<text x="182" y="486" text-anchor="end" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="15" font-weight="400"
+    fill="#8a8377" opacity="1">50%</text>
+<path d="M 200 200 L 1300 200" stroke="#cfc6b8" stroke-width="1.4"
+    stroke-dasharray="7 7" fill="none" opacity="0.8" stroke-linecap="round"/>
+<text x="182" y="206" text-anchor="end" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="15" font-weight="400"
+    fill="#8a8377" opacity="1">100%</text>
+<path d="M 199.3 200.9 Q 254.1 227.3 282.4 240.7 Q 310.8 254.2 337.5 266.8 Q 364.3 279.4 391.9 291.7 Q 419.6 304.1 447.0 315.2 Q 474.4 326.3 502.3 337.4 Q 530.2 348.4 557.5 359.0 Q 584.8 369.5 612.2 378.8 Q 639.6 388.1 667.3 397.3 Q 694.9 406.6 723.0 416.2 Q 751.1 425.8 777.8 433.2 Q 804.6 440.5 832.7 449.0 Q 860.7 457.4 887.8 465.3 Q 914.9 473.1 942.7 479.6 Q 970.5 486.0 997.8 493.1 Q 1025.2 500.2 1052.2 507.2 Q 1079.2 514.2 1107.0 520.0 Q 1134.7 525.8 1162.1 532.1 Q 1189.4 538.3 1217.3 543.4 Q 1245.3 548.6 1272.9 554.0 L 1300.6 559.4" fill="none" stroke="#5eb2f7" stroke-width="3.2"
+    stroke-linecap="round" opacity="0.95"/>
+<text x="1306" y="565.2478834512166" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#2f7fc4" opacity="1">p=0.95</text>
+<path d="M 199.3 200.9 Q 254.8 256.7 282.8 281.2 Q 310.8 305.6 338.0 329.1 Q 365.2 352.5 393.1 372.9 Q 421.1 393.3 448.4 411.7 Q 475.7 430.1 502.8 446.1 Q 530.0 462.1 557.8 476.7 Q 585.6 491.3 612.5 505.1 Q 639.4 518.8 667.1 530.6 Q 694.8 542.3 722.3 554.0 Q 749.8 565.7 777.6 574.7 Q 805.3 583.7 833.0 593.3 Q 860.7 602.9 887.9 610.5 Q 915.2 618.1 942.1 625.4 Q 969.0 632.7 996.8 638.3 Q 1024.5 643.9 1052.6 649.6 Q 1080.7 655.3 1107.8 661.1 Q 1134.9 666.8 1161.9 671.0 Q 1189.0 675.2 1217.4 679.6 Q 1245.8 684.0 1272.5 688.1 L 1299.2 692.2" fill="none" stroke="#5fc97a" stroke-width="3.2"
+    stroke-linecap="round" opacity="0.95"/>
+<text x="1306" y="697.9170734292811" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3f9c58" opacity="1">p=0.90</text>
+<path d="M 200.5 199.5 Q 254.2 311.4 281.9 356.1 Q 309.5 400.8 337.4 437.4 Q 365.2 473.9 392.9 502.2 Q 420.6 530.6 448.2 553.7 Q 475.9 576.8 502.5 594.6 Q 529.2 612.4 557.1 627.5 Q 585.1 642.6 612.4 654.8 Q 639.7 667.0 666.9 675.4 Q 694.2 683.8 722.6 692.3 Q 751.0 700.9 778.3 706.2 Q 805.6 711.5 833.0 716.3 Q 860.4 721.1 887.7 725.3 Q 914.9 729.5 942.7 732.3 Q 970.6 735.2 998.1 737.9 Q 1025.7 740.7 1053.0 742.6 Q 1080.3 744.5 1107.6 745.9 Q 1134.9 747.4 1162.2 749.0 Q 1189.5 750.6 1217.7 750.9 Q 1245.8 751.2 1273.1 752.4 L 1300.3 753.7" fill="none" stroke="#ef8a8a" stroke-width="3.2"
+    stroke-linecap="round" opacity="0.95"/>
+<text x="1306" y="759.5436395742016" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#c04a3f" opacity="1">p=0.80</text>
+<text x="240" y="300" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="22" font-weight="400"
+    fill="#3d3a34" opacity="1">每一步都可能出错；</text>
+<text x="240" y="330" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="22" font-weight="400"
+    fill="#3d3a34" opacity="1">p 越接近 1，崩得越晚 —— 但从到不了 1。</text>
+<path d="M 1199.3 692.6 L 1185.6 709.4 L 1145.7 721.8 L 1097.4 730.4 L 1041.2 733.6 L 986.0 728.8 L 942.1 718.2 L 911.1 704.2 L 898.8 687.3 L 916.4 670.8 L 949.2 656.5 L 1000.7 648.0 L 1059.0 645.8 L 1115.8 650.1 L 1161.3 660.9 L 1193.3 675.4 L 1200.7 692.7 Z" fill="none" stroke="#e8590c" stroke-width="2.4" opacity="0.9"/>
+<text x="1050" y="697" text-anchor="middle" transform="rotate(-2 1050 697)" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="20" font-weight="700"
+    fill="#e8590c" opacity="1">崩只是早晚</text>
+<text x="200" y="838" transform="rotate(-0.4 200 838)" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="18" font-weight="400"
+    fill="#b0472a" opacity="1">⚠ 主因是「步数」，不是「上下文长度」；限制窗口反而更糟（实测斜率 −0.69 vs −0.44）。</text>
+<path d="M 1355.0 759.0 L 1358.3 766.7 L 1366.0 770.0 L 1358.3 773.3 L 1355.0 781.0 L 1351.7 773.3 L 1344.0 770.0 L 1351.7 766.7 Z" fill="#e8590c" opacity="0.85"/>
+<path d="M 130.0 201.0 L 132.7 207.3 L 139.0 210.0 L 132.7 212.7 L 130.0 219.0 L 127.3 212.7 L 121.0 210.0 L 127.3 207.3 Z" fill="#e8590c" opacity="0.85"/>
+</svg>
