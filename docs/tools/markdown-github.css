@@ -1,0 +1,80 @@
+/* ------------------------------------------------------------------
+ * PyCharm Markdown 预览样式 · GitHub 风格 + 中文排版优化
+ * 位置：~/ai-agent/docs/tools/markdown-github.css
+ * 日期：2026/10/14
+ *
+ * 用法：设置 → 语言和框架 → Markdown → Custom CSS
+ *       → 选 “Load from” → 指向本文件 → OK
+ *
+ * 设计原则：只改「排版」（字体 / 行距 / 宽度 / 间距 / 代码块 / 表格），
+ *          不硬编码正文底色与文字色 → 自动跟随 IDE 浅色/深色主题。
+ * ------------------------------------------------------------------ */
+
+/* 正文：中英文混排字体栈（西文优先，中文回退到系统黑体） */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", "PingFang SC", "Hiragino Sans GB",
+               "Microsoft YaHei", sans-serif !important;
+  font-size: 16px !important;
+  line-height: 1.8 !important;
+  /* 限制正文宽度：长行更易读（对齐 GitHub 的 ~860px） */
+  max-width: 860px !important;
+  margin: 0 auto !important;
+  padding: 32px 40px 96px !important;
+  word-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 标题：加大层级差，一级/二级带下分隔线 */
+h1, h2, h3, h4, h5, h6 { line-height: 1.35; margin: 1.6em 0 0.6em; font-weight: 600; }
+h1 { font-size: 2em;    padding-bottom: .3em; border-bottom: 1px solid rgba(127,127,127,.35); }
+h2 { font-size: 1.5em;  padding-bottom: .3em; border-bottom: 1px solid rgba(127,127,127,.25); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1em; }
+
+p, ul, ol, blockquote, table, pre { margin: 0 0 16px; }
+li + li { margin-top: .25em; }
+
+/* 链接 */
+a { color: #0969da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* 引用块：左侧灰条 */
+blockquote {
+  padding: 0 1em;
+  border-left: .25em solid rgba(127,127,127,.4);
+}
+
+/* 行内代码 */
+code {
+  font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  font-size: .9em;
+  padding: .2em .4em;
+  border-radius: 6px;
+  background: rgba(127,127,127,.15);
+}
+
+/* 代码块 */
+pre {
+  padding: 16px;
+  border-radius: 8px;
+  background: rgba(127,127,127,.12);
+  overflow: auto;
+  line-height: 1.6;
+}
+pre code { padding: 0; background: none; font-size: .95em; }
+
+/* 表格：GitHub 风格 */
+table { border-collapse: collapse; display: block; overflow: auto; max-width: 100%; }
+th, td { border: 1px solid rgba(127,127,127,.3); padding: 6px 13px; }
+th { font-weight: 600; background: rgba(127,127,127,.1); }
+tr:nth-child(2n) { background: rgba(127,127,127,.05); }
+
+/* 图片（含本项目配图）：不超容器宽 */
+img { max-width: 100%; height: auto; border-radius: 4px; }
+
+/* 分割线 */
+hr { height: 1px; border: 0; background: rgba(127,127,127,.3); margin: 28px 0; }
+
+/* 任务列表 */
+input[type="checkbox"] { margin-right: .5em; }
