@@ -1,9 +1,9 @@
 # 项目文档地图（`docs/`）
 
 > **这是什么**：本项目（`~/ai-agent`）从 0 到 1 学习 AI Agent 工程的全部讲义。
-> 27 份文档，按**章**组织；每份都可独立阅读，也可按下面的路径串读。
+> 35 份文档（含本索引），按**章**组织；每份都可独立阅读，也可按下面的路径串读。
 > **怎么用**：先看「三条阅读路径」选一条 → 再按下表点到具体讲义。
-> 最后更新：2026/10/07。
+> 最后更新：2026/10/19。
 
 ---
 
@@ -12,29 +12,30 @@
 ### 🅰 第一次读（建议按序）
 > 目的：建立整体印象，知道「Agent 是什么、由什么组成」。
 
-1. [`01-基础章/capability-ladder.md`](01-基础章/capability-ladder.md) — 从 88 行到 5000 行，一条纵向代码阶梯
-2. [`02-编排章/orchestration-patterns.md`](02-编排章/orchestration-patterns.md) — 四种编排模式（最小到进阶）
-3. [`03-实战章/constraints-and-termination.md`](03-实战章/constraints-and-termination.md) — 约束与收尾（为什么不能「撞墙才停」）
-4. [`05-收尾章/architecture.md`](05-收尾章/architecture.md) — 分层架构 + 运行时数据流
-5. [`00-索引/learning-summary.md`](00-索引/learning-summary.md) — 学习总结（主线 + 核心结论）
+1. [`01-基础章/能力阶梯.md`](01-基础章/能力阶梯.md) — 从 88 行到 4800 行，一条纵向代码阶梯
+2. [`02-编排章/编排模式.md`](02-编排章/编排模式.md) — 四种编排模式（最小到进阶）
+3. [`03-实战章/约束与收尾.md`](03-实战章/约束与收尾.md) — 约束与收尾（为什么不能「撞墙才停」）
+4. [`05-收尾章/架构.md`](05-收尾章/架构.md) — 分层架构 + 运行时数据流
+5. [`00-索引/学习总结.md`](00-索引/学习总结.md) — 学习总结（主线 + 核心结论）
+6. [`00-索引/教学总览.md`](00-索引/教学总览.md) — 教学总览（三句话 / 概念小抄 / 六张图 / 实测）
 
 ### 🅱 按主题速查（已有具体问题）
 > 目的：手上有个具体问题，只想看那一块。
 
 | 想知道 | 看这里 |
 |---|---|
-| 怎么省钱（token/成本）| [`02-编排章/router-cost.md`](02-编排章/router-cost.md) |
-| 慢工具怎么提速 | [`02-编排章/fanout-parallel.md`](02-编排章/fanout-parallel.md) |
-| 记忆检索不准 | [`03-实战章/memory-recall-fix.md`](03-实战章/memory-recall-fix.md) |
-| 记忆跨轮指代丢失 | [`03-实战章/memory-chunking.md`](03-实战章/memory-chunking.md) |
-| 工具怎么跨框架复用 | [`04-协议章/mcp-basics.md`](04-协议章/mcp-basics.md) |
-| 多 Agent 怎么协作 | [`02-编排章/decentralized-investigation.md`](02-编排章/decentralized-investigation.md) |
+| 怎么省钱（token/成本）| [`02-编排章/路由成本优化.md`](02-编排章/路由成本优化.md) |
+| 慢工具怎么提速 | [`02-编排章/并行分发.md`](02-编排章/并行分发.md) |
+| 记忆检索不准 | [`03-实战章/记忆召回修复.md`](03-实战章/记忆召回修复.md) |
+| 记忆跨轮指代丢失 | [`03-实战章/记忆切分.md`](03-实战章/记忆切分.md) |
+| 工具怎么跨框架复用 | [`04-协议章/MCP基础.md`](04-协议章/MCP基础.md) |
+| 多 Agent 怎么协作 | [`02-编排章/去中心化协商调查.md`](02-编排章/去中心化协商调查.md) |
 
 ### 🅲 复盘「怎么得出结论的」（学方法论）
 > 目的：不是学结论，是学**怎么验证一个结论**。
 
-[`00-索引/learning-summary.md`](00-索引/learning-summary.md) §「被证伪的判断」+
-[`00-索引/issue-log.md`](00-索引/issue-log.md)（40 条踩坑）+ 各「调查」类讲义。
+[`00-索引/学习总结.md`](00-索引/学习总结.md) §「被证伪的判断」+
+[`00-索引/问题清单.md`](00-索引/问题清单.md)（40 条踩坑）+ 各「调查」类讲义。
 
 ---
 
@@ -44,70 +45,73 @@
 
 | 文档 | 一句话 |
 |---|---|
-| [`ai-agent-curriculum.md`](00-索引/ai-agent-curriculum.md) | **教学大纲**：12 节，从 Agent 本质到趋势研判 |
-| [`learning-summary.md`](00-索引/learning-summary.md) | **学习总结**：主线 + 五模块 + 被证伪的判断 + 核心结论 |
-| [`issue-log.md`](00-索引/issue-log.md) | **已发现问题清单**：40 条踩坑，按主题归类 |
-| [`issue-log-review-2026-10-07.md`](00-索引/issue-log-review-2026-10-07.md) | 问题清单的**系统性复核**（抓到 6 处「现状」腐坏）|
-| [`authoring-rules.md`](00-索引/authoring-rules.md) | **成文规矩**：讲义怎么写（固定六段 + 写作原则）|
+| [`教学大纲.md`](00-索引/教学大纲.md) | **教学大纲**：12 节，从 Agent 本质到趋势研判 |
+| [`学习总结.md`](00-索引/学习总结.md) | **学习总结**：主线 + 五模块 + 被证伪的判断 + 核心结论 |
+| [`问题清单.md`](00-索引/问题清单.md) | **已发现问题清单**：40 条踩坑，按主题归类 |
+| [`问题清单复核-2026-10-07.md`](00-索引/问题清单复核-2026-10-07.md) | 问题清单的**系统性复核**（抓到 6 处「现状」腐坏）|
+| [`成文规矩.md`](00-索引/成文规矩.md) | **成文规矩**：讲义怎么写（固定六段 + 写作原则）|
+| [`教学总览.md`](00-索引/教学总览.md) | **教学总览**：三句话 / 概念小抄 / 六张图 / 实测账 / 九句话 |
+| [`文档重构方案.md`](00-索引/文档重构方案.md) | 2026/10/19 文档改名与教学总览方案（历史记录）|
 
 ### 📗 01-基础章/（Agent 的本质）
 
 | 文档 | 一句话 |
 |---|---|
-| [`capability-ladder.md`](01-基础章/capability-ladder.md) | 能力阶梯：从 88 行到 5000 行，每级独立可运行 |
-| [`perception-structured-investigation.md`](01-基础章/perception-structured-investigation.md) | 感知-行动回路结构化（`{ok,data,error}` 契约）|
+| [`能力阶梯.md`](01-基础章/能力阶梯.md) | 能力阶梯：从 88 行到 4800 行，每级独立可运行 |
+| [`感知结构化调查.md`](01-基础章/感知结构化调查.md) | 感知-行动回路结构化（`{ok,data,error}` 契约）|
 
 ### 📙 02-编排章/（多 Agent 怎么组织）
 
 | 文档 | 一句话 |
 |---|---|
-| [`orchestration-patterns.md`](02-编排章/orchestration-patterns.md) | 编排四模式讲义（Router / Pipeline / EC / Fan-out）|
-| [`router-cost.md`](02-编排章/router-cost.md) | Router 成本优化（规则预筛，省 25%）|
-| [`fanout-parallel.md`](02-编排章/fanout-parallel.md) | 真并行 Fan-out（判据②：独立 + 资源可吸收）|
-| [`planning-investigation.md`](02-编排章/planning-investigation.md) | 显式规划调查 → **实测否决** |
-| [`hierarchical-investigation.md`](02-编排章/hierarchical-investigation.md) | 层级编排 / 工人池 → **条件性必要** |
-| [`decentralized-investigation.md`](02-编排章/decentralized-investigation.md) | 去中心化协商（Group Chat）→ 信息分散时不可替代 |
-| [`contract-net-investigation.md`](02-编排章/contract-net-investigation.md) | Contract Net（发标-投标-中标）→ 中央无法评估时必要 |
-| [`debate-investigation.md`](02-编排章/debate-investigation.md) | Debate（正反辩论）→ **必要性未复现**（强模型自己就会质疑前提）|
-| [`blackboard-investigation.md`](02-编排章/blackboard-investigation.md) | Blackboard（黑板）→ 关键变量是「反应式控制」非黑板结构（静态预排 0/6）|
+| [`编排模式.md`](02-编排章/编排模式.md) | 编排四模式讲义（Router / Pipeline / EC / Fan-out）|
+| [`数值题EC可靠性调查.md`](02-编排章/数值题EC可靠性调查.md) | 同模型 EC 在客观数值题上 **0/6** → 边界：需要外部独立信号 |
+| [`路由成本优化.md`](02-编排章/路由成本优化.md) | Router 成本优化（规则预筛，省 25%）|
+| [`并行分发.md`](02-编排章/并行分发.md) | 真并行 Fan-out（判据②：独立 + 资源可吸收）|
+| [`显式规划调查.md`](02-编排章/显式规划调查.md) | 显式规划调查 → **实测否决** |
+| [`层级编排调查.md`](02-编排章/层级编排调查.md) | 层级编排 / 工人池 → **条件性必要** |
+| [`去中心化协商调查.md`](02-编排章/去中心化协商调查.md) | 去中心化协商（Group Chat）→ 信息分散时不可替代 |
+| [`合同网调查.md`](02-编排章/合同网调查.md) | Contract Net（发标-投标-中标）→ 中央无法评估时必要 |
+| [`辩论调查.md`](02-编排章/辩论调查.md) | Debate（正反辩论）→ **必要性未复现**（强模型自己就会质疑前提）|
+| [`黑板模式调查.md`](02-编排章/黑板模式调查.md) | Blackboard（黑板）→ 关键变量是「反应式控制」非黑板结构（静态预排 0/6）|
 
 ### 📕 03-实战章/（记忆 · 成本 · 稳定性）
 
 | 文档 | 一句话 |
 |---|---|
-| [`constraints-and-termination.md`](03-实战章/constraints-and-termination.md) | 约束与收尾（截断 + 预算预警 + 收尾步）|
-| [`memory-extraction.md`](03-实战章/memory-extraction.md) | 记忆抽取：评测与本地化评估 |
-| [`memory-recall-fix.md`](03-实战章/memory-recall-fix.md) | 记忆召回修复（增量式文本增富）|
-| [`memory-chunking.md`](03-实战章/memory-chunking.md) | 记忆切分粒度（跨轮指代消解）|
-| [`memory-cases.md`](03-实战章/memory-cases.md) | 记忆用例评测（端到端：答案有没有变）|
-| [`embedding-upgrade.md`](03-实战章/embedding-upgrade.md) | 换更强 embedding（v3→v4）+ 阈值重推导 |
-| [`rerank-layer.md`](03-实战章/rerank-layer.md) | 精排层（rerank）→ **实测否决** |
-| [`local-inference.md`](03-实战章/local-inference.md) | 本地推理（embedding 挪到局域网 Ollama）|
+| [`约束与收尾.md`](03-实战章/约束与收尾.md) | 约束与收尾（截断 + 预算预警 + 收尾步）|
+| [`记忆抽取.md`](03-实战章/记忆抽取.md) | 记忆抽取：评测与本地化评估 |
+| [`记忆召回修复.md`](03-实战章/记忆召回修复.md) | 记忆召回修复（增量式文本增富）|
+| [`记忆切分.md`](03-实战章/记忆切分.md) | 记忆切分粒度（跨轮指代消解）|
+| [`记忆用例评测.md`](03-实战章/记忆用例评测.md) | 记忆用例评测（端到端：答案有没有变）|
+| [`向量模型升级.md`](03-实战章/向量模型升级.md) | 换更强 embedding（v3→v4）+ 阈值重推导 |
+| [`精排层.md`](03-实战章/精排层.md) | 精排层（rerank）→ **实测否决** |
+| [`本地推理.md`](03-实战章/本地推理.md) | 本地推理（embedding 挪到局域网 Ollama）|
 
 ### 📔 04-协议章/（工具与 Agent 的接口）
 
 | 文档 | 一句话 |
 |---|---|
-| [`mcp-basics.md`](04-协议章/mcp-basics.md) | MCP 基础：把工具变成通用插座（N×M → N+M）|
-| [`mcp-boundary.md`](04-协议章/mcp-boundary.md) | 边界辨析：记忆该不该 MCP 化？|
+| [`MCP基础.md`](04-协议章/MCP基础.md) | MCP 基础：把工具变成通用插座（N×M → N+M）|
+| [`MCP边界.md`](04-协议章/MCP边界.md) | 边界辨析：记忆该不该 MCP 化？|
 
 ### 📓 05-收尾章/（整体视图）
 
 | 文档 | 一句话 |
 |---|---|
-| [`architecture.md`](05-收尾章/architecture.md) | 架构图：分层结构 + 运行时数据流 |
+| [`架构.md`](05-收尾章/架构.md) | 架构图：分层结构 + 运行时数据流 |
 
 ### 📖 99-番外/（延伸阅读）
 
 | 文档 | 一句话 |
 |---|---|
-| [`model-capability-vs-agents.md`](99-番外/model-capability-vs-agents.md) | 模型能力提升对 Agent 的影响（文献综述）|
+| [`模型能力与Agent编排.md`](99-番外/模型能力与Agent编排.md) | 模型能力提升对 Agent 的影响（文献综述）|
 
 ### 🗄 历史归档/
 
 | 文档 | 一句话 |
 |---|---|
-| [`session-2026-09-19.md`](历史归档/session-2026-09-19.md) | 往期会话记录（**历史语境**，勿当现状读）|
+| [`会话记录-2026-09-19.md`](历史归档/会话记录-2026-09-19.md) | 往期会话记录（**历史语境**，勿当现状读）|
 
 > 另有两个非讲义目录：`diagrams/`（图）、`experiments/`（实验脚本）、`tools/`（图生成器）。
 
@@ -116,10 +120,10 @@
 ## 三、写作与维护约定
 
 - **讲义结构**：每份按固定六段（是什么 / 结构定位 / 为什么这么设计 / **代价** / 代码在哪 / 怎么跑 / 实测账）。
-  详见 [`00-索引/authoring-rules.md`](00-索引/authoring-rules.md)。
+  详见 [`00-索引/成文规矩.md`](00-索引/成文规矩.md)。
 - **数据要实测**：「明显更快」不算，`2650 token / 2.7s` 才算。
 - **⚠️ 历史归档勿当现状**：`历史归档/` 与实验里的对照臂名（「甲·现状」）是**当时**的语境。
-- **腐坏防治**：`现状 / 尚未 / ⬜` 这类措辞最易过时（见 [`issue-log`](00-索引/issue-log.md) #38/#39）；
+- **腐坏防治**：`现状 / 尚未 / ⬜` 这类措辞最易过时（见 [`问题清单`](00-索引/问题清单.md) #38/#39）；
   每周有 `doc-freshness-review` 巡检自动检查。
 
 ---
@@ -128,7 +132,7 @@
 
 ```
                      ┌──────────────┐
-                     │ 教学大纲     │  ← 00-索引/ai-agent-curriculum.md（总纲）
+                     │ 教学大纲     │  ← 00-索引/教学大纲.md（总纲）
                      └──────┬───────┘
                             │
         ┌───────────────────┼───────────────────┐

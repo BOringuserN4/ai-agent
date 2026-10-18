@@ -16,7 +16,7 @@
 
 ### 🪜 从哪开始读？
 
-本项目 17 个模块、约 5000 行，**不建议从头读**。按**能力阶梯**入手：
+本项目 21 个业务模块、约 4800 行，**不建议从头读**。按**能力阶梯**入手：
 
 | 级 | 内容 | 文件 | 代码量 |
 |---|---|---|---|
@@ -31,7 +31,7 @@
 .venv/bin/python minimal.py "帮我算 123 * 456"
 ```
 
-> 详见 [`docs/01-基础章/capability-ladder.md`](docs/01-基础章/capability-ladder.md)。
+> 详见 [`docs/01-基础章/能力阶梯.md`](docs/01-基础章/能力阶梯.md)。
 > Agent 的本质是「**一个循环 + 一份工具清单**」，其余都是在它之上加出来的。
 
 ---
@@ -116,25 +116,25 @@ ai-agent/
 ├── LICENSE               # MIT
 ├── README.md
 ├── docs/
-│   ├── ai-agent-curriculum.md   # 进阶教学大纲（章节版 + 选型/度量/自检）
-│   ├── learning-summary.md      # 学习总结（主线图 + 五模块代价 + 被证伪的判断）
-│   ├── orchestration-patterns.md # 编排四模式讲义（Router/Pipeline/Fan-out/Evaluator-Critic）
-│   ├── authoring-rules.md      # 成文规矩（每章落一份讲义正文）
-│   ├── mcp-basics.md          # 协议章讲义（MCP：把天气工具适配成 MCP server）
-│   ├── local-inference.md     # 本地推理讲义（embedding 挪到局域网 Windows 主机）
-│   ├── memory-extraction.md   # 记忆抽取讲义（评测 + 云端基线 + 本地模型对比）
-│   ├── session-2026-09-19.md  # 学习总结：本地推理链路 + 记忆抽取评测
-│   ├── fanout-parallel.md     # 编排章讲义：真并行 Fan-out
-│   ├── router-cost.md         # 编排章讲义：Router 成本优化（规则预筛）
-│   ├── memory-cases.md        # 收尾章讲义：记忆用例评测（补两套评测之间的缝）
-│   ├── memory-recall-fix.md   # 实战章讲义：记忆召回修复（增量式文本增富）
-│   ├── embedding-upgrade.md   # 实战章讲义：换更强 embedding（v3→v4 + 阈值修正）
-│   ├── rerank-layer.md        # 实战章讲义：精排层（技术背景 + 实测否决）
-│   ├── issue-log.md           # 已发现问题清单（37 条，按主题归类）
-│   ├── architecture.md        # 架构图：四层结构 + 运行时数据流 + 工具选型
-│   ├── capability-ladder.md   # 能力阶梯：从 88 行到 5000 行（对照 nanoagent）
-│   ├── constraints-and-termination.md # 约束与收尾：工具输出截断 + 预算预警
-│   ├── mcp-boundary.md        # 边界辨析：记忆该不该做成 MCP server
+│   ├── 教学大纲.md   # 进阶教学大纲（章节版 + 选型/度量/自检）
+│   ├── 学习总结.md      # 学习总结（主线图 + 五模块代价 + 被证伪的判断）
+│   ├── 编排模式.md # 编排四模式讲义（Router/Pipeline/Fan-out/Evaluator-Critic）
+│   ├── 成文规矩.md      # 成文规矩（每章落一份讲义正文）
+│   ├── MCP基础.md          # 协议章讲义（MCP：把天气工具适配成 MCP server）
+│   ├── 本地推理.md     # 本地推理讲义（embedding 挪到局域网 Windows 主机）
+│   ├── 记忆抽取.md   # 记忆抽取讲义（评测 + 云端基线 + 本地模型对比）
+│   ├── 会话记录-2026-09-19.md  # 学习总结：本地推理链路 + 记忆抽取评测
+│   ├── 并行分发.md     # 编排章讲义：真并行 Fan-out
+│   ├── 路由成本优化.md         # 编排章讲义：Router 成本优化（规则预筛）
+│   ├── 记忆用例评测.md        # 收尾章讲义：记忆用例评测（补两套评测之间的缝）
+│   ├── 记忆召回修复.md   # 实战章讲义：记忆召回修复（增量式文本增富）
+│   ├── 向量模型升级.md   # 实战章讲义：换更强 embedding（v3→v4 + 阈值修正）
+│   ├── 精排层.md        # 实战章讲义：精排层（技术背景 + 实测否决）
+│   ├── 问题清单.md           # 已发现问题清单（37 条，按主题归类）
+│   ├── 架构.md        # 架构图：四层结构 + 运行时数据流 + 工具选型
+│   ├── 能力阶梯.md   # 能力阶梯：从 88 行到 4800 行（对照 nanoagent）
+│   ├── 约束与收尾.md # 约束与收尾：工具输出截断 + 预算预警
+│   ├── MCP边界.md        # 边界辨析：记忆该不该做成 MCP server
 │   ├── local-inference-chain.html # 本地推理链路图（单文件，浏览器打开）
 │   ├── agent-mainline.html      # Agent 主线图（单文件，浏览器直接打开）
 │   ├── agent-understanding-timeline.html  # 对 Agent 的理解演进时间线（对照纠偏）
@@ -166,6 +166,10 @@ ai-agent/
     ├── tool_selector.py  # 工具裁剪（关键词分组，先裁后挂，省工具清单的租金）
     ├── router_prefilter.py # Router 规则预筛（零 token 判断要不要拆任务）
     ├── rerank.py         # 精排层（cross-encoder，含优雅降级；默认关闭）
+    ├── group_chat.py     # Group Chat 去中心化协商（共享频道 + 轮转 + 主持收敛）
+    ├── contract_net.py   # Contract Net 发标-投标-中标
+    ├── debate.py         # Debate 正反辩论 + 裁决
+    ├── observation.py    # 感知结构化契约（{ok,data,error}）
     └── embedding_backends.py # embedding 可插拔后端（云端 DashScope / 本地 Ollama）
 ```
 
@@ -253,7 +257,7 @@ ai-agent/
 - ~~Evaluator-Critic 编排~~ ✅ 已完成（evaluator_critic.py，实测见第八节）
 - ~~Router 成本优化~~ ✅ 已完成（2026/09/22：清工具声明 + 规则预筛，86% 跳过率，总 token −25%）
 - ~~真并行 Fan-out~~ ✅ 已完成（2026/09/20，`_fanout_parallel`，实测省 41% 墙钟）
-- MCP 工具生态
+- ~~MCP 工具生态~~ ✅ 已完成（mcp_bridge.py + weather_server.py，工具裁剪省 42%）
 - 可视化界面
 
 ---
@@ -281,16 +285,21 @@ ai-agent/
 | 反例 · 缺信息（命中否决线④） | 3 | 59 → 59 → 59 | 9437 | 走平，**批了也改不动**，钱白花 |
 | 追加实拍 · 及格线拧到 90 | 3 | 84 → 87 → 59 | 24211 | **回退**：为凑手艺分把硬约束写崩 |
 
-三条结论：
+四条结论：
 1. **否决线④是真的**：缺信息时，批判再准也无法改进，只有 token 在涨；
 2. **及格线是根旋钮**：85 能在两三轮内收敛，90 会诱发「牺牲硬约束换手艺分」的退步；
 3. **循环必须由代码封顶**：否则「不达标就重做」会一直烧钱——本实现上限 3 轮，封顶后输出历史最好的一版。
+4. **同模型 EC 在客观数值题上不可靠**（2026/10/19 补测）：T1/T6 **0/6**；
+   批判者会把正确答案判错（9→11，重做后变 771429），也会认同错误答案（13/13、771429/771429）。
+   边界：**EC 需要外部独立信号**（不同模型/计算器/测试）；有程序可验证标准时，代码验证 > LLM 评委。
+   详见 [`docs/02-编排章/数值题EC可靠性调查.md`](docs/02-编排章/数值题EC可靠性调查.md)。
 
 ---
 
 ## 九、进阶教材
 
-主体代码完成后，下一步推荐读 [`docs/00-索引/ai-agent-curriculum.md`](docs/00-索引/ai-agent-curriculum.md) ——这是一份**章节版进阶路线**：
+主体代码完成后，下一步推荐读 [`docs/00-索引/教学大纲.md`](docs/00-索引/教学大纲.md) ——这是一份**章节版进阶路线**；
+教学总览见 [`docs/00-索引/教学总览.md`](docs/00-索引/教学总览.md)。
 
 - 10 种多 Agent 编排模式（Router / Pipeline / Evaluator-Critic / Fan-out …）
 - 资源/成本选型对比（DeepSeek / DashScope / LangGraph / Qdrant …）
@@ -302,4 +311,4 @@ ai-agent/
 
 ---
 
-*从 0 到 1 · 2026-09-06 起步，2026-09-07 收敛为 Multi-Agent 工程形态，2026/09/15 完成可观测/评测/召回阈值/多 Agent 判据，学习总结见 `docs/00-索引/learning-summary.md`。*
+*从 0 到 1 · 2026-09-06 起步，2026-09-07 收敛为 Multi-Agent 工程形态，2026/09/15 完成可观测/评测/召回阈值/多 Agent 判据，学习总结见 `docs/00-索引/学习总结.md`。*

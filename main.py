@@ -333,7 +333,7 @@ def main():
   ⚠️ 实测提醒：在强模型下，Debate 的必要性**未复现**——
      对有教科书答案的问题，单 Agent 自己就会质疑错误前提。
      它可能值得的场景：红队/安全审查、模型有已知偏见的领域、需攻防审计。
-     详见 docs/02-编排章/debate-investigation.md。""")
+     详见 docs/02-编排章/辩论调查.md。""")
                 continue
             _debate_panel(rest)
             continue
