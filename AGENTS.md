@@ -105,6 +105,8 @@
 - 问题清单：`docs/00-索引/问题清单.md`
 - 成文规矩：`docs/00-索引/成文规矩.md`
 - 文档审视报告：`docs/00-索引/文档审视报告-2026-10-19.md`
+- 学习盘点与下一步：`docs/00-索引/学习盘点与下一步-2026-10-19.md`
+- DSH 研究：`docs/07-DSH研究/DSH技术设计与实现.md`、`docs/07-DSH研究/可吸收技术点与路线.md`
 - 可视化设计：`docs/06-可视化/交互可视化设计.md`
 - 教学写作 skill：`.dsh/skills/teaching-doc/SKILL.md`
 - 绘图 skill：`.dsh/skills/hand-drawn-diagram/SKILL.md`
