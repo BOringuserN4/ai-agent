@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 700"
+  width="2600" height="1400">
+<defs>
+  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+    <circle cx="1.6" cy="1.6" r="1.25" fill="#b9b2a6" opacity="0.5"/>
+  </pattern>
+  <filter id="noisetile" x="0" y="0" width="256" height="256"
+          filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3"
+                  seed="11" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <pattern id="noisepat" width="256" height="256" patternUnits="userSpaceOnUse">
+    <rect width="256" height="256" filter="url(#noisetile)" opacity="0.05"/>
+  </pattern>
+  <radialGradient id="vignette" cx="50%" cy="46%" r="72%">
+    <stop offset="55%" stop-color="#fbf7ef" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#e6ddcd" stop-opacity="0.55"/>
+  </radialGradient>
+</defs>
+<rect width="1300" height="700" fill="#fbf7ef"/>
+<rect width="1300" height="700" fill="url(#grid)"/>
+<rect width="1300" height="700" fill="url(#noisepat)"/>
+<rect width="1300" height="700" fill="url(#vignette)"/>
+<text x="60" y="76" letter-spacing="2" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="46" font-weight="700"
+    fill="#3d3a34" opacity="1">同模型 EC 在数值题上 0/6</text>
+<text x="62" y="104" font-family="Kalam, sans-serif"
+    font-size="14" font-weight="400"
+    fill="#8a8377" opacity="1">same-model self-critique is not independent</text>
+<g fill="none" stroke-linecap="round">
+  <path d="M 58 120 Q 69.07142857142857 111, 80.14285714285714 120 Q 91.21428571428571 111, 102.28571428571428 120 Q 113.35714285714286 111, 124.42857142857143 120 Q 135.5 111, 146.57142857142856 120 Q 157.64285714285714 111, 168.71428571428572 120 Q 179.78571428571428 111, 190.85714285714286 120 Q 201.92857142857144 111, 213 120 Q 224.07142857142856 111, 235.14285714285714 120 Q 246.21428571428572 111, 257.2857142857143 120 Q 268.3571428571429 111, 279.42857142857144 120 Q 290.5 111, 301.57142857142856 120 Q 312.6428571428571 111, 323.7142857142857 120 Q 334.7857142857143 111, 345.85714285714283 120 Q 356.92857142857144 111, 368 120 Q 379.07142857142856 111, 390.1428571428571 120 Q 401.21428571428567 111, 412.2857142857143 120 Q 423.3571428571429 111, 434.42857142857144 120 Q 445.5 111, 456.57142857142856 120 Q 467.6428571428571 111, 478.7142857142857 120 Q 489.7857142857143 111, 500.85714285714283 120 Q 511.92857142857144 111, 523 120 Q 534.0714285714286 111, 545.1428571428571 120 Q 556.2142857142857 111, 567.2857142857142 120 Q 578.3571428571429 111, 589.4285714285714 120 Q 600.5 111, 611.5714285714286 120 Q 622.6428571428571 111, 633.7142857142857 120 Q 644.7857142857142 111, 655.8571428571429 120 Q 666.9285714285714 111, 678 120" stroke="#e8590c" stroke-width="3.4" opacity="0.9"/>
+  <path d="M 58 127 Q 69.07142857142857 119.8, 80.14285714285714 127 Q 91.21428571428571 119.8, 102.28571428571428 127 Q 113.35714285714286 119.8, 124.42857142857143 127 Q 135.5 119.8, 146.57142857142856 127 Q 157.64285714285714 119.8, 168.71428571428572 127 Q 179.78571428571428 119.8, 190.85714285714286 127 Q 201.92857142857144 119.8, 213 127 Q 224.07142857142856 119.8, 235.14285714285714 127 Q 246.21428571428572 119.8, 257.2857142857143 127 Q 268.3571428571429 119.8, 279.42857142857144 127 Q 290.5 119.8, 301.57142857142856 127 Q 312.6428571428571 119.8, 323.7142857142857 127 Q 334.7857142857143 119.8, 345.85714285714283 127 Q 356.92857142857144 119.8, 368 127 Q 379.07142857142856 119.8, 390.1428571428571 127 Q 401.21428571428567 119.8, 412.2857142857143 127 Q 423.3571428571429 119.8, 434.42857142857144 127 Q 445.5 119.8, 456.57142857142856 127 Q 467.6428571428571 119.8, 478.7142857142857 127 Q 489.7857142857143 119.8, 500.85714285714283 127 Q 511.92857142857144 119.8, 523 127 Q 534.0714285714286 119.8, 545.1428571428571 127 Q 556.2142857142857 119.8, 567.2857142857142 127 Q 578.3571428571429 119.8, 589.4285714285714 127 Q 600.5 119.8, 611.5714285714286 127 Q 622.6428571428571 119.8, 633.7142857142857 127 Q 644.7857142857142 119.8, 655.8571428571429 127 Q 666.9285714285714 119.8, 678 127" stroke="#e8590c" stroke-width="2.2" opacity="0.4"/>
+</g>
+<text x="650" y="190" text-anchor="middle" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="68" font-weight="700"
+    fill="#e8590c" opacity="1">0 / 6</text>
+<g transform="rotate(0.35 155 355)">
+  <path d="M 67 297 L 243 297 L 243 413 L 67 413 Z" fill="#f2809f" opacity="0.3" stroke="none"/>
+  <path d="M 67 297 L 243 297 L 243 413 L 67 413 Z" fill="#f2809f" opacity="0.15" stroke="none"
+        transform="translate(-0.1 -1.3)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 63.1 300.0 Q 99.7 301.7 99.7 300.0 Q 136.3 299.3 136.3 300.0 Q 172.9 300.6 172.9 300.0 Q 209.5 300.6 209.5 300.0 Q 246.1 301.4 246.1 300.0"/><path d="M 240.0 291.5 Q 238.4 333.4 240.0 333.4 Q 238.1 375.4 240.0 375.4 Q 240.7 417.3 240.0 417.3"/><path d="M 245.9 410.0 Q 209.4 410.6 209.4 410.0 Q 172.8 409.0 172.8 410.0 Q 136.3 411.9 136.3 410.0 Q 99.8 410.5 99.8 410.0 Q 63.2 411.5 63.2 410.0"/><path d="M 70.0 414.2 Q 71.6 373.3 70.0 373.3 Q 68.8 332.4 70.0 332.4 Q 71.3 291.5 70.0 291.5"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 66.1 301.1 Q 101.3 302.7 101.3 301.1 Q 136.5 301.6 136.5 301.1 Q 171.7 302.5 171.7 301.1 Q 206.9 301.8 206.9 301.1 Q 242.1 300.4 242.1 301.1"/><path d="M 239.1 298.1 Q 238.6 336.8 239.1 336.8 Q 237.5 375.4 239.1 375.4 Q 239.5 414.1 239.1 414.1"/><path d="M 242.1 411.1 Q 206.9 411.0 206.9 411.1 Q 171.7 410.9 171.7 411.1 Q 136.5 411.2 136.5 411.1 Q 101.3 409.4 101.3 411.1 Q 66.1 410.2 66.1 411.1"/><path d="M 69.1 414.1 Q 70.9 375.4 69.1 375.4 Q 70.1 336.8 69.1 336.8 Q 68.1 298.1 69.1 298.1"/>
+  </g>
+</g>
+<text x="86" y="338" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">100</text>
+<text x="86" y="364" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="14" font-weight="400"
+    fill="#7d766a" opacity="1">run 1</text>
+<text x="220" y="340" text-anchor="middle" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="30" font-weight="700"
+    fill="#e8590c" opacity="1">✗</text>
+<g transform="rotate(0.14 350 355)">
+  <path d="M 262 297 L 438 297 L 438 413 L 262 413 Z" fill="#f2809f" opacity="0.3" stroke="none"/>
+  <path d="M 262 297 L 438 297 L 438 413 L 262 413 Z" fill="#f2809f" opacity="0.15" stroke="none"
+        transform="translate(-1.4 2.0)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 260.5 300.0 Q 296.3 299.4 296.3 300.0 Q 332.2 301.0 332.2 300.0 Q 368.0 301.2 368.0 300.0 Q 403.9 299.4 403.9 300.0 Q 439.8 300.4 439.8 300.0"/><path d="M 435.0 294.6 Q 434.7 335.2 435.0 335.2 Q 435.9 375.9 435.0 375.9 Q 435.4 416.6 435.0 416.6"/><path d="M 442.1 410.0 Q 405.1 411.4 405.1 410.0 Q 368.1 410.4 368.1 410.0 Q 331.0 410.8 331.0 410.0 Q 294.0 409.2 294.0 410.0 Q 257.0 410.4 257.0 410.0"/><path d="M 265.0 418.6 Q 264.0 377.1 265.0 377.1 Q 265.2 335.6 265.0 335.6 Q 264.9 294.2 265.0 294.2"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 262.2 301.6 Q 297.4 302.5 297.4 301.6 Q 332.6 300.9 332.6 301.6 Q 367.8 302.2 367.8 301.6 Q 403.0 302.6 403.0 301.6 Q 438.2 301.6 438.2 301.6"/><path d="M 435.2 298.6 Q 435.6 337.3 435.2 337.3 Q 436.8 375.9 435.2 375.9 Q 435.8 414.6 435.2 414.6"/><path d="M 438.2 411.6 Q 403.0 412.4 403.0 411.6 Q 367.8 411.2 367.8 411.6 Q 332.6 412.2 332.6 411.6 Q 297.4 413.1 297.4 411.6 Q 262.2 410.9 262.2 411.6"/><path d="M 265.2 414.6 Q 266.5 375.9 265.2 375.9 Q 265.0 337.3 265.2 337.3 Q 263.9 298.6 265.2 298.6"/>
+  </g>
+</g>
+<text x="281" y="338" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">771429</text>
+<text x="281" y="364" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="14" font-weight="400"
+    fill="#7d766a" opacity="1">run 2</text>
+<text x="415" y="340" text-anchor="middle" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="30" font-weight="700"
+    fill="#e8590c" opacity="1">✗</text>
+<g transform="rotate(-0.18 545 355)">
+  <path d="M 457 297 L 633 297 L 633 413 L 457 413 Z" fill="#f2809f" opacity="0.3" stroke="none"/>
+  <path d="M 457 297 L 633 297 L 633 413 L 457 413 Z" fill="#f2809f" opacity="0.15" stroke="none"
+        transform="translate(1.3 2.0)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 453.1 300.0 Q 489.5 300.0 489.5 300.0 Q 525.9 300.1 525.9 300.0 Q 562.3 301.8 562.3 300.0 Q 598.7 300.9 598.7 300.0 Q 635.1 299.2 635.1 300.0"/><path d="M 630.0 291.8 Q 629.1 332.6 630.0 332.6 Q 629.7 373.5 630.0 373.5 Q 631.2 414.4 630.0 414.4"/><path d="M 635.8 410.0 Q 599.1 410.2 599.1 410.0 Q 562.4 409.4 562.4 410.0 Q 525.7 411.4 525.7 410.0 Q 489.0 410.5 489.0 410.0 Q 452.3 410.3 452.3 410.0"/><path d="M 460.0 415.3 Q 461.3 374.1 460.0 374.1 Q 461.1 332.9 460.0 332.9 Q 458.4 291.7 460.0 291.7"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 456.6 300.2 Q 491.8 300.9 491.8 300.2 Q 527.0 300.6 527.0 300.2 Q 562.2 300.2 562.2 300.2 Q 597.4 299.5 597.4 300.2 Q 632.6 298.7 632.6 300.2"/><path d="M 629.6 297.2 Q 627.7 335.8 629.6 335.8 Q 630.4 374.5 629.6 374.5 Q 630.0 413.2 629.6 413.2"/><path d="M 632.6 410.2 Q 597.4 411.0 597.4 410.2 Q 562.2 409.1 562.2 410.2 Q 527.0 408.9 527.0 410.2 Q 491.8 411.0 491.8 410.2 Q 456.6 409.5 456.6 410.2"/><path d="M 459.6 413.2 Q 460.4 374.5 459.6 374.5 Q 459.2 335.8 459.6 335.8 Q 459.3 297.2 459.6 297.2"/>
+  </g>
+</g>
+<text x="476" y="338" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">48857</text>
+<text x="476" y="364" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="14" font-weight="400"
+    fill="#7d766a" opacity="1">run 3</text>
+<text x="610" y="340" text-anchor="middle" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="30" font-weight="700"
+    fill="#e8590c" opacity="1">✗</text>
+<g transform="rotate(-0.41 740 355)">
+  <path d="M 652 297 L 828 297 L 828 413 L 652 413 Z" fill="#f2809f" opacity="0.3" stroke="none"/>
+  <path d="M 652 297 L 828 297 L 828 413 L 652 413 Z" fill="#f2809f" opacity="0.15" stroke="none"
+        transform="translate(0.1 -1.7)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 650.9 300.0 Q 687.5 298.7 687.5 300.0 Q 724.0 298.6 724.0 300.0 Q 760.6 301.0 760.6 300.0 Q 797.1 301.3 797.1 300.0 Q 833.7 301.5 833.7 300.0"/><path d="M 825.0 293.1 Q 824.3 334.1 825.0 334.1 Q 825.3 375.1 825.0 375.1 Q 823.0 416.1 825.0 416.1"/><path d="M 829.9 410.0 Q 793.6 410.4 793.6 410.0 Q 757.3 410.8 757.3 410.0 Q 721.0 408.7 721.0 410.0 Q 684.7 410.5 684.7 410.0 Q 648.4 409.0 648.4 410.0"/><path d="M 655.0 414.6 Q 656.3 374.8 655.0 374.8 Q 654.6 335.0 655.0 335.0 Q 653.3 295.2 655.0 295.2"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 654.0 298.8 Q 689.2 297.5 689.2 298.8 Q 724.4 299.7 724.4 298.8 Q 759.6 299.9 759.6 298.8 Q 794.8 298.4 794.8 298.8 Q 830.0 298.0 830.0 298.8"/><path d="M 827.0 295.8 Q 826.5 334.5 827.0 334.5 Q 825.2 373.1 827.0 373.1 Q 826.3 411.8 827.0 411.8"/><path d="M 830.0 408.8 Q 794.8 408.7 794.8 408.8 Q 759.6 408.4 759.6 408.8 Q 724.4 408.5 724.4 408.8 Q 689.2 408.7 689.2 408.8 Q 654.0 409.7 654.0 408.8"/><path d="M 657.0 411.8 Q 656.1 373.1 657.0 373.1 Q 658.8 334.5 657.0 334.5 Q 655.6 295.8 657.0 295.8"/>
+  </g>
+</g>
+<text x="671" y="338" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">9 → 771429</text>
+<text x="671" y="364" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="14" font-weight="400"
+    fill="#7d766a" opacity="1">run 4</text>
+<text x="805" y="340" text-anchor="middle" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="30" font-weight="700"
+    fill="#e8590c" opacity="1">✗</text>
+<g transform="rotate(0.25 935 355)">
+  <path d="M 847 297 L 1023 297 L 1023 413 L 847 413 Z" fill="#f2809f" opacity="0.3" stroke="none"/>
+  <path d="M 847 297 L 1023 297 L 1023 413 L 847 413 Z" fill="#f2809f" opacity="0.15" stroke="none"
+        transform="translate(0.1 -1.6)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 843.3 300.0 Q 879.6 299.0 879.6 300.0 Q 915.9 301.3 915.9 300.0 Q 952.2 301.1 952.2 300.0 Q 988.5 300.5 988.5 300.0 Q 1024.8 298.8 1024.8 300.0"/><path d="M 1020.0 294.6 Q 1019.9 334.7 1020.0 334.7 Q 1019.7 374.8 1020.0 374.8 Q 1018.0 415.0 1020.0 415.0"/><path d="M 1024.0 410.0 Q 988.2 411.8 988.2 410.0 Q 952.3 408.5 952.3 410.0 Q 916.5 409.7 916.5 410.0 Q 880.6 408.7 880.6 410.0 Q 844.8 408.4 844.8 410.0"/><path d="M 850.0 416.4 Q 850.7 375.1 850.0 375.1 Q 851.3 333.9 850.0 333.9 Q 850.6 292.7 850.0 292.7"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 847.0 298.8 Q 882.2 297.6 882.2 298.8 Q 917.4 297.1 917.4 298.8 Q 952.6 297.1 952.6 298.8 Q 987.8 298.0 987.8 298.8 Q 1023.0 298.6 1023.0 298.8"/><path d="M 1020.0 295.8 Q 1019.4 334.5 1020.0 334.5 Q 1019.2 373.1 1020.0 373.1 Q 1020.3 411.8 1020.0 411.8"/><path d="M 1023.0 408.8 Q 987.8 407.2 987.8 408.8 Q 952.6 408.0 952.6 408.8 Q 917.4 407.4 917.4 408.8 Q 882.2 407.3 882.2 408.8 Q 847.0 409.4 847.0 408.8"/><path d="M 850.0 411.8 Q 850.2 373.1 850.0 373.1 Q 850.9 334.5 850.0 334.5 Q 848.4 295.8 850.0 295.8"/>
+  </g>
+</g>
+<text x="866" y="338" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">13</text>
+<text x="866" y="364" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="14" font-weight="400"
+    fill="#7d766a" opacity="1">run 5</text>
+<text x="1000" y="340" text-anchor="middle" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="30" font-weight="700"
+    fill="#e8590c" opacity="1">✗</text>
+<g transform="rotate(0.10 1130 355)">
+  <path d="M 1042 297 L 1218 297 L 1218 413 L 1042 413 Z" fill="#f2809f" opacity="0.3" stroke="none"/>
+  <path d="M 1042 297 L 1218 297 L 1218 413 L 1042 413 Z" fill="#f2809f" opacity="0.15" stroke="none"
+        transform="translate(1.9 1.4)"/>
+</g>
+<g>
+  <g stroke="#4a453d" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.92">
+    <path d="M 1037.8 300.0 Q 1074.7 300.8 1074.7 300.0 Q 1111.7 299.7 1111.7 300.0 Q 1148.6 299.6 1148.6 300.0 Q 1185.5 301.7 1185.5 300.0 Q 1222.5 300.7 1222.5 300.0"/><path d="M 1215.0 293.6 Q 1215.4 335.3 1215.0 335.3 Q 1216.1 377.0 1215.0 377.0 Q 1216.2 418.7 1215.0 418.7"/><path d="M 1223.8 410.0 Q 1186.4 408.2 1186.4 410.0 Q 1148.9 409.0 1148.9 410.0 Q 1111.4 408.5 1111.4 410.0 Q 1074.0 408.2 1074.0 410.0 Q 1036.5 411.7 1036.5 410.0"/><path d="M 1045.0 418.8 Q 1047.0 377.0 1045.0 377.0 Q 1043.7 335.2 1045.0 335.2 Q 1045.7 293.4 1045.0 293.4"/>
+  </g>
+  <g stroke="#4a453d" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.3">
+    <path d="M 1039.9 300.1 Q 1075.1 301.3 1075.1 300.1 Q 1110.3 301.1 1110.3 300.1 Q 1145.5 298.3 1145.5 300.1 Q 1180.7 300.5 1180.7 300.1 Q 1215.9 301.0 1215.9 300.1"/><path d="M 1212.9 297.1 Q 1214.9 335.8 1212.9 335.8 Q 1212.7 374.4 1212.9 374.4 Q 1212.0 413.1 1212.9 413.1"/><path d="M 1215.9 410.1 Q 1180.7 411.8 1180.7 410.1 Q 1145.5 411.5 1145.5 410.1 Q 1110.3 410.1 1110.3 410.1 Q 1075.1 411.4 1075.1 410.1 Q 1039.9 409.1 1039.9 410.1"/><path d="M 1042.9 413.1 Q 1043.4 374.4 1042.9 374.4 Q 1044.0 335.8 1042.9 335.8 Q 1042.5 297.1 1042.9 297.1"/>
+  </g>
+</g>
+<text x="1061" y="338" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="19" font-weight="700"
+    fill="#3d3a34" opacity="1">771429</text>
+<text x="1061" y="364" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="14" font-weight="400"
+    fill="#7d766a" opacity="1">run 6</text>
+<text x="1195" y="340" text-anchor="middle" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="30" font-weight="700"
+    fill="#e8590c" opacity="1">✗</text>
+<text x="80" y="500" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="20" font-weight="400"
+    fill="#5b554b" opacity="1">六次里最刺眼的一次：首版 9 是对的，批判者说 11，重做后变成 771429。</text>
+<text x="80" y="536" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="17" font-weight="400"
+    fill="#8a8377" opacity="1">同模型批判者既会把对的判错，也会认同错的（13/13、771429/771429）。</text>
+<text x="80" y="604" font-family="ZCOOL KuaiLe, PingFang SC, sans-serif"
+    font-size="21" font-weight="700"
+    fill="#e8590c" opacity="1">结论：有客观标准时，代码验证 > LLM 评委；EC 需要外部独立信号。</text>
+</svg>

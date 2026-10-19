@@ -27,7 +27,7 @@
 - 已落地：ReAct + 记忆（Chroma/DashScope v4）+ 编排（Router / Pipeline / Fan-out / EC /
   工人池 / Group Chat / Contract Net / Debate）+ MCP + 评测/观测。
 - 多个专题有实测结论；显式规划、rerank、Debate、Blackboard 是"否决/降级"结论。
-- 文档：教学总览（6 张手绘图）+ `teaching-doc` / `hand-drawn-diagram` skill。
+- 文档：教学总览（6 图）+ 21 篇配图 / 12 张新图；`teaching-doc` / `hand-drawn-diagram` skill。
 - **EC 边界（2026-10-19）**：同模型 EC 在客观数值题上 **0/6**；会把对的判错（9→11，
   重做后变 771429），也会认同错的（13/13、771429/771429）。EC 需要外部独立信号；
   有程序可验证标准时，代码验证 > LLM 评委。见 `docs/02-编排章/数值题EC可靠性调查.md`。
@@ -104,6 +104,8 @@
 - 大纲：`docs/00-索引/教学大纲.md`
 - 问题清单：`docs/00-索引/问题清单.md`
 - 成文规矩：`docs/00-索引/成文规矩.md`
+- 文档审视报告：`docs/00-索引/文档审视报告-2026-10-19.md`
+- 可视化设计：`docs/06-可视化/交互可视化设计.md`
 - 教学写作 skill：`.dsh/skills/teaching-doc/SKILL.md`
 - 绘图 skill：`.dsh/skills/hand-drawn-diagram/SKILL.md`
 - 正式论文 skill：`.dsh/skills/paper-writing/SKILL.md`
