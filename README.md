@@ -1,314 +1,223 @@
-# AI Agent 从 0 到 1 开发项目
+# AI Agent 从 0 到 1：一个可读、可跑、可评测的白盒 Agent
 
-> 用 **DeepSeek + Python**，从零手写一个 **Multi-Agent** 系统。
-> 本文档记录**项目架构、运行方式、核心原理**。项目已收敛为「多专家协作」的工程形态。
-
----
-
-## 一、项目简介
-
-这是一个**多 Agent（Multi-Agent）协作框架**，用最小依赖（`openai`）纯手写实现，不依赖 LangGraph/CrewAI 等框架——目的是**理解 Agent 的本质**。
-
-核心架构：**Router（调度者）+ Worker（专家）**。
-- 一个「调度者」判断用户意图；
-- 多个「专家」各司其职、各有独立人格与工具集；
-- 根据意图自动路由给对应专家处理。
-
-### 🪜 从哪开始读？
-
-本项目 21 个业务模块、约 4800 行，**不建议从头读**。按**能力阶梯**入手：
-
-| 级 | 内容 | 文件 | 代码量 |
-|---|---|---|---|
-| **0** | **最小 Agent** ← **从这里开始** | `minimal.py` | **88 行** |
-| 1 | + 记忆 | `agent/memory.py` | +253 |
-| 2 | + 工具生态（MCP） | `agent/mcp_bridge.py` | +375 |
-| 3 | + 编排（4 种模式） | `agent/multi_agent.py` 等 | +510 |
-| 4 | + 评测与可观测 | `agent/judge.py`、`eval_runner.py` | +600 |
-
-```bash
-# 30 秒看懂 Agent 的本质
-.venv/bin/python minimal.py "帮我算 123 * 456"
-```
-
-> 详见 [`docs/01-基础章/能力阶梯.md`](docs/01-基础章/能力阶梯.md)。
-> Agent 的本质是「**一个循环 + 一份工具清单**」，其余都是在它之上加出来的。
+> 用 **Python + DeepSeek**，从 **88 行**手写到一个多 Agent 系统。
+> 不依赖 LangGraph / CrewAI；每加一个结构，都配代码、实测和边界。
+>
+> **这本书还在写**：单文件初稿在
+> [`docs/书/Agent入门-初稿.md`](docs/书/Agent入门-初稿.md)，
+> 全书目录在 [`docs/README.md`](docs/README.md)。
 
 ---
 
-## 二、环境与依赖
+## 一、先看什么
 
-| 项 | 说明 |
+| 你想 | 去哪 |
 |---|---|
-| Python | 3.12+ |
-| 依赖 | `openai`（连 DeepSeek）、`python-dotenv` |
-| 模型 | DeepSeek `deepseek-flash`（V3） |
-| API Key | 存于 `.env`（**已 gitignore，绝不入库**） |
+| **30 秒看 Agent 本质** | `.venv/bin/python minimal.py "帮我算 123 * 456"` |
+| **从头读这本书** | [`docs/书/Agent入门-初稿.md`](docs/书/Agent入门-初稿.md) |
+| **查全书目录** | [`docs/README.md`](docs/README.md) |
+| **看编辑主线/章节因果链** | [`docs/00-索引/全书目录与主线.md`](docs/00-索引/全书目录与主线.md) |
+| **看架构图** | [`docs/05-收尾章/架构.md`](docs/05-收尾章/架构.md) |
+| **看踩过的坑** | [`docs/00-索引/问题清单.md`](docs/00-索引/问题清单.md) |
+| **看 DSH 技术研究** | [`docs/07-DSH研究/DSH技术设计与实现.md`](docs/07-DSH研究/DSH技术设计与实现.md) |
+| **看按日期的复盘** | [`docs/08-日志/项目日志-2026.md`](docs/08-日志/项目日志-2026.md) |
 
-### 安装
+> **读法**：第一次读，从初稿的序章开始，按“篇”顺序走；
+> 复习时只看每讲开头的“前情/本章只回答”和结尾的“代价/下一章为什么存在”。
+
+---
+
+## 二、这是什么 / 不是什么
+
+**是**：
+
+- 一个**纯 Python 手写**的 Agent 教学项目：21 个业务模块，约 4800 行；
+- 一条**能力阶梯**：`minimal.py` 88 行 → 完整多 Agent 系统；
+- 一套**可复现的实验账**：记忆、编排、成本、EC、MCP 都有实测数字和边界；
+- 一本**正在写的书**：把讲义按“为什么需要它 → 怎么工作 → 付什么代价”串起来。
+
+**不是**：
+
+- 不是生产级框架，不承诺 SLA、并发、权限隔离；
+- 不是 benchmark，评测样本小（n 小），结论只对本项目/本模型负责；
+- 不是“多 Agent 一定更强”的宣传；相反，**多 Agent 是成本结构**。
+
+---
+
+## 三、快速开始
+
+### 环境
+
+- Python 3.12+
+- 依赖：`openai`、`python-dotenv`、`chromadb`、`numpy`、`langfuse`、`mcp`
+
 ```bash
 cd ai-agent
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env        # 填入 DEEPSEEK_API_KEY + DASHSCOPE_API_KEY
+cp .env.example .env
+# 在 .env 填 DEEPSEEK_API_KEY / DASHSCOPE_API_KEY；.env 已被 gitignore
 ```
 
----
+### 30 秒看本质
 
-## 三、运行
-
-### 命令行（统一入口）
 ```bash
-python3 main.py
+.venv/bin/python minimal.py "帮我算 123 * 456"
 ```
-指令：
-- 直接输入 → 与多 Agent 对话（自动路由）
-- `/trace` → 查看本轮轨迹
-- `/usage` → 查看 token 用量
-- `/memory` → 查看长期记忆（跨会话）
-- `/memory_extra` → 查看带标签+时间的记忆详情
-- `/mem_clear` → 清空长期记忆
-- `/clear` → 清空对话历史（不删长期记忆）
-- `/json <schema> <问题>` → 结构化 JSON 输出（math/weather/summary，/json list 查看）
-- `/pipe <场景> <问题>` → Pipeline 模式（math_to_summary/research_to_report，/pipe list 查看）
-- `/exit` → 退出
 
-### 示例
+`minimal.py` 只有 88 行纯代码：一个 ReAct 循环 + 一份工具清单。
+先读它，再读完整版，不会被 21 个模块淹没。
+
+### 完整入口
+
 ```bash
-python3 main.py
-你：帮我算 123 * 456        → 路由到「数学专家」
-你：上海现在天气如何        → 路由到「天气专家」
-你：给我讲个笑话            → 路由到「通用专家」
+.venv/bin/python main.py
 ```
 
----
-
-## 四、项目结构
-
-```
-ai-agent/
-├── .env / .env.example   # 密钥（.env 已 gitignore）
-├── .gitignore
-├── requirements.txt
-├── main.py               # 统一命令行入口
-├── minimal.py            # 阶梯 0：最小可运行 Agent（88 行纯代码，一口气读完）
-├── eval_runner.py        # 评测跑批（golden set + LLM-as-judge，支持 --compare 回归对比）
-├── eval_memory_recall.py # 召回质量迷你评测（该召回/不该召回 + 阈值扫描）
-├── eval_evaluator_critic.py # Evaluator-Critic 正反例对照实验（轮次×分数 + token 账）
-├── eval_embedding_compare.py # 云端/本地 embedding 的 A/B 对比（召回质量 + 延迟）
-├── eval_memory_extract.py # 记忆抽取质量评测（20 用例 × 3 维度，确定性判分）
-├── eval_fanout_parallel.py # 真并行 Fan-out 对照实验（墙钟/token/扩展性）
-├── eval_router_prefilter.py # Router 规则预筛对照实验（14 条 golden set）
-├── eval_memory_cases.py   # 记忆用例评测（有/无记忆两遍对照，5 条用例）
-├── eval_embedding_v4.py   # embedding v3/v4 的 A/B（空档 / 留出集 / 延迟）
-├── eval_rerank.py         # 精排层对照（40 条语料，含硬干扰与对抗用例）
-├── scripts/
-│   ├── win_ollama_setup.ps1     # Windows 主机：Ollama 局域网服务一键配置
-│   └── check_local_llm_host.py  # Mac 侧：分 5 步诊断主机连通性
-├── mcp_client_weather.py # 最小 MCP 客户端（握手 → tools/list → tools/call）
-├── mcp_agent_demo.py    # MCP 对照实验（方案 A：本地工具 vs MCP 工具）
-├── mcp_external_demo.py # MCP 方案 B（接第三方 filesystem + schema 膨胀实验）
-├── mcp_tool_pruning_demo.py # 工具裁剪（按需挂载，实测省 42% token）
-├── mcp_servers/
-│   ├── weather_server.py # MCP server：把 get_weather 暴露为 MCP 工具
-│   └── vendor/           # 第三方 MCP server（npm 安装，见 .gitignore）
-├── LICENSE               # MIT
-├── README.md
-├── docs/
-│   ├── 教学大纲.md   # 进阶教学大纲（章节版 + 选型/度量/自检）
-│   ├── 学习总结.md      # 学习总结（主线图 + 五模块代价 + 被证伪的判断）
-│   ├── 编排模式.md # 编排四模式讲义（Router/Pipeline/Fan-out/Evaluator-Critic）
-│   ├── 成文规矩.md      # 成文规矩（每章落一份讲义正文）
-│   ├── MCP基础.md          # 协议章讲义（MCP：把天气工具适配成 MCP server）
-│   ├── 本地推理.md     # 本地推理讲义（embedding 挪到局域网 Windows 主机）
-│   ├── 记忆抽取.md   # 记忆抽取讲义（评测 + 云端基线 + 本地模型对比）
-│   ├── 会话记录-2026-09-19.md  # 学习总结：本地推理链路 + 记忆抽取评测
-│   ├── 并行分发.md     # 编排章讲义：真并行 Fan-out
-│   ├── 路由成本优化.md         # 编排章讲义：Router 成本优化（规则预筛）
-│   ├── 记忆用例评测.md        # 收尾章讲义：记忆用例评测（补两套评测之间的缝）
-│   ├── 记忆召回修复.md   # 实战章讲义：记忆召回修复（增量式文本增富）
-│   ├── 向量模型升级.md   # 实战章讲义：换更强 embedding（v3→v4 + 阈值修正）
-│   ├── 精排层.md        # 实战章讲义：精排层（技术背景 + 实测否决）
-│   ├── 问题清单.md           # 已发现问题清单（37 条，按主题归类）
-│   ├── 架构.md        # 架构图：四层结构 + 运行时数据流 + 工具选型
-│   ├── 能力阶梯.md   # 能力阶梯：从 88 行到 4800 行（对照 nanoagent）
-│   ├── 约束与收尾.md # 约束与收尾：工具输出截断 + 预算预警
-│   ├── MCP边界.md        # 边界辨析：记忆该不该做成 MCP server
-│   ├── local-inference-chain.html # 本地推理链路图（单文件，浏览器打开）
-│   ├── agent-mainline.html      # Agent 主线图（单文件，浏览器直接打开）
-│   ├── agent-understanding-timeline.html  # 对 Agent 的理解演进时间线（对照纠偏）
-│   └── diagrams/
-│       ├── agent-mainline.svg
-│       ├── agent-understanding-timeline.png
-│       ├── local-inference-chain.png
-│       ├── architecture-sketch.png   # 分层架构图（手绘风，主版）
-│       ├── architecture-flow.png     # 运行时数据流（手绘风）
-│       ├── architecture-d2.png       # 分层架构图（D2 自动布局，备选）
-│       ├── architecture-notability.png # 分层架构图（Notability 手写笔记风，3200x2400）
-│       └── architecture-notability.webp # 同上（WebP，体积 1/4）
-├── langfuse/             # Langfuse 自部署（docker-compose，.env 已 gitignore）
-└── agent/
-    ├── __init__.py
-    ├── core.py           # Agent 引擎（模型+工具+ReAct循环+上下文控制+记忆抽取+Langfuse 埋点）
-    ├── tools.py          # 工具大本营（计算器/天气/时间）
-    ├── tracing.py        # Tracer 追踪器（终端轨迹打印）
-    ├── roles.py          # 多专家角色定义（solo 全能 / math / weather / general）
-    ├── multi_agent.py    # Multi-Agent 调度器（Router+Worker，判据驱动拆与不拆）
-    ├── memory.py         # 长期记忆 RAG（ChromaDB HNSW + DashScope embedding + 阈值闸门）
-    ├── extractor.py      # 记忆重要性过滤器（LLM 决策版）
-    ├── golden_set.py     # 评测题集（14 条，含边界/跨域/能力边界）
-    ├── judge.py          # LLM-as-judge（4 计权维度 + 合规红线 + 必达项否决）
-    ├── json_mode.py      # 结构化 JSON 输出（schema-as-prompt）
-    ├── pipeline.py       # Pipeline 模式（Agent 串联：上一步输出=下一步输入）
-    ├── evaluator_critic.py # Evaluator-Critic 模式（生成→批判→不达标重做，代码封顶轮次）
-    ├── mcp_bridge.py     # MCP 桥接（异步 server ↔ 同步 Agent，外挂式挂载工具）
-    ├── tool_selector.py  # 工具裁剪（关键词分组，先裁后挂，省工具清单的租金）
-    ├── router_prefilter.py # Router 规则预筛（零 token 判断要不要拆任务）
-    ├── rerank.py         # 精排层（cross-encoder，含优雅降级；默认关闭）
-    ├── group_chat.py     # Group Chat 去中心化协商（共享频道 + 轮转 + 主持收敛）
-    ├── contract_net.py   # Contract Net 发标-投标-中标
-    ├── debate.py         # Debate 正反辩论 + 裁决
-    ├── observation.py    # 感知结构化契约（{ok,data,error}）
-    └── embedding_backends.py # embedding 可插拔后端（云端 DashScope / 本地 Ollama）
-```
-
----
-
-## 五、核心原理
-
-### 1. Agent 的本质
-> **Agent 的智能 100% 来自 LLM，它自己不产智能。**
-> Agent 用一个循环（ReAct），把「一段持续生效的 **prompt**（角色）+ 可装载的**记忆**（上下文）+ 一批**工具**（执行手臂）」与 LLM 的决策能力装配起来。
-
-| 角色 | 干什么 |
+| 指令 | 作用 |
 |---|---|
-| LLM（大脑） | 读懂 → 决策（选工具）→ 翻译（写参数） |
-| 工具（手臂） | **真正执行**（计算/查天气/…） |
-| function call（神经） | 连接 LLM 决策与工具执行 |
-| prompt（剧本设定） | 全程驻留上下文的角色约束 |
-| 记忆（上下文） | 短期=history 整段喂入；长期=外部库检索 |
+| 直接输入 | 与多 Agent 对话（自动路由） |
+| `/trace` | 查看本轮轨迹 |
+| `/usage` | 查看 token 用量 |
+| `/memory` | 查看长期记忆 |
+| `/json <schema> <问题>` | 结构化 JSON 输出 |
+| `/pipe <场景> <问题>` | Pipeline 模式 |
+| `/clear` / `/exit` | 清空会话 / 退出 |
 
-### 2. ReAct 循环
-> 思考（Reason）→ 决定行动（Act）→ 观察结果（Observe）→ 再思考，循环到完成。`max_steps` 兜底防死循环。
-
-### 3. 记忆机制
-- **短期记忆**：`self.history` 列表，每轮把整个历史再喂给模型（LLM 自身无记忆）。
-- **长期记忆**：外部存储 + 远程 embedding（阿里云 DashScope `text-embedding-v4`，2026/09/29 由 v3 升级），通过检索（RAG）调回相关片段。
-- **上下文预算**：`trim_history()` 抹旧保新，防 token 爆炸。
-- **智能抽取**（`extractor.py`）：回答后调一次轻量 LLM，让模型决定本轮对话是否值得记，输出结构化 JSON（`keep/text/tags`）。从「无脑存」升级为「只存高价值」。决策原则：明确偏好/个人信息/跨会话事实才记；问候、寒暄、一次性计算不记。
-
-### 4. 可观测性
-> Tracer 记录每一步「思考/工具调用/工具结果/回答」+ 耗时 + token，打印到终端。
->
-> **Langfuse v4 埋点**（2026/09/14 补全）：
-> - **Trace = 一次完整任务；Span = 任务里的一步**，嵌成父子树，价值在**归因**（哪一步慢/贵/错）。
-> - 循环内每次 LLM 调用 → `generation` 子 span（token 归因到步）；每次工具调用 → `tool` 子 span。
-> - **失败记 `level=ERROR`**，不静默；根 span 异常先记录再抛出。
-> - 验证：查 ClickHouse `events_core` 看 `parent_span_id` 是否有值。
-> - 注意：v4 数据先入 `events_core` 表，再异步聚合到 traces 视图表。
-
-### 5. 评测体系（2026/09/10 起）
-> **监控答「发生了什么」，评测答「对不对」——两件事。**
-> - `golden_set.py`：14 条题（math 3 / weather 2 / general 3 / edge 6）。
-> - `judge.py`：LLM-as-judge，4 计权维度 + 合规红线 + **必达项否决**。
-> - `eval_runner.py`：跑批/汇总/JSON 落盘，`--compare` 做回归对比。
-> - 关键原则：长期记忆必须关（否则题目间污染）；能测量的别让 LLM 判；恒为满分的维度只当一票否决。
-
-### 6. 召回阈值（2026/09/14）
-> **top_k 管排序，阈值管资格**，两道闸门分工不同。
-> `memory.py` 的 `search()` 加 `min_score=0.6`：实测该召回组 `0.68~0.86`、不该召回组 `0.44~0.52`，
-> 空档中点即阈值。**分数跨模型不可比**，换 embedding 需重跑 `eval_memory_recall.py` 阈值扫描。
-> Tracer 记录每一步「思考/工具调用/工具结果/回答」+ 耗时 + token——多 Agent 调试与可视化的基础。
-
-### 7. Multi-Agent 架构（2026/09/15 重构）
-> **Router**（调度者，只决策）输出 `{"reason": ..., "tasks": [...]}`，判定拆或不拆，**Worker** 执行后汇总回传。
->
-> **核心原则：多 Agent 不是能力升级，是成本结构。** 每多一个 agent 就多付一份交接损耗+压缩上下文+token。
-> 只有当「单 Agent 做不到」时才值得拆，**跨域 ≠ 该拆**。
-> Router 默认走 `solo`（工具全开的全能单 Agent）；四条判据（上下文隔离/真并行/不同视角/超容量）满足其一才拆。
-> 实测：同一道跨域题，拆 2 专家 3624 token → 判「不拆」2242 token，质量不变。
-
-### 8. 智能记忆抽取（LLM 决策）
-> 与其写一堆 if/正则 判断「什么值得记」，不如让 LLM 自己做。
-> 决策类调用用 `temperature=0 + max_tokens=200` 控制成本与稳定性，容错兑底为不记。
-> **设计原则**：凡涉及「语义判断」的决策，优先让 LLM 做；硬编码规则难覆盖、难泛化。
+模型默认 `deepseek-flash`；可在 `.env` 里改。
 
 ---
 
-## 六、安全红线
+## 四、项目结构（当前）
 
-1. `.env` 已 `gitignore`，密钥绝不入库。
-2. 计算器用 `eval` 仅限个人演示，**生产严禁**。
-3. 高风险操作（删/发/改/钱/重启/批量）必须人机审批。
+```text
+ai-agent/
+├── minimal.py                 # 阶梯 0：88 行最小 Agent
+├── main.py                    # 完整命令行入口
+├── agent/                     # 21 个业务模块
+│   ├── core.py                # ReAct 循环 + 上下文 + 记忆接入
+│   ├── tools.py               # 工具大本营
+│   ├── roles.py               # 专家角色
+│   ├── multi_agent.py         # Router + Worker
+│   ├── memory.py              # ChromaDB + embedding + 阈值
+│   ├── extractor.py           # 记忆写侧过滤
+│   ├── pipeline.py            # Pipeline
+│   ├── evaluator_critic.py    # EC
+│   ├── group_chat.py          # Group Chat
+│   ├── contract_net.py        # Contract Net
+│   ├── debate.py              # Debate
+│   ├── mcp_bridge.py          # MCP 桥接
+│   ├── observation.py         # {ok,data,error} 感知契约
+│   └── ...                    # json_mode / rerank / tool_selector / tracing ...
+├── eval_*.py                  # 评测与对照实验
+├── mcp_servers/               # MCP server
+├── scripts/                   # 本地推理/连通性脚本
+├── langfuse/                  # Langfuse 自部署（可选）
+├── docs/
+│   ├── 书/Agent入门-初稿.md    # 单文件初稿（先读这个）
+│   ├── README.md              # 全书目录
+│   ├── 00-索引/               # 书前/附录：教学总览、学习总结、问题清单...
+│   ├── 01-基础章/             # 模型 → 最小 Agent → 感知 → 上下文
+│   ├── 02-编排章/             # Router/Pipeline/Fan-out/EC/高级结构
+│   ├── 03-实战章/             # 记忆、约束、本地推理
+│   ├── 04-协议章/             # MCP
+│   ├── 05-收尾章/             # 架构
+│   ├── 06-可视化/             # 交互可视化设计
+│   ├── 07-DSH研究/            # DSH 技术研究与可吸收路线
+│   ├── 08-日志/               # 按日期的复盘/审视/重构
+│   └── 99-番外/               # 模型能力与 Agent 编排
+└── README.md
+```
 
----
-
-## 七、演进方向
-
-- ~~长期记忆（向量库 RAG）~~ ✅ 已完成（ChromaDB HNSW + DashScope 远程 embedding）
-- ~~智能记忆抽取（LLM 过滤）~~ ✅ 已完成（extractor.py）
-- ~~结构化 JSON 输出~~ ✅ 已完成（json_mode.py：/json <schema> <问题> 触发）
-- ~~Pipeline 模式~~ ✅ 已完成（pipeline.py：/pipe math_to_summary/research_to_report）
-- ~~Langfuse 可观测性~~ ✅ 已完成（core.py 内埋点，含失败可见）
-- ~~评测框架（golden set + LLM-as-judge）~~ ✅ 已完成（eval_runner.py）
-- ~~召回质量评测 + 阈值闸门~~ ✅ 已完成（eval_memory_recall.py + memory.py）
-- ~~多 Agent 拆与不拆的判据~~ ✅ 已完成（multi_agent.py 重构）
-- ~~Evaluator-Critic 编排~~ ✅ 已完成（evaluator_critic.py，实测见第八节）
-- ~~Router 成本优化~~ ✅ 已完成（2026/09/22：清工具声明 + 规则预筛，86% 跳过率，总 token −25%）
-- ~~真并行 Fan-out~~ ✅ 已完成（2026/09/20，`_fanout_parallel`，实测省 41% 墙钟）
-- ~~MCP 工具生态~~ ✅ 已完成（mcp_bridge.py + weather_server.py，工具裁剪省 42%）
-- 可视化界面
-
----
-
-## 八、Evaluator-Critic 实测（2026/09/16）
-
-`agent/evaluator_critic.py` 实现了本项目第 4 种编排模式：**生成 → 批判 → 不达标重做**。
-它与前三种（Router / Pipeline / Fan-out）的结构差别在于——这是第一个「**监督关系**」：
-一个角色管另一个角色的质量，而不是平级分工。
-
-### 为什么批判者必须独立（判据③）
-让生成者自己批自己会撞上**自我确认偏差**：它刚做完推理，再让它挑错会倾向于辩护。
-所以批判者要是**另一个立场**。注意关键是「立场独立」，不是「必须两个 Agent 实体」——
-同一 Agent 换批判人格 + 清掉生成时上下文也算。
-
-### 分数怎么算（代码定规则，裁判只提供事实）
-- 硬性要求不合规 → **一票否决，封顶 59**（对应 judge.py 的 must_have 思路）；
-- 合规后，60-100 分由裁判给的三个「手艺分」（场景绑定 / 差异化 / 语感节奏，各 0-10）**加权折算**；
-- **阈值和加权都是人的决策**，裁判只负责提供事实，换题不改口径。
-
-### 实测账（`eval_evaluator_critic.py`）
-| 场景 | 轮次 | 分数轨迹 | token | 结论 |
-|---|---|---|---|---|
-| 正例 · 硬约束文案（及格线 85） | 3 | 84 → 84 → 85 | 14865 | 达标，重做确实把分数推上去了 |
-| 反例 · 缺信息（命中否决线④） | 3 | 59 → 59 → 59 | 9437 | 走平，**批了也改不动**，钱白花 |
-| 追加实拍 · 及格线拧到 90 | 3 | 84 → 87 → 59 | 24211 | **回退**：为凑手艺分把硬约束写崩 |
-
-四条结论：
-1. **否决线④是真的**：缺信息时，批判再准也无法改进，只有 token 在涨；
-2. **及格线是根旋钮**：85 能在两三轮内收敛，90 会诱发「牺牲硬约束换手艺分」的退步；
-3. **循环必须由代码封顶**：否则「不达标就重做」会一直烧钱——本实现上限 3 轮，封顶后输出历史最好的一版。
-4. **同模型 EC 在客观数值题上不可靠**（2026/10/19 补测）：T1/T6 **0/6**；
-   批判者会把正确答案判错（9→11，重做后变 771429），也会认同错误答案（13/13、771429/771429）。
-   边界：**EC 需要外部独立信号**（不同模型/计算器/测试）；有程序可验证标准时，代码验证 > LLM 评委。
-   详见 [`docs/02-编排章/数值题EC可靠性调查.md`](docs/02-编排章/数值题EC可靠性调查.md)。
+> `docs/README.md` 是“书”的目录；`docs/书/` 是单文件初稿；
+> `00-索引/` 只放书前/附录；按日期的内容统一在 `08-日志/`。
 
 ---
 
-## 九、进阶教材
+## 五、核心原理（五句话）
 
-主体代码完成后，下一步推荐读 [`docs/00-索引/教学大纲.md`](docs/00-索引/教学大纲.md) ——这是一份**章节版进阶路线**；
-教学总览见 [`docs/00-索引/教学总览.md`](docs/00-索引/教学总览.md)。
-
-- 10 种多 Agent 编排模式（Router / Pipeline / Evaluator-Critic / Fan-out …）
-- 资源/成本选型对比（DeepSeek / DashScope / LangGraph / Qdrant …）
-- 4 象限度量体系（效果/效率/成本/可靠性）
-- 6 条 2026 趋势研判
-- 学习路径自检清单（避坑 + 敏感操作分级）
-
-适合完成主体学习后进阶时配合实操使用。
+1. **模型只会“说”**：它读一叠 messages，写下一段文字；不记得你，也不会替你动手。
+2. **Agent = 模型 + 循环 + 工具清单 + 一点状态**；`minimal.py` 就是这四样东西的最小实现。
+3. **记忆 = 写侧 + 读侧**：回答后决定记什么，提问前按意思召回；会忘和会记一样重要。
+4. **多 Agent 是成本结构**：每拆一个就多一份交接、上下文和 token；只有“单 Agent 做不到”才值得拆。
+5. **监控不等于评测**：监控答“发生了什么”，评测答“对不对”；EC 需要外部独立信号。
 
 ---
 
-*从 0 到 1 · 2026-09-06 起步，2026-09-07 收敛为 Multi-Agent 工程形态，2026/09/15 完成可观测/评测/召回阈值/多 Agent 判据，学习总结见 `docs/00-索引/学习总结.md`。*
+## 六、已实现 / 当前 frontier
+
+### 已落地
+
+| 能力 | 入口 |
+|---|---|
+| 最小 Agent / ReAct | `minimal.py`、`agent/core.py` |
+| 工具调用 + 感知契约 | `agent/tools.py`、`agent/observation.py` |
+| 长期记忆（写侧/读侧） | `agent/memory.py`、`agent/extractor.py` |
+| Router + Worker | `agent/multi_agent.py` |
+| Pipeline / Fan-out / EC | `pipeline.py`、`multi_agent.py`、`evaluator_critic.py` |
+| Group Chat / Contract Net / Debate | `group_chat.py`、`contract_net.py`、`debate.py` |
+| MCP | `agent/mcp_bridge.py`、`mcp_servers/` |
+| 观测 / 评测 | `agent/tracing.py`、`eval_runner.py`、`agent/judge.py` |
+
+### 当前 frontier
+
+- **上下文**：压缩、token 预算、长历史；
+- **流式**：流式输出与中断；
+- **工具生命周期 + 状态**：后台任务、恢复、审批/沙箱；
+- **评测 rigor**：样本量、判分器校准、回归门；
+- **长任务/安全**：RunState、checkpoint、resume、权限门禁。
+
+> 书稿里仍标 ⬜ 的是 **第 4、27、33 讲**；
+> 第 0、2、13、23 讲还需要按书的语气继续改写。
+
+---
+
+## 七、评测与诚实边界
+
+- **golden set + LLM-as-judge**：14 条题，4 个计权维度 + 合规红线 + 必达项否决；
+- **n 小**：结论只对本项目/本模型负责，不当 benchmark；
+- **EC 数值题负结果**：同模型 EC 在客观数值题上 **0/6**，会把 9 判成 11、把 771429 当成对；
+  边界是 **EC 需要外部独立信号**（不同模型/计算器/测试）；
+- **rerank 被否决**：Top-1 反降、延迟 +296ms；不是“组件越多越好”；
+- **Blackboard 只调查未实现**，**Planner-Executor 实测否决**；
+- 详细数字见各章实测账，不在这里复制。
+
+> 原则：**先证明“病”存在，再决定要不要治；不为未复现的问题增加复杂度。**
+
+---
+
+## 八、安全红线
+
+1. `.env` 已 gitignore，密钥绝不入库；
+2. 计算器用 `eval` 仅限个人演示，生产严禁；
+3. 高风险操作（删/发/改/钱/重启/批量）必须人机审批；
+4. 当前项目**没有完整沙箱/权限系统**，这是明确的下一步，不是已解决项。
+
+---
+
+## 九、文档地图
+
+| 目录 | 内容 |
+|---|---|
+| [`docs/书/`](docs/书/) | 单文件初稿，适合从头读 |
+| [`docs/README.md`](docs/README.md) | 全书目录 + 阅读路径 |
+| [`docs/00-索引/`](docs/00-索引/) | 序章、全书目录、学习总结、问题清单、教学大纲、成文规矩 |
+| [`docs/01-基础章/`](docs/01-基础章/) | 模型、最小 Agent、感知、上下文 |
+| [`docs/02-编排章/`](docs/02-编排章/) | 四种基本编排 + 五种高级结构 + 能力×编排 |
+| [`docs/03-实战章/`](docs/03-实战章/) | 记忆、约束与收尾、本地推理 |
+| [`docs/04-协议章/`](docs/04-协议章/) | MCP 基础与边界 |
+| [`docs/05-收尾章/`](docs/05-收尾章/) | 架构 |
+| [`docs/06-可视化/`](docs/06-可视化/) | 交互可视化设计 |
+| [`docs/07-DSH研究/`](docs/07-DSH研究/) | DSH 技术设计与可吸收路线 |
+| [`docs/08-日志/`](docs/08-日志/) | 按日期的复盘、审视、重构 |
+| [`docs/99-番外/`](docs/99-番外/) | 模型能力与 Agent 编排 |
+
+---
+
+## 十、一句话
+
+> **这个项目不是“再写一个 Agent 框架”，而是把 Agent 的每条回路拆开给你看：
+> 它为什么存在、怎么工作、付什么代价、什么时候不该加。**
+
+从 0 到 1 · 2026-09-06 起步；2026-10-20 整理为《Agent 入门》初稿。

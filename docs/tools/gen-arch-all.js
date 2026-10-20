@@ -19,7 +19,7 @@ const R = mkrng(20261001);           // ← 种子；固定以保证可复现
 const rnd = (lo, hi) => lo + R() * (hi - lo);
 
 // ---------------- 规格常量 ----------------
-const W = 1600, H = 1580;            // 画幅（导出 2x = 3200x2400）
+const W = 1600, H = 1580;            // 画幅（导出 2x = 3200x3160）
 const PAPER = '#fbf7ef';
 const F_CN = "ZCOOL KuaiLe, PingFang SC, sans-serif";
 const F_EN = "Kalam, sans-serif";
@@ -298,7 +298,7 @@ function build() {
   g.push(`<path d="M 56 ${dyLine + 14} L 1544 ${dyLine + 14}" stroke="#c9c0b0"
     stroke-width="1.6" stroke-dasharray="10 8" opacity="0.7"/>`);
 
-  const SP = 800, FBW = 520, FH = 76, FGAP = 38, fy0 = 782;
+  const SP = 1000, FBW = 620, FH = 76, FGAP = 38, fy0 = 782;
   STEPS.forEach(([title, sub, accent], i) => {
     const y = fy0 + i * (FH + FGAP), x = SP - FBW / 2;
     g.push(markerBlock(x, y, FBW, FH, accent, 0.30));
@@ -318,29 +318,28 @@ function build() {
 
   // 侧枝：规划的两条出路
   const s2 = fy0 + 1 * (FH + FGAP);   // step2 y
-  g.push(markerBlock(120, s2 + 4, 300, 68, MARKER.blue, 0.30));
-  g.push(handRect(120, s2 + 4, 300, 68, '#4a453d', 2.2, 1.2));
-  g.push(txt(136, s2 + 32, 'router_prefilter', { size: 17, weight: 700 }));
-  g.push(txt(136, s2 + 54, '规则筛（零 token）', { size: 12, fill: '#7d766a' }));
-  g.push(handArrow(SP - FBW / 2, s2 + 38, 420, s2 + 38, '#7a746b', false, 2));
+  g.push(markerBlock(200, s2 + 4, 320, 68, MARKER.blue, 0.30));
+  g.push(handRect(200, s2 + 4, 320, 68, '#4a453d', 2.2, 1.2));
+  g.push(txt(216, s2 + 32, 'router_prefilter', { size: 17, weight: 700 }));
+  g.push(txt(216, s2 + 54, '规则筛（零 token）', { size: 12, fill: '#7d766a' }));
+  g.push(handArrow(SP - FBW / 2, s2 + 38, 524, s2 + 38, '#7a746b', false, 2));
 
   // 侧枝：记忆召回
   const s3 = fy0 + 2 * (FH + FGAP);
-  g.push(markerBlock(96, s3, 324, 96, MARKER.green, 0.30));
-  g.push(handRect(96, s3, 324, 96, '#4a453d', 2.2, 1.2));
-  g.push(txt(112, s3 + 28, 'memory.search()', { size: 17, weight: 700 }));
+  g.push(markerBlock(200, s3, 320, 96, MARKER.green, 0.30));
+  g.push(handRect(200, s3, 320, 96, '#4a453d', 2.2, 1.2));
+  g.push(txt(216, s3 + 28, 'memory.search()', { size: 17, weight: 700 }));
   ['· embedding_backends', '· ChromaDB top-K', '· rerank（默认关）']
-    .forEach((t, k) => g.push(txt(112, s3 + 48 + k * 17, t, { size: 11.5, fill: '#7d766a' })));
-  g.push(handArrow(SP - FBW / 2, s3 + 44, 420, s3 + 44, '#7a746b', false, 2));
-  g.push(txt(96, s3 + 116, '↑ 召回结果注入 system prompt', { size: 11.5, fill: '#7d766a' }));
+    .forEach((t, k) => g.push(txt(216, s3 + 48 + k * 17, t, { size: 11.5, fill: '#7d766a' })));
+  g.push(handArrow(SP - FBW / 2, s3 + 44, 524, s3 + 44, '#7a746b', false, 2));
+  g.push(txt(200, s3 + 116, '↑ 召回结果注入 system prompt', { size: 11.5, fill: '#7d766a' }));
 
   // ---- 点缀 ----
   g.push(star(1498, 132, 11, NOTE_RED));
-  g.push(star(74, 700, 9, NOTE_RED));
-  g.push(star(1556, 1240, 11, NOTE_RED));
+  g.push(star(170, 700, 9, NOTE_RED));
 
   // ---- 图例（左下，与数据流底对齐）----
-  const lx = 96, ly = 1330;
+  const lx = 200, ly = 1470;
   g.push(txt(lx, ly - 16, '图例', { size: 18, weight: 700, rot: -0.6 }));
   g.push(handArrow(lx + 4, ly + 10, lx + 68, ly + 10, '#7a746b', false, 2));
   g.push(txt(lx + 82, ly + 16, '同步调用', { size: 15.5 }));
@@ -350,7 +349,7 @@ function build() {
   g.push(txt(lx + 402, ly + 16, '记忆时点', { size: 15.5 }));
 
   // ---- 右下技术注记 ----
-  const nx = 900, ny = 1492;
+  const nx = 700, ny = 1492;
   g.push(txt(nx, ny, '上层依赖下层，下层不认识上层；记忆被用两次：提问前召回、回答后沉淀（异步）。',
     { size: 15, fill: '#8a8377', rot: -0.5 }));
   g.push(txt(nx, ny + 26, '可观测性（tracing / Langfuse）同样为异步上报，不阻塞主链。',
