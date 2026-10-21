@@ -14,9 +14,11 @@
 | 你想 | 去哪 |
 |---|---|
 | **30 秒看 Agent 本质** | `.venv/bin/python minimal.py "帮我算 123 * 456"` |
+| **看一次 Agent 回放** | [`visualizer/index.html`](visualizer/index.html)（P1/P2 时序/结构切换：开发小工具 / 记忆 / 最小，直接打开） |
 | **从头读这本书** | [`docs/书/Agent入门-初稿.md`](docs/书/Agent入门-初稿.md) |
 | **查全书目录** | [`docs/README.md`](docs/README.md) |
 | **看编辑主线/章节因果链** | [`docs/00-索引/全书目录与主线.md`](docs/00-索引/全书目录与主线.md) |
+| **看全书覆盖评估/改进清单** | [`docs/00-索引/全书覆盖评估与改进清单.md`](docs/00-索引/全书覆盖评估与改进清单.md) |
 | **看架构图** | [`docs/05-收尾章/架构.md`](docs/05-收尾章/架构.md) |
 | **看踩过的坑** | [`docs/00-索引/问题清单.md`](docs/00-索引/问题清单.md) |
 | **看 DSH 技术研究** | [`docs/07-DSH研究/DSH技术设计与实现.md`](docs/07-DSH研究/DSH技术设计与实现.md) |
@@ -109,8 +111,10 @@ ai-agent/
 │   ├── debate.py              # Debate
 │   ├── mcp_bridge.py          # MCP 桥接
 │   ├── observation.py         # {ok,data,error} 感知契约
+│   ├── events.py              # 事件层：EventBus + JSONL trace
 │   └── ...                    # json_mode / rerank / tool_selector / tracing ...
 ├── eval_*.py                  # 评测与对照实验
+├── visualizer/                # Agent 回放 demo（P1）
 ├── mcp_servers/               # MCP server
 ├── scripts/                   # 本地推理/连通性脚本
 ├── langfuse/                  # Langfuse 自部署（可选）
@@ -120,13 +124,13 @@ ai-agent/
 │   ├── 00-索引/               # 书前/附录：教学总览、学习总结、问题清单...
 │   ├── 01-基础章/             # 模型 → 最小 Agent → 感知 → 上下文
 │   ├── 02-编排章/             # Router/Pipeline/Fan-out/EC/高级结构
-│   ├── 03-实战章/             # 记忆、约束、本地推理
+│   ├── 03-实战章/             # 记忆、本地小模型、约束
 │   ├── 04-协议章/             # MCP
 │   ├── 05-收尾章/             # 架构
 │   ├── 06-可视化/             # 交互可视化设计
 │   ├── 07-DSH研究/            # DSH 技术研究与可吸收路线
 │   ├── 08-日志/               # 按日期的复盘/审视/重构
-│   └── 99-番外/               # 模型能力与 Agent 编排
+│   └── 99-番外/               # 模型能力、本地推理
 └── README.md
 ```
 
@@ -168,8 +172,8 @@ ai-agent/
 - **评测 rigor**：样本量、判分器校准、回归门；
 - **长任务/安全**：RunState、checkpoint、resume、权限门禁。
 
-> 书稿里仍标 ⬜ 的是 **第 4、27、33 讲**；
-> 第 0、2、13、23 讲还需要按书的语气继续改写。
+> 书稿里仍标 ⬜ 的是 **第 4、26、32 讲**；
+> 第 0、2、12、22 讲还需要按书的语气继续改写。
 
 ---
 
@@ -208,7 +212,7 @@ ai-agent/
 | [`docs/03-实战章/`](docs/03-实战章/) | 记忆、约束与收尾、本地推理 |
 | [`docs/04-协议章/`](docs/04-协议章/) | MCP 基础与边界 |
 | [`docs/05-收尾章/`](docs/05-收尾章/) | 架构 |
-| [`docs/06-可视化/`](docs/06-可视化/) | 交互可视化设计 |
+| [`docs/06-可视化/`](docs/06-可视化/) | 交互可视化设计；P1 原型在 [`visualizer/`](visualizer/) |
 | [`docs/07-DSH研究/`](docs/07-DSH研究/) | DSH 技术设计与可吸收路线 |
 | [`docs/08-日志/`](docs/08-日志/) | 按日期的复盘、审视、重构 |
 | [`docs/99-番外/`](docs/99-番外/) | 模型能力与 Agent 编排 |

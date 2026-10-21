@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Sequence · 一次运行</title>
+<style>
+  :root{
+    --paper:#f7f2e8; --paper2:#fbf8f1; --ink:#2f2b26; --muted:#8a8377;
+    --line:#d8d0c2; --blue:#4f7fd6; --bluebg:#e4edff;
+    --orange:#d98a2b; --orangebg:#fbe8cb; --green:#4e9a6a; --greenbg:#dff0e5;
+    --red:#c85445; --shadow:0 8px 24px rgba(47,43,38,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC",sans-serif;-webkit-font-smoothing:antialiased}
+  .app{height:100vh;max-width:1600px;margin:0 auto;padding:18px 20px 14px;display:flex;flex-direction:column}
+  .topbar{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;padding-bottom:14px;border-bottom:2px solid var(--ink)}
+  .eyebrow{font-size:11px;letter-spacing:.22em;color:var(--muted);font-weight:800}
+  h1{font-family:"Songti SC","Noto Serif SC",serif;font-size:30px;line-height:1.1;margin:4px 0 2px;letter-spacing:.02em}
+  .sub{margin:0;color:var(--muted);font-size:12px}
+  .stats{display:flex;gap:16px;flex-wrap:wrap;justify-content:flex-end}
+  .stat span{display:block;font-size:10px;letter-spacing:.16em;color:var(--muted);font-weight:800}
+  .stat b{display:block;font-size:14px;margin-top:4px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:600}
+  .view-switch{display:flex;border:1.5px solid var(--ink);border-radius:8px;overflow:hidden;margin-top:2px}
+  .view-switch button{border:0;border-radius:0;box-shadow:none;padding:5px 9px;font-size:11px;background:#fff;color:var(--ink)}
+  .view-switch button.active{background:var(--ink);color:#fff}
+  [hidden]{display:none!important}
+  .workspace{flex:1;min-height:0;display:grid;grid-template-columns:230px minmax(0,1fr) 300px;gap:14px;padding-top:14px}
+  .panel{border:1.5px solid var(--line);background:rgba(255,255,255,.45);border-radius:10px;display:flex;flex-direction:column;min-height:0;overflow:hidden;box-shadow:var(--shadow)}
+  .panel-head{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.12em;color:var(--muted);padding:10px 12px;border-bottom:1px dashed var(--line);font-weight:800}
+  .timeline-list{overflow:auto;padding:8px}
+  .event-row{display:grid;grid-template-columns:34px 1fr;gap:8px;padding:8px 6px;border-radius:8px;cursor:pointer;border-left:3px solid transparent;transition:background .15s}
+  .event-row:hover{background:rgba(47,43,38,.04)}
+  .event-row.active{background:#fff;border-left-color:var(--ink);box-shadow:0 1px 0 rgba(47,43,38,.08)}
+  .type-badge{font-size:9px;letter-spacing:.06em;font-weight:900;color:var(--muted);padding-top:3px}
+  .event-label{font-size:12px;line-height:1.35;font-weight:700}
+  .event-meta{font-size:10px;color:var(--muted);margin-top:2px;font-family:ui-monospace,Menlo,monospace}
+
+  .stage-wrap{position:relative;min-height:0;overflow:auto;border:1.5px solid var(--line);border-radius:10px;background:var(--paper2);box-shadow:var(--shadow)}
+  .stage{position:relative;min-width:820px;max-width:1000px;min-height:700px;height:100%;margin:0 auto;background-image:radial-gradient(#ddd5c7 1px,transparent 1px);background-size:22px 22px}
+  .seq-participants{position:absolute;left:0;right:0;top:16px;display:grid;grid-template-columns:repeat(5,1fr);padding:0 14px;z-index:5}
+  .seq-participant{justify-self:center;width:150px;min-height:50px;border:1.5px solid #cfc6b7;border-radius:10px;background:#fff;padding:7px 9px;box-shadow:0 3px 0 rgba(47,43,38,.06);transition:box-shadow .2s,transform .2s}
+  .seq-participant.is-active{box-shadow:0 0 0 4px rgba(79,127,214,.13),0 3px 0 rgba(47,43,38,.08);transform:translateY(-2px)}
+  .seq-participant span{display:block;font-size:9px;letter-spacing:.16em;color:var(--muted);font-weight:900}
+  .seq-participant b{display:block;font-size:11px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .seq-participant.p-llm{background:var(--ink);color:#fff;border-color:var(--ink);width:170px}
+  .seq-participant.p-llm span{color:#b9b0a0}
+  .seq-participant.p-tools{background:var(--orangebg);border-color:#e2bd8a}
+  .seq-participant.p-memory{background:var(--greenbg);border-color:#b9d8c4}
+  .seq-participant.p-extractor{background:#eef3fb;border-color:#c9d6ee}
+  .seq-canvas{position:absolute;left:0;right:0;top:82px;bottom:80px;overflow:hidden}
+  .seq-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .seq-lifeline{stroke:#cfc6b7;stroke-width:1.2;stroke-dasharray:4 7}
+  .seq-arrow{stroke:#b9ae9e;stroke-width:1.5;transition:stroke .2s,stroke-width .2s,opacity .2s}
+  .seq-arrow.past{opacity:.8}
+  .seq-arrow.future{opacity:.18}
+  .seq-arrow.active{stroke:var(--blue);stroke-width:2.6;filter:drop-shadow(0 0 4px rgba(79,127,214,.4))}
+  .seq-dot{fill:#b9ae9e;transition:fill .2s,opacity .2s}
+  .seq-dot.future{opacity:.18}
+  .seq-dot.active{fill:var(--blue)}
+  .seq-label{position:absolute;transform:translateX(-50%);font-size:10px;line-height:1.2;white-space:nowrap;background:var(--paper2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:#5f574c;transition:color .2s,border-color .2s,opacity .2s}
+  .seq-label.active{color:var(--blue);border-color:#b9cbea;background:#fff}
+  .seq-label.future{opacity:.22}
+  .seq-label.kind-tool{color:#8a5b1e}
+  .seq-label.kind-memory{color:#3f6b4f}
+  .seq-label.kind-answer{color:#3f6b4f;font-weight:800}
+  .seq-index{position:absolute;left:6px;font-size:9px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;opacity:.7}
+  .seq-note{position:absolute;font-size:9.5px;line-height:1.25;background:#fff4d8;border:1px solid #e8ca8a;border-radius:5px;padding:3px 7px;color:#7b5a1c;white-space:nowrap;transition:box-shadow .2s,opacity .2s}
+  .seq-note.future{opacity:.18}
+  .seq-note.active{box-shadow:0 0 0 3px rgba(217,138,43,.14)}
+  .seq-packet{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px rgba(79,127,214,.16);z-index:9;pointer-events:none}
+  .structure-stage{min-width:820px;max-width:1000px;min-height:700px;height:100%;margin:0 auto;position:relative;background-image:radial-gradient(#ddd5c7 1px,transparent 1px);background-size:22px 22px}
+  .struct-caption{position:absolute;left:14px;top:8px;font-size:9px;letter-spacing:.16em;color:var(--muted);font-weight:900}
+  .struct-wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+  .struct-wires path{fill:none;stroke:#b9ae9e;stroke-width:1.5;stroke-dasharray:5 7;opacity:.55;transition:stroke .2s,opacity .2s,filter .2s}
+  .struct-wires path.active{stroke:var(--blue);stroke-width:2.4;stroke-dasharray:none;opacity:1;filter:drop-shadow(0 0 4px rgba(79,127,214,.45))}
+  .struct-node{position:absolute;border:1.5px solid #cfc6b7;border-radius:12px;background:#fff;padding:10px 12px;box-shadow:0 8px 24px rgba(47,43,38,.06);transition:box-shadow .2s,transform .2s}
+  .struct-node.is-active{box-shadow:0 0 0 4px rgba(79,127,214,.14),0 8px 24px rgba(47,43,38,.08)}
+  .struct-hub{left:50%;top:30px;transform:translateX(-50%);width:440px;background:var(--ink);color:#fff;border-color:var(--ink);border-radius:14px}
+  .struct-hub.is-active{transform:translateX(-50%) translateY(-2px)}
+  .struct-hub .struct-kicker{color:#b9b0a0}
+  .struct-hub .struct-title{color:#fff}
+  .struct-meta{display:flex;justify-content:space-between;gap:10px;margin-top:5px;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#cfc7b8}
+  .struct-meta b{color:#fff;font-weight:600}
+  .struct-tools{left:30px;top:220px;width:180px;background:var(--orangebg);border-color:#e2bd8a}
+  .struct-memory{right:30px;top:210px;width:180px;background:var(--greenbg);border-color:#b9d8c4}
+  .struct-answer{left:50%;top:430px;transform:translateX(-50%);width:180px;background:var(--greenbg);border-color:#b9d8c4}
+  .struct-answer.is-active{transform:translateX(-50%) translateY(-2px)}
+  .struct-extractor{right:40px;top:430px;width:170px;background:#eef3fb;border-color:#c9d6ee}
+  .struct-kicker{font-size:9px;letter-spacing:.16em;color:var(--muted);font-weight:900}
+  .struct-kicker b{font-family:ui-monospace,Menlo,monospace;font-size:9px;letter-spacing:0;font-weight:600;color:var(--ink);margin-left:4px}
+  .struct-title{font-size:16px;font-weight:900;margin-top:2px;line-height:1.2}
+  .struct-sub{font-size:10.5px;line-height:1.35;color:var(--muted);margin-top:3px;word-break:break-word}
+  .support-rail{position:absolute;left:12px;right:12px;bottom:12px;min-height:56px;display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.62);box-shadow:0 2px 0 rgba(47,43,38,.05);z-index:5}
+  .support-chip{display:flex;align-items:center;gap:5px;font-size:9.5px;letter-spacing:.08em;font-weight:900;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 8px}
+  .support-chip b{font-family:ui-monospace,Menlo,monospace;font-size:9px;letter-spacing:0;font-weight:600;color:var(--ink);margin-left:2px}
+  .support-chip .dot{width:5px;height:5px;border-radius:50%;background:var(--muted);opacity:.55}
+  .support-chip.is-active{border-color:var(--ink);color:var(--ink);box-shadow:0 0 0 3px rgba(79,127,214,.1)}
+  .support-chip.is-active .dot{background:var(--blue);opacity:1}
+
+  .inspector-body{padding:12px;overflow:auto;min-height:0}
+  .inspector-title{font-size:14px;font-weight:900;line-height:1.3}
+  .inspector-meta{font-size:10.5px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;margin-top:4px}
+  .annotation{font-size:12.5px;line-height:1.6;color:#4b453c;margin:12px 0;border-left:3px solid var(--blue);padding-left:10px}
+  .payload-head{font-size:10px;letter-spacing:.16em;color:var(--muted);font-weight:900;margin-top:14px;border-top:1px dashed var(--line);padding-top:10px}
+  .payload{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px;max-height:300px;overflow:auto;margin:6px 0 0}
+
+  .transport{display:flex;align-items:center;gap:10px;padding-top:12px;border-top:2px solid var(--ink);margin-top:12px}
+  button{font:inherit;border:1.5px solid var(--ink);background:#fff;color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:800;box-shadow:0 2px 0 rgba(47,43,38,.12)}
+  button:hover{transform:translateY(-1px)} button:active{transform:translateY(1px);box-shadow:none}
+  button.play{background:var(--ink);color:#fff;min-width:44px}
+  .progress-wrap{flex:1;display:flex;flex-direction:column;gap:2px}
+  input[type=range]{width:100%;accent-color:var(--ink)}
+  .progress-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:ui-monospace,Menlo,monospace}
+  select{font:inherit;border:1.5px solid var(--ink);background:#fff;border-radius:8px;padding:7px 8px}
+  @media(max-width:1300px){.workspace{grid-template-columns:1fr}.app{height:auto;min-height:100vh}.timeline{max-height:220px}.inspector{max-height:360px}.stage{min-height:700px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="eyebrow">AGENT SEQUENCE</div>
+      <h1>一次 Agent 的时序</h1>
+      <p class="sub">User / LLM+Context / Tools / Memory / Extractor · 记录自真实 API 调用</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>RUN</span><b id="run-id">—</b></div>
+      <div class="stat"><span>MODEL</span><b id="model">—</b></div>
+      <div class="stat"><span>STEP</span><b id="step">0 / 0</b></div>
+      <div class="stat"><span>TOKENS</span><b id="tokens">0</b></div>
+      <div class="stat"><span>BUDGET</span><b id="budget">—</b></div>
+      <div class="stat"><span>VIEW</span><div class="view-switch" role="group" aria-label="视图">
+        <button type="button" data-view="sequence" class="active" aria-pressed="true">时序</button>
+        <button type="button" data-view="structure" aria-pressed="false">结构</button>
+      </div></div>
+      <div class="stat"><span>DEMO</span><select id="scenario" aria-label="示例">
+        <option value="dev" selected>开发：写脚本 + 运行</option>
+        <option value="full">完整：记忆 + 2 工具</option>
+        <option value="minimal">最小：1 工具</option>
+      </select></div>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="panel timeline">
+      <div class="panel-head"><span>事件</span><span id="event-count">0 / 0</span></div>
+      <div class="timeline-list" id="timeline"></div>
+    </aside>
+
+    <section class="stage-wrap">
+      <div class="stage" id="stage">
+        <div class="seq-participants">
+          <div class="seq-participant p-user" data-p="user"><span>USER</span><b>你</b></div>
+          <div class="seq-participant p-llm" data-p="llm"><span>LLM + CONTEXT</span><b id="seq-model">deepseek-flash</b></div>
+          <div class="seq-participant p-tools" data-p="tools"><span>TOOLS</span><b id="seq-tools-meta">—</b></div>
+          <div class="seq-participant p-memory" data-p="memory"><span>MEMORY</span><b id="seq-memory-meta">—</b></div>
+          <div class="seq-participant p-extractor" data-p="extractor"><span>EXTRACTOR</span><b id="seq-extractor-meta">待命</b></div>
+        </div>
+        <div class="seq-canvas" id="seq-canvas">
+          <svg class="seq-lines" id="seq-lines"></svg>
+          <div class="seq-rows" id="seq-rows"></div>
+        </div>
+      </div>
+
+      <div class="stage structure-stage" id="structure-stage" hidden>
+        <div class="struct-caption">MODULE MAP · 当前步骤高亮</div>
+        <svg class="struct-wires" id="struct-wires">
+          <path id="sw-hub-tools"></path>
+          <path id="sw-tools-hub"></path>
+          <path id="sw-memory-hub"></path>
+          <path id="sw-hub-answer"></path>
+          <path id="sw-answer-extractor"></path>
+          <path id="sw-extractor-memory"></path>
+        </svg>
+
+        <div class="struct-node struct-hub" id="struct-hub">
+          <div class="struct-kicker">LLM · API</div>
+          <div class="struct-title">LLM + Context</div>
+          <div class="struct-meta"><span id="struct-model">deepseek-flash</span><b id="struct-ctx">—</b></div>
+        </div>
+
+        <div class="struct-node struct-tools" id="struct-tools">
+          <div class="struct-kicker">TOOLS <b id="struct-tool-count"></b></div>
+          <div class="struct-title" id="struct-tool-title">工具</div>
+          <div class="struct-sub" id="struct-tool-sub">等待调用</div>
+        </div>
+
+        <div class="struct-node struct-memory" id="struct-memory">
+          <div class="struct-kicker">MEMORY <b id="struct-memory-meta">—</b></div>
+          <div class="struct-sub" id="struct-memory-text">等待召回…</div>
+        </div>
+
+        <div class="struct-node struct-answer" id="struct-answer">
+          <div class="struct-kicker">ANSWER</div>
+          <div class="struct-title">回答</div>
+          <div class="struct-sub" id="struct-answer-sub">等待</div>
+        </div>
+
+        <div class="struct-node struct-extractor" id="struct-extractor">
+          <div class="struct-kicker">EXTRACTOR</div>
+          <div class="struct-title" id="struct-extractor-title">待命</div>
+          <div class="struct-sub" id="struct-extractor-sub">keep / tags</div>
+        </div>
+      </div>
+
+      <div class="support-rail">
+        <div class="support-chip" id="support-guard"><span class="dot"></span> GUARD <b>预算 · 截断 · 收尾</b></div>
+        <div class="support-chip" id="support-trace"><span class="dot"></span> TRACER / LANGFUSE <b>旁路</b></div>
+        <div class="support-chip" id="support-eval"><span class="dot"></span> JUDGE / GOLDEN SET <b>离线</b></div>
+        <div class="support-chip" id="support-mcp"><span class="dot"></span> MCP / TOOL REGISTRY <b>可选</b></div>
+      </div>
+    </section>
+
+    <aside class="panel inspector">
+      <div class="panel-head"><span>这一刻</span><span id="inspector-type">—</span></div>
+      <div class="inspector-body">
+        <div class="inspector-title" id="inspector-title">—</div>
+        <div class="inspector-meta" id="inspector-meta"></div>
+        <p class="annotation" id="annotation">选择左边的事件，查看这一步发生了什么。</p>
+        <div class="payload-head">payload</div>
+        <pre class="payload" id="payload">—</pre>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="transport">
+    <button id="prev" aria-label="上一步">←</button>
+    <button id="play" class="play" aria-label="播放">▶</button>
+    <button id="next" aria-label="下一步">→</button>
+    <div class="progress-wrap">
+      <input id="progress" type="range" min="0" max="0" value="0" aria-label="进度">
+      <div class="progress-meta"><span id="step-label">event 0 / 0</span><span id="progress-label">0%</span></div>
+    </div>
+    <select id="speed" aria-label="播放速度">
+      <option value="0.5">0.5×</option>
+      <option value="1" selected>1×</option>
+      <option value="2">2×</option>
+    </select>
+    <button id="reset" aria-label="重新开始">↺</button>
+  </footer>
+</div>
+
+<script>
+window.__TRACES__ = {"dev":[{"v":1,"run_id":"r-20261021-234452-2ea4","seq":1,"ts":"2026-10-21T23:44:53.832+08:00","type":"run_start","step":0,"span_id":"s-0001","parent_id":null,"payload":{"model":"deepseek-flash","tools":["write_file","read_file","run_python"],"modules":["llm","memory","tools","extractor","guard","tracer","eval","mcp"],"task":"帮我写一个统计数据的小工具：读取 sales.csv，按 category 统计 count/sum/avg，按我的偏好输出；先写文件，再运行验证。","workspace":"/var/folders/j8/16v5pgdd3b7_4nd92891kdhm0000gn/T/agent-dev-_eiou7bq"},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":2,"ts":"2026-10-21T23:44:53.831+08:00","type":"memory_search","step":0,"span_id":"s-0002","parent_id":null,"payload":{"query":"帮我写一个统计数据的小工具：读取 sales.csv，按 category 统计 count/sum/avg，按我的偏好输出；先写文件，再运行验证。","hits":[{"text":"用户偏好：统计结果用 JSON 输出。","score":0.597,"meta":{"type":"seed","tags":["preference","format"]}}],"top_k":8},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":3,"ts":"2026-10-21T23:44:53.832+08:00","type":"context_built","step":0,"span_id":"s-0003","parent_id":null,"payload":{"reason":"initial","messages":[{"role":"system","content":"你是一个会写代码的助手。\n工作目录：/var/folders/j8/16v5pgdd3b7_4nd92891kdhm0000gn/T/agent-dev-_eiou7bq\n目录里有 sales.csv（列：category,value）。\n要求：写一个 Python 脚本 stats_tool.py，读取 sales.csv，\n按 category 统计 count / sum / avg，按用户偏好输出。\n必须先用 write_file 写文件，再用 run_python 运行验证；\n不要心算或编造输出。"},{"role":"user","content":"帮我写一个统计数据的小工具：读取 sales.csv，按 category 统计 count/sum/avg，按我的偏好输出；先写文件，再运行验证。"}],"est_tokens":98},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":4,"ts":"2026-10-21T23:44:53.832+08:00","type":"llm_request","step":1,"span_id":"s-0004","parent_id":null,"payload":{"model":"deepseek-flash","messages":[{"role":"system","content":"你是一个会写代码的助手。\n工作目录：/var/folders/j8/16v5pgdd3b7_4nd92891kdhm0000gn/T/agent-dev-_eiou7bq\n目录里有 sales.csv（列：category,value）。\n要求：写一个 Python 脚本 stats_tool.py，读取 sales.csv，\n按 category 统计 count / sum / avg，按用户偏好输出。\n必须先用 write_file 写文件，再用 run_python 运行验证；\n不要心算或编造输出。\n\n【相关历史记忆】\n- 用户偏好：统计结果用 JSON 输出。\n\n【重要】剩余轮次不多（约 2 轮）。请尽快基于已有结果给出结论。"},{"role":"user","content":"帮我写一个统计数据的小工具：读取 sales.csv，按 category 统计 count/sum/avg，按我的偏好输出；先写文件，再运行验证。"}],"tools":["write_file","read_file","run_python"],"temperature":0.2},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":5,"ts":"2026-10-21T23:44:56.461+08:00","type":"llm_response","step":1,"span_id":"s-0005","parent_id":null,"payload":{"content":"我先查看数据文件，同时写出统计脚本；这份脚本会按你的偏好以 JSON 格式输出。","tool_calls":[{"id":"call_00_gv9krBYaFJIoLKnp2MXF2894","name":"read_file","arguments":"{\"path\": \"sales.csv\"}"},{"id":"call_01_aDU7oYglGkzwdnYdPfkQ5588","name":"write_file","arguments":"{\"path\": \"stats_tool.py\", \"content\": \"#!/usr/bin/env python3\\n\\\"\\\"\\\"按 category 统计 sales.csv 的 count / sum / avg，以 JSON 输出（用户偏好）。\\\"\\\"\\\"\\n\\nimport csv\\nimport json\\nimport sys\\nfrom collections import OrderedDict\\n\\n\\ndef load_rows(path):\\n    with open(path, newline=\\\"\\\", encoding=\\\"utf-8-sig\\\") as f:\\n        reader = csv.DictReader(f)\\n        if reader.fieldnames is None:\\n            raise ValueError(\\\"CSV 为空或缺少表头\\\")\\n        fields = [name.strip() for name in reader.fieldnames]\\n        if \\\"category\\\" not in fields or \\\"value\\\" not in fields:\\n            raise ValueError(f\\\"缺少必需列 category/value，实际列: {fields}\\\")\\n        rows = []\\n        for lineno, raw in enumerate(reader, start=2):\\n            row = {k.strip(): v for k, v in raw.items() if k is not None}\\n            category = (row.get(\\\"category\\\") or \\\"\\\").strip()\\n            value_raw = (row.get(\\\"value\\\") or \\\"\\\").strip()\\n            if not category and not value_raw:\\n                continue  # 跳过空行\\n            if not category:\\n                print(f\\\"[warn] 第 {lineno} 行 category 为空，已跳过\\\", file=sys.stderr)\\n                continue\\n            try:\\n                value = float(value_raw)\\n            except ValueError:\\n                print(f\\\"[warn] 第 {lineno} 行 value 非数值 {value_raw!r}，已跳过\\\", file=sys.stderr)\\n                continue\\n            rows.append((category, value))\\n        return rows\\n\\n\\ndef stats_by_category(rows):\\n    agg = OrderedDict()\\n    for category, value in rows:\\n        if category not in agg:\\n            agg[category] = {\\\"count\\\": 0, \\\"sum\\\": 0.0}\\n        agg[category][\\\"count\\\"] += 1\\n        agg[category][\\\"sum\\\"] += value\\n\\n    result = OrderedDict()\\n    for category in sorted(agg):\\n        count = agg[category][\\\"count\\\"]\\n        total = agg[category][\\\"sum\\\"]\\n        result[category] = {\\n            \\\"count\\\": count,\\n            \\\"sum\\\": round(total, 6),\\n            \\\"avg\\\": round(total / count, 6) if count else 0.0,\\n        }\\n    return result\\n\\n\\ndef main(argv):\\n    path = argv[1] if len(argv) > 1 else \\\"sales.csv\\\"\\n    rows = load_rows(path)\\n    result = stats_by_category(rows)\\n    print(json.dumps(result, ensure_ascii=False, indent=2))\\n    return 0\\n\\n\\nif __name__ == \\\"__main__\\\":\\n    sys.exit(main(sys.argv))\\n\"}"}],"finish_reason":"tool_calls","duration_ms":2629},"usage":{"prompt_tokens":594,"completion_tokens":726,"total_tokens":1320}},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":6,"ts":"2026-10-21T23:44:56.462+08:00","type":"budget_warning","step":1,"span_id":"s-0006","parent_id":null,"payload":{"remaining":2,"max_steps":3},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":7,"ts":"2026-10-21T23:44:56.462+08:00","type":"tool_call","step":1,"span_id":"s-0007","parent_id":null,"payload":{"name":"read_file","args":{"path":"sales.csv"}},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":8,"ts":"2026-10-21T23:44:56.462+08:00","type":"tool_result","step":1,"span_id":"s-0008","parent_id":null,"payload":{"name":"read_file","result":"category,value\nA,10\nB,20\nA,30\nB,40\nC,50\n","ok":true,"duration_ms":0},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":9,"ts":"2026-10-21T23:44:56.462+08:00","type":"tool_call","step":1,"span_id":"s-0009","parent_id":null,"payload":{"name":"write_file","args":{"path":"stats_tool.py","content":"#!/usr/bin/env python3\n\"\"\"按 category 统计 sales.csv 的 count / sum / avg，以 JSON 输出（用户偏好）。\"\"\"\n\nimport csv\nimport json\nimport sys\nfrom collections import OrderedDict\n\n\ndef load_rows(path):\n    with open(path, newline=\"\", encoding=\"utf-8-sig\") as f:\n        reader = csv.DictReader(f)\n        if reader.fieldnames is None:\n            raise ValueError(\"CSV 为空或缺少表头\")\n        fields = [name.strip() for name in reader.fieldnames]\n        if \"category\" not in fields or \"value\" not in fields:\n            raise ValueError(f\"缺少必需列 category/value，实际列: {fields}\")\n        rows = []\n        for lineno, raw in enumerate(reader, start=2):\n            row = {k.strip(): v for k, v in raw.items() if k is not None}\n            category = (row.get(\"category\") or \"\").strip()\n            value_raw = (row.get(\"value\") or \"\").strip()\n            if not category and not value_raw:\n                continue  # 跳过空行\n            if not category:\n                print(f\"[warn] 第 {lineno} 行 category 为空，已跳过\", file=sys.stderr)\n                continue\n            try:\n                value = float(value_raw)\n            except ValueError:\n                print(f\"[warn] 第 {lineno} 行 value 非数值 {value_raw!r}，已跳过\", file=sys.stderr)\n                continue\n            rows.append((category, value))\n        return rows\n\n\ndef stats_by_category(rows):\n    agg = OrderedDict()\n    for category, value in rows:\n        if category not in agg:\n            agg[category] = {\"count\": 0, \"sum\": 0.0}\n        agg[category][\"count\"] += 1\n        agg[category][\"sum\"] += value\n\n    result = OrderedDict()\n    for category in sorted(agg):\n        count = agg[category][\"count\"]\n        total = agg[category][\"sum\"]\n        result[category] = {\n            \"count\": count,\n            \"sum\": round(total, 6),\n            \"avg\": round(total / count, 6) if count else 0.0,\n        }\n    return result\n\n\ndef main(argv):\n    path = argv[1] if len(argv) > 1 else \"sales.csv\"\n    rows = load_rows(path)\n    result = stats_by_category(rows)\n    print(json.dumps(result, ensure_ascii=False, indent=2))\n    return 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main(sys.argv))\n"}},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":10,"ts":"2026-10-21T23:44:56.463+08:00","type":"tool_result","step":1,"span_id":"s-0010","parent_id":null,"payload":{"name":"write_file","result":"wrote stats_tool.py (2130 chars)","ok":true,"duration_ms":0},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":11,"ts":"2026-10-21T23:44:56.463+08:00","type":"context_built","step":1,"span_id":"s-0011","parent_id":null,"payload":{"reason":"after_tool","messages":[{"role":"system","content":"你是一个会写代码的助手。\n工作目录：/var/folders/j8/16v5pgdd3b7_4nd92891kdhm0000gn/T/agent-dev-_eiou7bq\n目录里有 sales.csv（列：category,value）。\n要求：写一个 Python 脚本 stats_tool.py，读取 sales.csv，\n按 category 统计 count / sum / avg，按用户偏好输出。\n必须先用 write_file 写文件，再用 run_python 运行验证；\n不要心算或编造输出。"},{"role":"user","content":"帮我写一个统计数据的小工具：读取 sales.csv，按 category 统计 count/sum/avg，按我的偏好输出；先写文件，再运行验证。"},{"role":"assistant","content":"我先查看数据文件，同时写出统计脚本；这份脚本会按你的偏好以 JSON 格式输出。","tool_calls":[{"id":"call_00_gv9krBYaFJIoLKnp2MXF2894","name":"read_file","arguments":"{\"path\": \"sales.csv\"}"},{"id":"call_01_aDU7oYglGkzwdnYdPfkQ5588","name":"write_file","arguments":"{\"path\": \"stats_tool.py\", \"content\": \"#!/usr/bin/env python3\\n\\\"\\\"\\\"按 category 统计 sales.csv 的 count / sum / avg，以 JSON 输出（用户偏好）。\\\"\\\"\\\"\\n\\nimport csv\\nimport json\\nimport sys\\nfrom collections import OrderedDict\\n\\n\\ndef load_rows(path):\\n    with open(path, newline=\\\"\\\", encoding=\\\"utf-8-sig\\\") as f:\\n        reader = csv.DictReader(f)\\n        if reader.fieldnames is None:\\n            raise ValueError(\\\"CSV 为空或缺少表头\\\")\\n        fields = [name.strip() for name in reader.fieldnames]\\n        if \\\"category\\\" not in fields or \\\"value\\\" not in fields:\\n            raise ValueError(f\\\"缺少必需列 category/value，实际列: {fields}\\\")\\n        rows = []\\n        for lineno, raw in enumerate(reader, start=2):\\n            row = {k.strip(): v for k, v in raw.items() if k is not None}\\n            category = (row.get(\\\"category\\\") or \\\"\\\").strip()\\n            value_raw = (row.get(\\\"value\\\") or \\\"\\\").strip()\\n            if not category and not value_raw:\\n                continue  # 跳过空行\\n            if not category:\\n                print(f\\\"[warn] 第 {lineno} 行 category 为空，已跳过\\\", file=sys.stderr)\\n                continue\\n            try:\\n                value = float(value_raw)\\n            except ValueError:\\n                print(f\\\"[warn] 第 {lineno} 行 value 非数值 {value_raw!r}，已跳过\\\", file=sys.stderr)\\n                continue\\n            rows.append((category, value))\\n        return rows\\n\\n\\ndef stats_by_category(rows):\\n    agg = OrderedDict()\\n    for category, value in rows:\\n        if category not in agg:\\n            agg[category] = {\\\"count\\\": 0, \\\"sum\\\": 0.0}\\n        agg[category][\\\"count\\\"] += 1\\n        agg[category][\\\"sum\\\"] += value\\n\\n    result = OrderedDict()\\n    for category in sorted(agg):\\n        count = agg[category][\\\"count\\\"]\\n        total = agg[category][\\\"sum\\\"]\\n        result[category] = {\\n            \\\"count\\\": count,\\n            \\\"sum\\\": round(total, 6),\\n            \\\"avg\\\": round(total / count, 6) if count else 0.0,\\n        }\\n    return result\\n\\n\\ndef main(argv):\\n    path = argv[1] if len(argv) > 1 else \\\"sales.csv\\\"\\n    rows = load_rows(path)\\n    result = stats_by_category(rows)\\n    print(json.dumps(result, ensure_ascii=False, indent=2))\\n    return 0\\n\\n\\nif __name__ == \\\"__main__\\\":\\n    sys.exit(main(sys.argv))\\n\"}"}]},{"role":"tool","content":"category,value\nA,10\nB,20\nA,30\nB,40\nC,50\n","tool_call_id":"call_00_gv9krBYaFJIoLKnp2MXF2894"},{"role":"tool","content":"wrote stats_tool.py (2130 chars)","tool_call_id":"call_01_aDU7oYglGkzwdnYdPfkQ5588"}],"est_tokens":727},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":12,"ts":"2026-10-21T23:44:56.463+08:00","type":"llm_request","step":2,"span_id":"s-0012","parent_id":null,"payload":{"model":"deepseek-flash","messages":[{"role":"system","content":"你是一个会写代码的助手。\n工作目录：/var/folders/j8/16v5pgdd3b7_4nd92891kdhm0000gn/T/agent-dev-_eiou7bq\n目录里有 sales.csv（列：category,value）。\n要求：写一个 Python 脚本 stats_tool.py，读取 sales.csv，\n按 category 统计 count / sum / avg，按用户偏好输出。\n必须先用 write_file 写文件，再用 run_python 运行验证；\n不要心算或编造输出。\n\n【相关历史记忆】\n- 用户偏好：统计结果用 JSON 输出。\n\n【重要】剩余轮次不多（约 1 轮）。请尽快基于已有结果给出结论。"},{"role":"user","content":"帮我写一个统计数据的小工具：读取 sales.csv，按 category 统计 count/sum/avg，按我的偏好输出；先写文件，再运行验证。"},{"role":"assistant","content":"我先查看数据文件，同时写出统计脚本；这份脚本会按你的偏好以 JSON 格式输出。","tool_calls":[{"id":"call_00_gv9krBYaFJIoLKnp2MXF2894","name":"read_file","arguments":"{\"path\": \"sales.csv\"}"},{"id":"call_01_aDU7oYglGkzwdnYdPfkQ5588","name":"write_file","arguments":"{\"path\": \"stats_tool.py\", \"content\": \"#!/usr/bin/env python3\\n\\\"\\\"\\\"按 category 统计 sales.csv 的 count / sum / avg，以 JSON 输出（用户偏好）。\\\"\\\"\\\"\\n\\nimport csv\\nimport json\\nimport sys\\nfrom collections import OrderedDict\\n\\n\\ndef load_rows(path):\\n    with open(path, newline=\\\"\\\", encoding=\\\"utf-8-sig\\\") as f:\\n        reader = csv.DictReader(f)\\n        if reader.fieldnames is None:\\n            raise ValueError(\\\"CSV 为空或缺少表头\\\")\\n        fields = [name.strip() for name in reader.fieldnames]\\n        if \\\"category\\\" not in fields or \\\"value\\\" not in fields:\\n            raise ValueError(f\\\"缺少必需列 category/value，实际列: {fields}\\\")\\n        rows = []\\n        for lineno, raw in enumerate(reader, start=2):\\n            row = {k.strip(): v for k, v in raw.items() if k is not None}\\n            category = (row.get(\\\"category\\\") or \\\"\\\").strip()\\n            value_raw = (row.get(\\\"value\\\") or \\\"\\\").strip()\\n            if not category and not value_raw:\\n                continue  # 跳过空行\\n            if not category:\\n                print(f\\\"[warn] 第 {lineno} 行 category 为空，已跳过\\\", file=sys.stderr)\\n                continue\\n            try:\\n                value = float(value_raw)\\n            except ValueError:\\n                print(f\\\"[warn] 第 {lineno} 行 value 非数值 {value_raw!r}，已跳过\\\", file=sys.stderr)\\n                continue\\n            rows.append((category, value))\\n        return rows\\n\\n\\ndef stats_by_category(rows):\\n    agg = OrderedDict()\\n    for category, value in rows:\\n        if category not in agg:\\n            agg[category] = {\\\"count\\\": 0, \\\"sum\\\": 0.0}\\n        agg[category][\\\"count\\\"] += 1\\n        agg[category][\\\"sum\\\"] += value\\n\\n    result = OrderedDict()\\n    for category in sorted(agg):\\n        count = agg[category][\\\"count\\\"]\\n        total = agg[category][\\\"sum\\\"]\\n        result[category] = {\\n            \\\"count\\\": count,\\n            \\\"sum\\\": round(total, 6),\\n            \\\"avg\\\": round(total / count, 6) if count else 0.0,\\n        }\\n    return result\\n\\n\\ndef main(argv):\\n    path = argv[1] if len(argv) > 1 else \\\"sales.csv\\\"\\n    rows = load_rows(path)\\n    result = stats_by_category(rows)\\n    print(json.dumps(result, ensure_ascii=False, indent=2))\\n    return 0\\n\\n\\nif __name__ == \\\"__main__\\\":\\n    sys.exit(main(sys.argv))\\n\"}"}]},{"role":"tool","content":"category,value\nA,10\nB,20\nA,30\nB,40\nC,50\n","tool_call_id":"call_00_gv9krBYaFJIoLKnp2MXF2894"},{"role":"tool","content":"wrote stats_tool.py (2130 chars)","tool_call_id":"call_01_aDU7oYglGkzwdnYdPfkQ5588"}],"tools":["write_file","read_file","run_python"],"temperature":0.2},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":13,"ts":"2026-10-21T23:44:57.171+08:00","type":"llm_response","step":2,"span_id":"s-0013","parent_id":null,"payload":{"content":"","tool_calls":[{"id":"call_00_ET_RLzSfR9jktnVjweVXlUJ8286","name":"run_python","arguments":"{\"path\": \"stats_tool.py\"}"}],"finish_reason":"tool_calls","duration_ms":708},"usage":{"prompt_tokens":1374,"completion_tokens":42,"total_tokens":1416}},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":14,"ts":"2026-10-21T23:44:57.172+08:00","type":"budget_warning","step":2,"span_id":"s-0014","parent_id":null,"payload":{"remaining":1,"max_steps":3},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":15,"ts":"2026-10-21T23:44:57.172+08:00","type":"tool_call","step":2,"span_id":"s-0015","parent_id":null,"payload":{"name":"run_python","args":{"path":"stats_tool.py"}},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":16,"ts":"2026-10-21T23:44:57.205+08:00","type":"tool_result","step":2,"span_id":"s-0016","parent_id":null,"payload":{"name":"run_python","result":"{\"exit_code\": 0, \"stdout\": \"{\\n  \\\"A\\\": {\\n    \\\"count\\\": 2,\\n    \\\"sum\\\": 40.0,\\n    \\\"avg\\\": 20.0\\n  },\\n  \\\"B\\\": {\\n    \\\"count\\\": 2,\\n    \\\"sum\\\": 60.0,\\n    \\\"avg\\\": 30.0\\n  },\\n  \\\"C\\\": {\\n    \\\"count\\\": 1,\\n    \\\"sum\\\": 50.0,\\n    \\\"avg\\\": 50.0\\n  }\\n}\\n\", \"stderr\": \"\"}","ok":true,"duration_ms":33},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":17,"ts":"2026-10-21T23:44:57.205+08:00","type":"context_built","step":2,"span_id":"s-0017","parent_id":null,"payload":{"reason":"after_tool","messages":[{"role":"system","content":"你是一个会写代码的助手。\n工作目录：/var/folders/j8/16v5pgdd3b7_4nd92891kdhm0000gn/T/agent-dev-_eiou7bq\n目录里有 sales.csv（列：category,value）。\n要求：写一个 Python 脚本 stats_tool.py，读取 sales.csv，\n按 category 统计 count / sum / avg，按用户偏好输出。\n必须先用 write_file 写文件，再用 run_python 运行验证；\n不要心算或编造输出。"},{"role":"user","content":"帮我写一个统计数据的小工具：读取 sales.csv，按 category 统计 count/sum/avg，按我的偏好输出；先写文件，再运行验证。"},{"role":"assistant","content":"我先查看数据文件，同时写出统计脚本；这份脚本会按你的偏好以 JSON 格式输出。","tool_calls":[{"id":"call_00_gv9krBYaFJIoLKnp2MXF2894","name":"read_file","arguments":"{\"path\": \"sales.csv\"}"},{"id":"call_01_aDU7oYglGkzwdnYdPfkQ5588","name":"write_file","arguments":"{\"path\": \"stats_tool.py\", \"content\": \"#!/usr/bin/env python3\\n\\\"\\\"\\\"按 category 统计 sales.csv 的 count / sum / avg，以 JSON 输出（用户偏好）。\\\"\\\"\\\"\\n\\nimport csv\\nimport json\\nimport sys\\nfrom collections import OrderedDict\\n\\n\\ndef load_rows(path):\\n    with open(path, newline=\\\"\\\", encoding=\\\"utf-8-sig\\\") as f:\\n        reader = csv.DictReader(f)\\n        if reader.fieldnames is None:\\n            raise ValueError(\\\"CSV 为空或缺少表头\\\")\\n        fields = [name.strip() for name in reader.fieldnames]\\n        if \\\"category\\\" not in fields or \\\"value\\\" not in fields:\\n            raise ValueError(f\\\"缺少必需列 category/value，实际列: {fields}\\\")\\n        rows = []\\n        for lineno, raw in enumerate(reader, start=2):\\n            row = {k.strip(): v for k, v in raw.items() if k is not None}\\n            category = (row.get(\\\"category\\\") or \\\"\\\").strip()\\n            value_raw = (row.get(\\\"value\\\") or \\\"\\\").strip()\\n            if not category and not value_raw:\\n                continue  # 跳过空行\\n            if not category:\\n                print(f\\\"[warn] 第 {lineno} 行 category 为空，已跳过\\\", file=sys.stderr)\\n                continue\\n            try:\\n                value = float(value_raw)\\n            except ValueError:\\n                print(f\\\"[warn] 第 {lineno} 行 value 非数值 {value_raw!r}，已跳过\\\", file=sys.stderr)\\n                continue\\n            rows.append((category, value))\\n        return rows\\n\\n\\ndef stats_by_category(rows):\\n    agg = OrderedDict()\\n    for category, value in rows:\\n        if category not in agg:\\n            agg[category] = {\\\"count\\\": 0, \\\"sum\\\": 0.0}\\n        agg[category][\\\"count\\\"] += 1\\n        agg[category][\\\"sum\\\"] += value\\n\\n    result = OrderedDict()\\n    for category in sorted(agg):\\n        count = agg[category][\\\"count\\\"]\\n        total = agg[category][\\\"sum\\\"]\\n        result[category] = {\\n            \\\"count\\\": count,\\n            \\\"sum\\\": round(total, 6),\\n            \\\"avg\\\": round(total / count, 6) if count else 0.0,\\n        }\\n    return result\\n\\n\\ndef main(argv):\\n    path = argv[1] if len(argv) > 1 else \\\"sales.csv\\\"\\n    rows = load_rows(path)\\n    result = stats_by_category(rows)\\n    print(json.dumps(result, ensure_ascii=False, indent=2))\\n    return 0\\n\\n\\nif __name__ == \\\"__main__\\\":\\n    sys.exit(main(sys.argv))\\n\"}"}]},{"role":"tool","content":"category,value\nA,10\nB,20\nA,30\nB,40\nC,50\n","tool_call_id":"call_00_gv9krBYaFJIoLKnp2MXF2894"},{"role":"tool","content":"wrote stats_tool.py (2130 chars)","tool_call_id":"call_01_aDU7oYglGkzwdnYdPfkQ5588"},{"role":"assistant","content":"","tool_calls":[{"id":"call_00_ET_RLzSfR9jktnVjweVXlUJ8286","name":"run_python","arguments":"{\"path\": \"stats_tool.py\"}"}]},{"role":"tool","content":"{\"exit_code\": 0, \"stdout\": \"{\\n  \\\"A\\\": {\\n    \\\"count\\\": 2,\\n    \\\"sum\\\": 40.0,\\n    \\\"avg\\\": 20.0\\n  },\\n  \\\"B\\\": {\\n    \\\"count\\\": 2,\\n    \\\"sum\\\": 60.0,\\n    \\\"avg\\\": 30.0\\n  },\\n  \\\"C\\\": {\\n    \\\"count\\\": 1,\\n    \\\"sum\\\": 50.0,\\n    \\\"avg\\\": 50.0\\n  }\\n}\\n\", \"stderr\": \"\"}","tool_call_id":"call_00_ET_RLzSfR9jktnVjweVXlUJ8286"}],"est_tokens":819},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":18,"ts":"2026-10-21T23:44:57.205+08:00","type":"llm_request","step":3,"span_id":"s-0018","parent_id":null,"payload":{"model":"deepseek-flash","messages":[{"role":"system","content":"你是一个会写代码的助手。\n工作目录：/var/folders/j8/16v5pgdd3b7_4nd92891kdhm0000gn/T/agent-dev-_eiou7bq\n目录里有 sales.csv（列：category,value）。\n要求：写一个 Python 脚本 stats_tool.py，读取 sales.csv，\n按 category 统计 count / sum / avg，按用户偏好输出。\n必须先用 write_file 写文件，再用 run_python 运行验证；\n不要心算或编造输出。\n\n【相关历史记忆】\n- 用户偏好：统计结果用 JSON 输出。\n\n【重要】剩余轮次不多（约 0 轮）。请尽快基于已有结果给出结论。"},{"role":"user","content":"帮我写一个统计数据的小工具：读取 sales.csv，按 category 统计 count/sum/avg，按我的偏好输出；先写文件，再运行验证。"},{"role":"assistant","content":"我先查看数据文件，同时写出统计脚本；这份脚本会按你的偏好以 JSON 格式输出。","tool_calls":[{"id":"call_00_gv9krBYaFJIoLKnp2MXF2894","name":"read_file","arguments":"{\"path\": \"sales.csv\"}"},{"id":"call_01_aDU7oYglGkzwdnYdPfkQ5588","name":"write_file","arguments":"{\"path\": \"stats_tool.py\", \"content\": \"#!/usr/bin/env python3\\n\\\"\\\"\\\"按 category 统计 sales.csv 的 count / sum / avg，以 JSON 输出（用户偏好）。\\\"\\\"\\\"\\n\\nimport csv\\nimport json\\nimport sys\\nfrom collections import OrderedDict\\n\\n\\ndef load_rows(path):\\n    with open(path, newline=\\\"\\\", encoding=\\\"utf-8-sig\\\") as f:\\n        reader = csv.DictReader(f)\\n        if reader.fieldnames is None:\\n            raise ValueError(\\\"CSV 为空或缺少表头\\\")\\n        fields = [name.strip() for name in reader.fieldnames]\\n        if \\\"category\\\" not in fields or \\\"value\\\" not in fields:\\n            raise ValueError(f\\\"缺少必需列 category/value，实际列: {fields}\\\")\\n        rows = []\\n        for lineno, raw in enumerate(reader, start=2):\\n            row = {k.strip(): v for k, v in raw.items() if k is not None}\\n            category = (row.get(\\\"category\\\") or \\\"\\\").strip()\\n            value_raw = (row.get(\\\"value\\\") or \\\"\\\").strip()\\n            if not category and not value_raw:\\n                continue  # 跳过空行\\n            if not category:\\n                print(f\\\"[warn] 第 {lineno} 行 category 为空，已跳过\\\", file=sys.stderr)\\n                continue\\n            try:\\n                value = float(value_raw)\\n            except ValueError:\\n                print(f\\\"[warn] 第 {lineno} 行 value 非数值 {value_raw!r}，已跳过\\\", file=sys.stderr)\\n                continue\\n            rows.append((category, value))\\n        return rows\\n\\n\\ndef stats_by_category(rows):\\n    agg = OrderedDict()\\n    for category, value in rows:\\n        if category not in agg:\\n            agg[category] = {\\\"count\\\": 0, \\\"sum\\\": 0.0}\\n        agg[category][\\\"count\\\"] += 1\\n        agg[category][\\\"sum\\\"] += value\\n\\n    result = OrderedDict()\\n    for category in sorted(agg):\\n        count = agg[category][\\\"count\\\"]\\n        total = agg[category][\\\"sum\\\"]\\n        result[category] = {\\n            \\\"count\\\": count,\\n            \\\"sum\\\": round(total, 6),\\n            \\\"avg\\\": round(total / count, 6) if count else 0.0,\\n        }\\n    return result\\n\\n\\ndef main(argv):\\n    path = argv[1] if len(argv) > 1 else \\\"sales.csv\\\"\\n    rows = load_rows(path)\\n    result = stats_by_category(rows)\\n    print(json.dumps(result, ensure_ascii=False, indent=2))\\n    return 0\\n\\n\\nif __name__ == \\\"__main__\\\":\\n    sys.exit(main(sys.argv))\\n\"}"}]},{"role":"tool","content":"category,value\nA,10\nB,20\nA,30\nB,40\nC,50\n","tool_call_id":"call_00_gv9krBYaFJIoLKnp2MXF2894"},{"role":"tool","content":"wrote stats_tool.py (2130 chars)","tool_call_id":"call_01_aDU7oYglGkzwdnYdPfkQ5588"},{"role":"assistant","content":"","tool_calls":[{"id":"call_00_ET_RLzSfR9jktnVjweVXlUJ8286","name":"run_python","arguments":"{\"path\": \"stats_tool.py\"}"}]},{"role":"tool","content":"{\"exit_code\": 0, \"stdout\": \"{\\n  \\\"A\\\": {\\n    \\\"count\\\": 2,\\n    \\\"sum\\\": 40.0,\\n    \\\"avg\\\": 20.0\\n  },\\n  \\\"B\\\": {\\n    \\\"count\\\": 2,\\n    \\\"sum\\\": 60.0,\\n    \\\"avg\\\": 30.0\\n  },\\n  \\\"C\\\": {\\n    \\\"count\\\": 1,\\n    \\\"sum\\\": 50.0,\\n    \\\"avg\\\": 50.0\\n  }\\n}\\n\", \"stderr\": \"\"}","tool_call_id":"call_00_ET_RLzSfR9jktnVjweVXlUJ8286"}],"tools":["write_file","read_file","run_python"],"temperature":0.2},"usage":null},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":19,"ts":"2026-10-21T23:44:59.117+08:00","type":"llm_response","step":3,"span_id":"s-0019","parent_id":null,"payload":{"content":"已完成，脚本已写入 `stats_tool.py` 并实际运行验证通过（exit_code 0，无 stderr）。\n\n**输入数据** `sales.csv`：A:10, B:20, A:30, B:40, C:50\n\n**实际运行输出（JSON，按你的偏好）**：\n```json\n{\n  \"A\": { \"count\": 2, \"sum\": 40.0, \"avg\": 20.0 },\n  \"B\": { \"count\": 2, \"sum\": 60.0, \"avg\": 30.0 },\n  \"C\": { \"count\": 1, \"sum\": 50.0, \"avg\": 50.0 }\n}\n```\n\n**脚本要点**：\n- `csv.DictReader` 读取，兼容 UTF-8 BOM（`utf-8-sig`）\n- 表头与列名去空格，校验 `category` / `value` 必须存在，否则报错退出\n- 跳过空行；`category` 为空或 `value` 非数值的行打印告警到 stderr 并跳过，不污染统计\n- 用 `OrderedDict` 按 category 名称排序输出，`sum`/`avg` 保留 6 位小数\n- 支持自定义文件：`python stats_tool.py other.csv`，默认读 `sales.csv`","tool_calls":[],"finish_reason":"stop","duration_ms":1912},"usage":{"prompt_tokens":1560,"completion_tokens":300,"total_tokens":1860}},{"v":1,"run_id":"r-20261021-234452-2ea4","seq":20,"ts":"2026-10-21T23:44:59.118+08:00","type":"run_end","step":3,"span_id":"s-0020","parent_id":null,"payload":{"answer":"已完成，脚本已写入 `stats_tool.py` 并实际运行验证通过（exit_code 0，无 stderr）。\n\n**输入数据** `sales.csv`：A:10, B:20, A:30, B:40, C:50\n\n**实际运行输出（JSON，按你的偏好）**：\n```json\n{\n  \"A\": { \"count\": 2, \"sum\": 40.0, \"avg\": 20.0 },\n  \"B\": { \"count\": 2, \"sum\": 60.0, \"avg\": 30.0 },\n  \"C\": { \"count\": 1, \"sum\": 50.0, \"avg\": 50.0 }\n}\n```\n\n**脚本要点**：\n- `csv.DictReader` 读取，兼容 UTF-8 BOM（`utf-8-sig`）\n- 表头与列名去空格，校验 `category` / `value` 必须存在，否则报错退出\n- 跳过空行；`category` 为空或 `value` 非数值的行打印告警到 stderr 并跳过，不污染统计\n- 用 `OrderedDict` 按 category 名称排序输出，`sum`/`avg` 保留 6 位小数\n- 支持自定义文件：`python stats_tool.py other.csv`，默认读 `sales.csv`","steps":3,"llm_calls":3,"tool_calls":3,"total_usage":{"prompt_tokens":3528,"completion_tokens":1068,"total_tokens":4596},"wall_ms":5285,"workspace":"/var/folders/j8/16v5pgdd3b7_4nd92891kdhm0000gn/T/agent-dev-_eiou7bq"},"usage":null}],"full":[{"v":1,"run_id":"r-20261021-231852-3d27","seq":1,"ts":"2026-10-21T23:18:53.316+08:00","type":"run_start","step":0,"span_id":"s-0001","parent_id":null,"payload":{"model":"deepseek-flash","tools":["calculator","current_time"],"modules":["llm","memory","tools","extractor","guard","tracer","eval","mcp"],"task":"我的职业是什么？请先算 123 * 456，再查上海现在的时间，然后结合我的职业，用一句话总结。"},"usage":null},{"v":1,"run_id":"r-20261021-231852-3d27","seq":2,"ts":"2026-10-21T23:18:55.856+08:00","type":"memory_search","step":0,"span_id":"s-0002","parent_id":null,"payload":{"query":"我的职业是什么？请先算 123 * 456，再查上海现在的时间，然后结合我的职业，用一句话总结。","hits":[{"text":"用户叫小王，是一名测试开发工程师。","score":0.6479,"meta":{"type":"seed","tags":["personal_info","job"]}},{"text":"用户在做测试开发，最近在学习 Agent。","score":0.616,"meta":{"type":"seed","tags":["job","interest"]}}],"top_k":8,"duration_ms":195},"usage":null},{"v":1,"run_id":"r-20261021-231852-3d27","seq":3,"ts":"2026-10-21T23:18:55.856+08:00","type":"context_built","step":1,"span_id":"s-0003","parent_id":null,"payload":{"reason":"initial","messages":[{"role":"system","content":"你是一个助手。需要计算或查时间时必须调用工具，不要心算或编造。回答时结合已知用户信息。\n\n【相关历史记忆】\n- 用户叫小王，是一名测试开发工程师。\n- 用户在做测试开发，最近在学习 Agent。\n\n【重要】剩余轮次不多（约 2 轮）。请尽快基于已有信息给出结论；若仍缺关键信息，就明确说明缺什么，不要继续无意义地调工具。"},{"role":"user","content":"我的职业是什么？请先算 123 * 456，再查上海现在的时间，然后结合我的职业，用一句话总结。"}],"est_tokens":68},"usage":null},{"v":1,"run_id":"r-20261021-231852-3d27","seq":4,"ts":"2026-10-21T23:18:55.856+08:00","type":"llm_request","step":1,"span_id":"s-0004","parent_id":null,"payload":{"model":"deepseek-flash","messages":[{"role":"system","content":"你是一个助手。需要计算或查时间时必须调用工具，不要心算或编造。回答时结合已知用户信息。\n\n【相关历史记忆】\n- 用户叫小王，是一名测试开发工程师。\n- 用户在做测试开发，最近在学习 Agent。\n\n【重要】剩余轮次不多（约 2 轮）。请尽快基于已有信息给出结论；若仍缺关键信息，就明确说明缺什么，不要继续无意义地调工具。"},{"role":"user","content":"我的职业是什么？请先算 123 * 456，再查上海现在的时间，然后结合我的职业，用一句话总结。"}],"tools":["calculator","current_time"],"temperature":0.3},"usage":null},{"v":1,"run_id":"r-20261021-231852-3d27","seq":5,"ts":"2026-10-21T23:18:57.611+08:00","type":"llm_response","step":1,"span_id":"s-0005","parent_id":null,"payload":{"content":"","tool_calls":[{"id":"call_00_qbZdpC4VTasqme1lWYlV1137","name":"calculator","arguments":"{\"expression\": \"123 * 456\"}"},{"id":"call_01_38gteRDKW09QNRiNpemd9226","name":"current_time","arguments":"{\"tz\": \"Asia/Shanghai\"}"}],"finish_reason":"tool_calls","duration_ms":1754},"usage":{"prompt_tokens":523,"completion_tokens":111,"total_tokens":634}},{"v":1,"run_id":"r-20261021-231852-3d27","seq":6,"ts":"2026-10-21T23:18:57.611+08:00","type":"budget_warning","step":1,"span_id":"s-0006","parent_id":null,"payload":{"remaining":1,"max_steps":2},"usage":null},{"v":1,"run_id":"r-20261021-231852-3d27","seq":7,"ts":"2026-10-21T23:18:57.612+08:00","type":"tool_call","step":1,"span_id":"s-0007","parent_id":null,"payload":{"name":"calculator","args":{"expression":"123 * 456"}},"usage":null},{"v":1,"run_id":"r-20261021-231852-3d27","seq":8,"ts":"2026-10-21T23:18:57.612+08:00","type":"tool_result","step":1,"span_id":"s-0008","parent_id":null,"payload":{"name":"calculator","result":"56088","ok":true,"duration_ms":0},"usage":null},{"v":1,"run_id":"r-20261021-231852-3d27","seq":9,"ts":"2026-10-21T23:18:57.612+08:00","type":"tool_call","step":1,"span_id":"s-0009","parent_id":null,"payload":{"name":"current_time","args":{"tz":"Asia/Shanghai"}},"usage":null},{"v":1,"run_id":"r-20261021-231852-3d27","seq":10,"ts":"2026-10-21T23:18:57.612+08:00","type":"tool_result","step":1,"span_id":"s-0010","parent_id":null,"payload":{"name":"current_time","result":"2026-10-21 23:18:57 (Asia/Shanghai)","ok":true,"duration_ms":0},"usage":null},{"v":1,"run_id":"r-20261021-231852-3d27","seq":11,"ts":"2026-10-21T23:18:57.612+08:00","type":"context_built","step":2,"span_id":"s-0011","parent_id":null,"payload":{"reason":"after_tool","messages":[{"role":"system","content":"你是一个助手。需要计算或查时间时必须调用工具，不要心算或编造。回答时结合已知用户信息。\n\n【相关历史记忆】\n- 用户叫小王，是一名测试开发工程师。\n- 用户在做测试开发，最近在学习 Agent。\n\n【重要】剩余轮次不多（约 1 轮）。请尽快基于已有信息给出结论；若仍缺关键信息，就明确说明缺什么，不要继续无意义地调工具。"},{"role":"user","content":"我的职业是什么？请先算 123 * 456，再查上海现在的时间，然后结合我的职业，用一句话总结。"},{"role":"assistant","content":""},{"role":"tool","content":"56088","tool_call_id":"call_00_qbZdpC4VTasqme1lWYlV1137"},{"role":"tool","content":"2026-10-21 23:18:57 (Asia/Shanghai)","tool_call_id":"call_01_38gteRDKW09QNRiNpemd9226"}],"est_tokens":102},"usage":null},{"v":1,"run_id":"r-20261021-231852-3d27","seq":12,"ts":"2026-10-21T23:18:57.612+08:00","type":"llm_request","step":2,"span_id":"s-0012","parent_id":null,"payload":{"model":"deepseek-flash","messages":[{"role":"system","content":"你是一个助手。需要计算或查时间时必须调用工具，不要心算或编造。回答时结合已知用户信息。\n\n【相关历史记忆】\n- 用户叫小王，是一名测试开发工程师。\n- 用户在做测试开发，最近在学习 Agent。\n\n【重要】剩余轮次不多（约 1 轮）。请尽快基于已有信息给出结论；若仍缺关键信息，就明确说明缺什么，不要继续无意义地调工具。"},{"role":"user","content":"我的职业是什么？请先算 123 * 456，再查上海现在的时间，然后结合我的职业，用一句话总结。"},{"role":"assistant","content":""},{"role":"tool","content":"56088","tool_call_id":"call_00_qbZdpC4VTasqme1lWYlV1137"},{"role":"tool","content":"2026-10-21 23:18:57 (Asia/Shanghai)","tool_call_id":"call_01_38gteRDKW09QNRiNpemd9226"}],"tools":["calculator","current_time"],"temperature":0.3},"usage":null},{"v":1,"run_id":"r-20261021-231852-3d27","seq":13,"ts":"2026-10-21T23:18:59.144+08:00","type":"llm_response","step":2,"span_id":"s-0013","parent_id":null,"payload":{"content":"小王，你的职业是测试开发工程师；我刚算完 123 × 456 = 56088，并查到上海现在的时间是 2026-10-21 23:18:57（北京时间），结合你的职业，一句话总结：作为测试开发工程师的你，可以把这个 56088 当作一条断言用例，在深夜 23 点多的上海，顺手提醒自己早点休息。","tool_calls":[],"finish_reason":"stop","duration_ms":1531},"usage":{"prompt_tokens":673,"completion_tokens":84,"total_tokens":757}},{"v":1,"run_id":"r-20261021-231852-3d27","seq":14,"ts":"2026-10-21T23:19:01.164+08:00","type":"memory_write","step":2,"span_id":"s-0014","parent_id":null,"payload":{"keep":true,"text":"[fact,profile] 用户叫小王，是一名测试开发工程师。","tags":["fact","profile"],"meta":{"type":"extracted","tags":["fact","profile"],"time":1792595940.887239}},"usage":null},{"v":1,"run_id":"r-20261021-231852-3d27","seq":15,"ts":"2026-10-21T23:19:07.150+08:00","type":"run_end","step":2,"span_id":"s-0015","parent_id":null,"payload":{"answer":"小王，你的职业是测试开发工程师；我刚算完 123 × 456 = 56088，并查到上海现在的时间是 2026-10-21 23:18:57（北京时间），结合你的职业，一句话总结：作为测试开发工程师的你，可以把这个 56088 当作一条断言用例，在深夜 23 点多的上海，顺手提醒自己早点休息。","steps":2,"llm_calls":2,"tool_calls":2,"total_usage":{"prompt_tokens":1196,"completion_tokens":195,"total_tokens":1391},"wall_ms":11489},"usage":null}],"minimal":[{"v":1,"run_id":"r-20261021-224921-919a","seq":1,"ts":"2026-10-21T22:49:21.906+08:00","type":"run_start","step":0,"span_id":"s-0001","parent_id":null,"payload":{"model":"deepseek-flash","tools":["calculator","current_time"],"system_prompt":"你是一个助手。需要计算或查时间时必须调用工具，不要心算或编造。","user_input":"请用 calculator 工具计算 123 * 456，不要心算。"},"usage":null},{"v":1,"run_id":"r-20261021-224921-919a","seq":2,"ts":"2026-10-21T22:49:21.906+08:00","type":"context_built","step":0,"span_id":"s-0002","parent_id":null,"payload":{"reason":"initial","messages":[{"role":"system","content":"你是一个助手。需要计算或查时间时必须调用工具，不要心算或编造。"},{"role":"user","content":"请用 calculator 工具计算 123 * 456，不要心算。"}],"est_tokens":31},"usage":null},{"v":1,"run_id":"r-20261021-224921-919a","seq":3,"ts":"2026-10-21T22:49:21.906+08:00","type":"llm_request","step":1,"span_id":"s-0003","parent_id":null,"payload":{"model":"deepseek-flash","messages":[{"role":"system","content":"你是一个助手。需要计算或查时间时必须调用工具，不要心算或编造。"},{"role":"user","content":"请用 calculator 工具计算 123 * 456，不要心算。"}],"tools":["calculator","current_time"],"temperature":0.3},"usage":null},{"v":1,"run_id":"r-20261021-224921-919a","seq":4,"ts":"2026-10-21T22:49:23.314+08:00","type":"llm_response","step":1,"span_id":"s-0004","parent_id":null,"payload":{"content":"","tool_calls":[{"id":"call_00_ET_NUzxkgORKj0yCCY5yViJ8242","name":"calculator","arguments":"{\"expression\": \"123 * 456\"}"}],"finish_reason":"tool_calls","duration_ms":1408},"usage":{"prompt_tokens":395,"completion_tokens":40,"total_tokens":435}},{"v":1,"run_id":"r-20261021-224921-919a","seq":5,"ts":"2026-10-21T22:49:23.315+08:00","type":"tool_call","step":1,"span_id":"s-0005","parent_id":null,"payload":{"name":"calculator","args":{"expression":"123 * 456"},"call_id":"call_00_ET_NUzxkgORKj0yCCY5yViJ8242"},"usage":null},{"v":1,"run_id":"r-20261021-224921-919a","seq":6,"ts":"2026-10-21T22:49:23.315+08:00","type":"tool_result","step":1,"span_id":"s-0006","parent_id":null,"payload":{"name":"calculator","result":"56088","ok":true,"duration_ms":0},"usage":null},{"v":1,"run_id":"r-20261021-224921-919a","seq":7,"ts":"2026-10-21T22:49:23.315+08:00","type":"context_built","step":1,"span_id":"s-0007","parent_id":null,"payload":{"reason":"after_tool","messages":[{"role":"system","content":"你是一个助手。需要计算或查时间时必须调用工具，不要心算或编造。"},{"role":"user","content":"请用 calculator 工具计算 123 * 456，不要心算。"},{"role":"assistant","content":"","tool_calls":[{"id":"call_00_ET_NUzxkgORKj0yCCY5yViJ8242","name":"calculator","arguments":"{\"expression\": \"123 * 456\"}"}]},{"role":"tool","content":"56088","tool_call_id":"call_00_ET_NUzxkgORKj0yCCY5yViJ8242"}],"est_tokens":55},"usage":null},{"v":1,"run_id":"r-20261021-224921-919a","seq":8,"ts":"2026-10-21T22:49:23.315+08:00","type":"llm_request","step":2,"span_id":"s-0008","parent_id":null,"payload":{"model":"deepseek-flash","messages":[{"role":"system","content":"你是一个助手。需要计算或查时间时必须调用工具，不要心算或编造。"},{"role":"user","content":"请用 calculator 工具计算 123 * 456，不要心算。"},{"role":"assistant","content":"","tool_calls":[{"id":"call_00_ET_NUzxkgORKj0yCCY5yViJ8242","name":"calculator","arguments":"{\"expression\": \"123 * 456\"}"}]},{"role":"tool","content":"56088","tool_call_id":"call_00_ET_NUzxkgORKj0yCCY5yViJ8242"}],"tools":["calculator","current_time"],"temperature":0.3},"usage":null},{"v":1,"run_id":"r-20261021-224921-919a","seq":9,"ts":"2026-10-21T22:49:24.326+08:00","type":"llm_response","step":2,"span_id":"s-0009","parent_id":null,"payload":{"content":"123 × 456 = **56088**（已用 calculator 工具计算）。","tool_calls":[],"finish_reason":"stop","duration_ms":1011},"usage":{"prompt_tokens":449,"completion_tokens":18,"total_tokens":467}},{"v":1,"run_id":"r-20261021-224921-919a","seq":10,"ts":"2026-10-21T22:49:24.327+08:00","type":"run_end","step":2,"span_id":"s-0010","parent_id":null,"payload":{"answer":"123 × 456 = **56088**（已用 calculator 工具计算）。","steps":2,"llm_calls":2,"tool_calls":1,"total_usage":{"prompt_tokens":844,"completion_tokens":58,"total_tokens":902},"wall_ms":2420},"usage":null}]};
+</script>
+<script>
+(() => {
+  const TRACES = window.__TRACES__ || {};
+  let TRACE = TRACES.dev || TRACES.full || TRACES.minimal || [];
+  const $ = (s) => document.querySelector(s);
+  const stage = $('#stage');
+  const canvas = $('#seq-canvas');
+  const seqLines = $('#seq-lines');
+  const seqRows = $('#seq-rows');
+  const timeline = $('#timeline');
+  const participants = {
+    user: document.querySelector('[data-p="user"]'),
+    llm: document.querySelector('[data-p="llm"]'),
+    tools: document.querySelector('[data-p="tools"]'),
+    memory: document.querySelector('[data-p="memory"]'),
+    extractor: document.querySelector('[data-p="extractor"]'),
+  };
+  let rows = [];
+  let idx = 0, playing = false, timer = null, speed = 1;
+  let view = 'sequence';
+
+  const DURATIONS = {
+    run_start: 1500, memory_search: 2600, context_built: 2400,
+    llm_request: 2000, llm_response: 2800, budget_warning: 2200,
+    tool_call: 2200, tool_result: 2400, memory_write: 2400, run_end: 2800,
+  };
+  const TYPE_LABEL = {
+    run_start:'RUN', memory_search:'MEM', context_built:'CTX',
+    llm_request:'REQ', llm_response:'RES', budget_warning:'GUARD',
+    tool_call:'CALL', tool_result:'OBS', memory_write:'MEM', run_end:'END',
+  };
+  const fmt = (n) => new Intl.NumberFormat('zh-CN').format(Number(n) || 0);
+  const truncate = (s, n) => { s = String(s ?? '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+
+  function maxStep() { return Math.max(0, ...TRACE.map((e) => Number(e.step) || 0)); }
+
+  function replayTo(i) {
+    const s = { step:0, tokens:0, model:'', runId:'', toolCount:0, memoryHits:[], memoryWrite:null, budget:null, answer:'', ended:false, totalUsage:null };
+    for (let k = 0; k <= i; k++) apply(s, TRACE[k]);
+    return s;
+  }
+  function apply(s, e) {
+    const p = e.payload || {};
+    if (e.type === 'run_start') { s.model = p.model || ''; s.runId = e.run_id || ''; }
+    else if (e.type === 'memory_search') s.memoryHits = p.hits || [];
+    else if (e.type === 'context_built') s.ctxTokens = p.est_tokens || s.ctxTokens;
+    else if (e.type === 'tool_call') { s.toolName = p.name || s.toolName; s.toolResult = null; }
+    else if (e.type === 'tool_result') { s.toolCount += 1; s.toolName = p.name || s.toolName; s.toolResult = p.result; }
+    else if (e.type === 'memory_write') s.memoryWrite = p;
+    else if (e.type === 'budget_warning') s.budget = p;
+    else if (e.type === 'llm_response') {
+      s.step = Math.max(s.step, Number(e.step) || 0);
+      if (e.usage && e.usage.total_tokens) s.tokens += Number(e.usage.total_tokens);
+      if (!(p.tool_calls || []).length) s.answer = p.content || '';
+    } else if (e.type === 'run_end') {
+      s.step = p.steps || s.step; s.answer = p.answer || s.answer; s.totalUsage = p.total_usage || null; s.ended = true;
+      if (s.totalUsage && s.totalUsage.total_tokens) s.tokens = s.totalUsage.total_tokens;
+    }
+  }
+
+  function typeBadge(e) { return TYPE_LABEL[e.type] || e.type.slice(0,4).toUpperCase(); }
+  function eventLabel(e) {
+    const p = e.payload || {};
+    switch (e.type) {
+      case 'run_start': return '运行开始';
+      case 'memory_search': return '记忆检索：' + ((p.hits||[]).length) + ' 条命中';
+      case 'context_built': return p.reason === 'initial' ? '上下文装配 · 初始' : '上下文装配 · 含工具结果';
+      case 'llm_request': return '请求 → LLM（第 ' + e.step + ' 次）';
+      case 'llm_response': return (p.tool_calls||[]).length ? 'LLM 决定调用工具' : 'LLM 给出回答';
+      case 'budget_warning': return '预算预警：剩 ' + (p.remaining ?? '—') + ' 步';
+      case 'tool_call': return '执行 ' + (p.name || '工具');
+      case 'tool_result': return '工具返回 ' + truncate(p.result, 18);
+      case 'memory_write': return '记忆写入：' + truncate(p.text, 18);
+      case 'run_end': return '运行结束';
+      default: return e.type;
+    }
+  }
+  function annotationFor(e) {
+    const p = e.payload || {};
+    switch (e.type) {
+      case 'run_start': return '一次运行开始。模型：' + (p.model||'—') + '；工具：' + (p.tools||[]).join('、') + '。';
+      case 'memory_search': {
+        const hits = p.hits || [];
+        return hits.length ? '召回：' + hits.map(h=>truncate(h.text,24)+' ('+h.score+')').join('；') + '。之后注入 LLM 的 system prompt。' : '没有命中记忆，这次上下文里不会注入长期记忆。';
+      }
+      case 'context_built': return p.reason === 'initial' ? 'LLM+Context 第一次组装：system + user。' : '工具结果进入 history，上下文变长；下一步重新请求。';
+      case 'llm_request': return '请求进入 LLM+Context。模型看到的是这一包 messages + 工具 schema。';
+      case 'llm_response': return (p.tool_calls||[]).length ? '模型选择调用工具：' + p.tool_calls.map(t=>t.name).join('、') + '；真正执行的是本地代码。' : '模型给出最终回答，finish_reason=' + (p.finish_reason||'—') + '。';
+      case 'budget_warning': return 'Guard：max_steps=' + (p.max_steps??'—') + '，还剩 ' + (p.remaining??'—') + ' 步；会提醒模型尽快收尾。';
+      case 'tool_call': return '工具调用：' + (p.name||'') + '(' + JSON.stringify(p.args||{}) + ')。';
+      case 'tool_result': return '工具返回：' + truncate(p.result,100) + '；耗时 ' + (p.duration_ms??0) + 'ms。';
+      case 'memory_write': return 'Extractor：keep=' + (p.keep?'true':'false') + '，tags=' + JSON.stringify(p.tags||[]) + '；写入 Memory。';
+      case 'run_end': return '运行结束：LLM ' + (p.llm_calls??'—') + ' 次，工具 ' + (p.tool_calls??'—') + ' 次，共 ' + fmt((p.total_usage||{}).total_tokens) + ' tokens。';
+      default: return '';
+    }
+  }
+
+  function shortResult(name, result) {
+    const s = String(result ?? '');
+    if (s.startsWith('{')) {
+      try {
+        const j = JSON.parse(s);
+        if (j.exit_code !== undefined) return 'exit ' + j.exit_code;
+        if (j.stdout !== undefined) return 'exit ' + j.exit_code + ' · stdout';
+      } catch (_) {}
+    }
+    if (name === 'read_file') return 'CSV ' + (s.split('\n').length - 1) + ' 行';
+    if (name === 'write_file') { const m = s.match(/\((\d+) chars\)/); return m ? 'wrote ' + m[1] + 'c' : truncate(s, 18); }
+    return truncate(s, 22);
+  }
+
+  function buildRows() {
+    const out = [];
+    TRACE.forEach((e, i) => {
+      const p = e.payload || {};
+      if (e.type === 'run_start') out.push({ i, from:'user', to:'llm', label:'task', kind:'task' });
+      else if (e.type === 'memory_search') out.push({ i, from:'memory', to:'llm', label:'recall ' + ((p.hits||[]).length), kind:'memory' });
+      else if (e.type === 'tool_call') out.push({ i, from:'llm', to:'tools', label:p.name, kind:'tool' });
+      else if (e.type === 'tool_result') out.push({ i, from:'tools', to:'llm', label:shortResult(p.name, p.result), kind:'tool' });
+      else if (e.type === 'budget_warning') out.push({ i, note:'guard · 剩 ' + p.remaining + ' 步', kind:'guard' });
+      else if (e.type === 'llm_response' && !(p.tool_calls||[]).length) out.push({ i, from:'llm', to:'user', label:'answer', kind:'answer' });
+      else if (e.type === 'memory_write') {
+        out.push({ i, from:'llm', to:'extractor', label:'keep=' + p.keep, kind:'memory' });
+        out.push({ i, from:'extractor', to:'memory', label:'store', kind:'memory' });
+      }
+    });
+    return out;
+  }
+
+  function pX(name) {
+    const el = participants[name];
+    if (!el) return 0;
+    const r = el.getBoundingClientRect(), c = canvas.getBoundingClientRect();
+    return r.left - c.left + r.width / 2;
+  }
+  function rowY(i) { return 22 + i * 44; }
+
+  function buildSequence() {
+    rows = buildRows();
+    seqLines.innerHTML = '';
+    seqRows.innerHTML = '';
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+    if (!W || !H) return;
+    const names = ['user','llm','tools','memory','extractor'];
+    const xs = {};
+    names.forEach((n) => {
+      const x = pX(n); xs[n] = x;
+      const l = document.createElementNS('http://www.w3.org/2000/svg','line');
+      l.setAttribute('x1', x); l.setAttribute('y1', 0); l.setAttribute('x2', x); l.setAttribute('y2', H);
+      l.setAttribute('class','seq-lifeline');
+      seqLines.appendChild(l);
+    });
+
+    rows.forEach((row, k) => {
+      const y = rowY(k);
+      row.y = y;
+      if (row.note) {
+        const note = document.createElement('div');
+        note.className = 'seq-note';
+        note.textContent = row.note;
+        note.style.left = (xs.llm + 16) + 'px';
+        note.style.top = (y - 12) + 'px';
+        seqRows.appendChild(note);
+        row.el = note;
+      } else {
+        const x1 = xs[row.from], x2 = xs[row.to];
+        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1', x1); line.setAttribute('y1', y);
+        line.setAttribute('x2', x2); line.setAttribute('y2', y);
+        line.setAttribute('class','seq-arrow');
+        seqLines.appendChild(line);
+        const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        dot.setAttribute('cx', x2); dot.setAttribute('cy', y); dot.setAttribute('r', 3);
+        dot.setAttribute('class','seq-dot');
+        seqLines.appendChild(dot);
+        const label = document.createElement('div');
+        label.className = 'seq-label kind-' + row.kind;
+        label.textContent = row.label;
+        label.style.left = ((x1 + x2) / 2) + 'px';
+        label.style.top = (y - 16) + 'px';
+        seqRows.appendChild(label);
+        row.el = label; row.line = line; row.dot = dot; row.x1 = x1; row.x2 = x2;
+      }
+      const index = document.createElement('div');
+      index.className = 'seq-index';
+      index.textContent = '#' + (k + 1);
+      index.style.top = (y - 10) + 'px';
+      seqRows.appendChild(index);
+    });
+  }
+
+  function setActive(el, on) { if (el) el.classList.toggle('is-active', !!on); }
+
+  function renderSequence(s, e, animate) {
+    const active = rows.filter((r) => r.i === idx);
+    rows.forEach((r) => {
+      const past = r.i < idx, future = r.i > idx;
+      if (r.line) r.line.setAttribute('class', 'seq-arrow ' + (past ? 'past' : future ? 'future' : 'active'));
+      if (r.dot) r.dot.setAttribute('class', 'seq-dot ' + (future ? 'future' : past ? '' : 'active'));
+      if (r.el) r.el.classList.toggle('active', r.i === idx);
+      if (r.el) r.el.classList.toggle('future', future);
+    });
+    Object.values(participants).forEach((el) => setActive(el, false));
+    active.forEach((r) => {
+      if (r.from) setActive(participants[r.from], true);
+      if (r.to) setActive(participants[r.to], true);
+    });
+    if (!active.length) {
+      if (e.type === 'context_built' || e.type === 'llm_request') setActive(participants.llm, true);
+      if (e.type === 'llm_response' && (e.payload.tool_calls||[]).length) setActive(participants.llm, true);
+      if (e.type === 'run_end') setActive(participants.llm, true);
+    }
+
+    $('#seq-model').textContent = s.model || 'deepseek-flash';
+    const activeTool = active.find((r) => r.kind === 'tool' && r.from === 'llm');
+    $('#seq-tools-meta').textContent = activeTool ? activeTool.label : (s.toolCount ? s.toolCount + ' 次' : '—');
+    const hits = (s.memoryHits || []).length, wrote = s.memoryWrite ? 1 : 0;
+    $('#seq-memory-meta').textContent = hits || wrote ? hits + ' 召回' + (wrote ? ' · 写1' : '') : '—';
+    $('#seq-extractor-meta').textContent = s.memoryWrite ? 'keep=' + (s.memoryWrite.keep ? 'true' : 'false') : '待命';
+    $('#support-guard').classList.toggle('is-active', e.type === 'budget_warning');
+
+    if (animate) active.forEach((r) => animateRow(r));
+  }
+
+  function animateRow(r) {
+    if (r.note) { if (r.el) { r.el.classList.remove('flash'); void r.el.offsetWidth; r.el.classList.add('active'); } return; }
+    const el = document.createElement('div');
+    el.className = 'seq-packet';
+    el.style.left = r.x1 + 'px'; el.style.top = (r.y - 4) + 'px';
+    seqRows.appendChild(el);
+    const dur = Math.max(450, 760 / speed);
+    const anim = el.animate([
+      { transform:'translateX(0)', opacity:0 },
+      { transform:'translateX(0)', opacity:1, offset:.12 },
+      { transform:'translateX(' + (r.x2 - r.x1) + 'px)', opacity:1, offset:.86 },
+      { transform:'translateX(' + (r.x2 - r.x1) + 'px)', opacity:0 },
+    ], { duration: dur, easing:'cubic-bezier(.2,.8,.2,1)', fill:'forwards' });
+    anim.onfinish = () => el.remove();
+  }
+
+  function structBox(el) {
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    const s = $('#structure-stage').getBoundingClientRect();
+    return { x: r.left - s.left, y: r.top - s.top, w: r.width, h: r.height };
+  }
+  function setStructPath(id, d, visible = true) {
+    const p = document.getElementById(id);
+    if (!p) return;
+    p.setAttribute('d', d);
+    p.style.display = visible ? 'block' : 'none';
+  }
+  function drawStructure() {
+    const stageEl = $('#structure-stage');
+    if (!stageEl || stageEl.hidden) return;
+    const hub = structBox($('#struct-hub'));
+    const tools = structBox($('#struct-tools'));
+    const memory = structBox($('#struct-memory'));
+    const answer = structBox($('#struct-answer'));
+    const extractor = structBox($('#struct-extractor'));
+    if (!hub || !tools || !memory || !answer || !extractor) return;
+    const hasMemory = TRACE.some((x) => x.type === 'memory_search' || x.type === 'memory_write');
+    const hasMemoryWrite = TRACE.some((x) => x.type === 'memory_write');
+    const hubL = hub.x, hubR = hub.x + hub.w, hubB = hub.y + hub.h;
+    const toolC = tools.x + tools.w / 2, toolR = tools.x + tools.w, toolT = tools.y;
+    const memC = memory.x + memory.w / 2, memB = memory.y + memory.h;
+    const ansC = answer.x + answer.w / 2, ansR = answer.x + answer.w, ansM = answer.y + answer.h / 2;
+    const extL = extractor.x, extC = extractor.x + extractor.w / 2, extT = extractor.y;
+
+    setStructPath('sw-hub-tools', `M ${hub.x + hub.w * 0.22} ${hubB} C ${hub.x + hub.w * 0.12} ${hubB + 40} ${toolC} ${toolT - 40} ${toolC} ${toolT - 8}`, true);
+    setStructPath('sw-tools-hub', `M ${toolR} ${tools.y + tools.h * 0.25} C ${toolR + 40} ${tools.y + tools.h * 0.25} ${hub.x + hub.w * 0.32} ${hubB + 40} ${hub.x + hub.w * 0.32} ${hubB + 8}`, true);
+    setStructPath('sw-memory-hub', `M ${memC} ${memory.y} C ${memC} ${memory.y - 35} ${hubR + 35} ${hub.y + hub.h / 2} ${hubR + 8} ${hub.y + hub.h / 2}`, hasMemory);
+    setStructPath('sw-hub-answer', `M ${hub.x + hub.w * 0.78} ${hubB} C ${hub.x + hub.w * 0.88} ${hubB + 45} ${ansC} ${answer.y - 45} ${ansC} ${answer.y - 8}`, true);
+    setStructPath('sw-answer-extractor', `M ${ansR} ${ansM} C ${ansR + 25} ${ansM} ${extL - 25} ${extractor.y + extractor.h / 2} ${extL - 8} ${extractor.y + extractor.h / 2}`, hasMemoryWrite);
+    setStructPath('sw-extractor-memory', `M ${extC} ${extT} C ${extC} ${extT - 30} ${memC} ${memB + 30} ${memC} ${memB + 8}`, hasMemoryWrite);
+  }
+
+  function renderStructure(s, e) {
+    const active = (id, on) => { const el = document.getElementById(id); if (el) el.classList.toggle('is-active', !!on); };
+    $('#struct-model').textContent = s.model || 'deepseek-flash';
+    $('#struct-ctx').textContent = s.ctxTokens ? '~' + fmt(s.ctxTokens) + ' tok' : '—';
+    $('#struct-tool-count').textContent = s.toolCount ? s.toolCount + ' 次' : '';
+    $('#struct-tool-title').textContent = s.toolName || '工具';
+    $('#struct-tool-sub').textContent = s.toolResult ? truncate(s.toolResult, 26) : (s.toolName ? '执行中…' : '等待调用');
+    const hits = (s.memoryHits || []).length, wrote = s.memoryWrite ? 1 : 0;
+    $('#struct-memory-meta').textContent = hits || wrote ? hits + ' 召回' + (wrote ? ' · 写1' : '') : '—';
+    $('#struct-memory-text').textContent = hits ? truncate(s.memoryHits[0].text, 28) + ' · ' + s.memoryHits[0].score : (s.memoryWrite ? truncate(s.memoryWrite.text, 26) : '等待召回…');
+    $('#struct-answer-sub').textContent = s.answer ? truncate(s.answer, 54) : '等待';
+    if (s.memoryWrite) {
+      $('#struct-extractor-title').textContent = s.memoryWrite.keep ? 'keep=true' : 'keep=false';
+      $('#struct-extractor-sub').textContent = (s.memoryWrite.tags || []).join(',') || truncate(s.memoryWrite.text, 24);
+    } else {
+      $('#struct-extractor-title').textContent = '待命';
+      $('#struct-extractor-sub').textContent = 'keep / tags';
+    }
+    $('#support-guard').classList.toggle('is-active', e.type === 'budget_warning');
+
+    active('struct-hub', e.type === 'context_built' || e.type === 'llm_request' || e.type === 'llm_response' || e.type === 'memory_search' || e.type === 'memory_write');
+    active('struct-tools', e.type === 'tool_call' || e.type === 'tool_result');
+    active('struct-memory', e.type === 'memory_search' || e.type === 'memory_write');
+    active('struct-extractor', e.type === 'memory_write');
+    active('struct-answer', e.type === 'run_end' || (e.type === 'llm_response' && !(e.payload.tool_calls || []).length));
+
+    document.querySelectorAll('.struct-wires path').forEach((p) => p.classList.remove('active'));
+    const on = (id) => { const p = document.getElementById(id); if (p) p.classList.add('active'); };
+    if (e.type === 'tool_call') on('sw-hub-tools');
+    if (e.type === 'tool_result') on('sw-tools-hub');
+    if (e.type === 'memory_search') on('sw-memory-hub');
+    if (e.type === 'memory_write') { on('sw-answer-extractor'); on('sw-extractor-memory'); }
+    if (e.type === 'llm_response' && !(e.payload.tool_calls || []).length) on('sw-hub-answer');
+    drawStructure();
+  }
+
+  function setView(name) {
+    view = name;
+    document.querySelectorAll('.view-switch button').forEach((b) => {
+      const active = b.getAttribute('data-view') === name;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    $('#stage').hidden = name !== 'sequence';
+    $('#structure-stage').hidden = name !== 'structure';
+    if (name === 'structure') {
+      requestAnimationFrame(() => { drawStructure(); render(idx, false); });
+    } else {
+      buildSequence();
+      render(idx, false);
+    }
+  }
+
+  function renderInspector(e) {
+    $('#inspector-type').textContent = typeBadge(e);
+    $('#inspector-title').textContent = '#' + e.seq + ' · ' + eventLabel(e);
+    const bits = ['step ' + (e.step ?? 0)];
+    if (e.ts) bits.push(e.ts);
+    const dur = e.payload && e.payload.duration_ms;
+    if (dur != null) bits.push(dur + 'ms');
+    if (e.usage && e.usage.total_tokens) bits.push(fmt(e.usage.total_tokens) + ' tok');
+    $('#inspector-meta').textContent = bits.join(' · ');
+    $('#annotation').textContent = annotationFor(e);
+    $('#payload').textContent = JSON.stringify(e.payload || {}, null, 2);
+  }
+
+  function render(i, animate) {
+    if (!TRACE.length) return;
+    idx = Math.max(0, Math.min(i, TRACE.length - 1));
+    const e = TRACE[idx];
+    const s = replayTo(idx);
+    $('#run-id').textContent = s.runId || '—';
+    $('#model').textContent = s.model || '—';
+    $('#step').textContent = (s.step || 0) + ' / ' + maxStep();
+    $('#tokens').textContent = fmt(s.totalUsage ? s.totalUsage.total_tokens : s.tokens);
+    $('#budget').textContent = s.budget ? '剩 ' + s.budget.remaining : '—';
+    $('#event-count').textContent = (idx + 1) + ' / ' + TRACE.length;
+    if (view === 'sequence') renderSequence(s, e, animate);
+    else renderStructure(s, e);
+    renderInspector(e);
+    document.querySelectorAll('.event-row').forEach((row, k) => {
+      row.classList.toggle('active', k === idx);
+      if (k === idx) row.scrollIntoView({ block:'nearest' });
+    });
+    const pct = TRACE.length <= 1 ? 100 : Math.round((idx / (TRACE.length - 1)) * 100);
+    $('#progress').value = idx;
+    $('#progress-label').textContent = pct + '%';
+    $('#step-label').textContent = 'event ' + (idx + 1) + ' / ' + TRACE.length;
+  }
+
+  function buildTimeline() {
+    timeline.innerHTML = '';
+    TRACE.forEach((e, i) => {
+      const row = document.createElement('div');
+      row.className = 'event-row'; row.tabIndex = 0; row.setAttribute('role','button');
+      const badge = document.createElement('div'); badge.className = 'type-badge'; badge.textContent = typeBadge(e);
+      const body = document.createElement('div');
+      const label = document.createElement('div'); label.className = 'event-label'; label.textContent = eventLabel(e);
+      const meta = document.createElement('div'); meta.className = 'event-meta'; meta.textContent = '#' + e.seq + ' · step ' + (e.step ?? 0);
+      body.appendChild(label); body.appendChild(meta);
+      row.appendChild(badge); row.appendChild(body);
+      row.addEventListener('click', () => seek(i));
+      row.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); seek(i); } });
+      timeline.appendChild(row);
+    });
+    $('#progress').max = Math.max(0, TRACE.length - 1);
+  }
+
+  function stop() { playing = false; if (timer) { clearTimeout(timer); timer = null; } $('#play').textContent = '▶'; $('#play').setAttribute('aria-label','播放'); }
+  function schedule() {
+    if (!playing) return;
+    if (idx >= TRACE.length - 1) { stop(); return; }
+    const next = idx + 1;
+    timer = setTimeout(() => {
+      render(next, true);
+      if (idx >= TRACE.length - 1) stop(); else schedule();
+    }, (DURATIONS[TRACE[next].type] || 2200) / speed);
+  }
+  function play() {
+    if (!TRACE.length) return;
+    if (idx >= TRACE.length - 1) render(0, false);
+    playing = true; $('#play').textContent = '⏸'; $('#play').setAttribute('aria-label','暂停'); schedule();
+  }
+  function togglePlay() { if (playing) stop(); else play(); }
+  function seek(i) { stop(); render(i, false); }
+
+  $('#play').addEventListener('click', togglePlay);
+  $('#prev').addEventListener('click', () => seek(idx - 1));
+  $('#next').addEventListener('click', () => seek(idx + 1));
+  $('#reset').addEventListener('click', () => seek(0));
+  $('#progress').addEventListener('input', (ev) => seek(Number(ev.target.value)));
+  $('#speed').addEventListener('change', (ev) => { speed = Number(ev.target.value) || 1; });
+  document.addEventListener('keydown', (ev) => {
+    const tag = (ev.target && ev.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+    if (ev.key === ' ') { ev.preventDefault(); togglePlay(); }
+    if (ev.key === 'ArrowRight') { ev.preventDefault(); seek(idx + 1); }
+    if (ev.key === 'ArrowLeft') { ev.preventDefault(); seek(idx - 1); }
+  });
+
+  function loadScenario(name) {
+    const next = TRACES[name]; if (!next || !next.length) return;
+    stop(); TRACE = next; idx = 0; buildTimeline(); buildSequence(); render(0, false);
+    const sel = $('#scenario'); if (sel) sel.value = name;
+  }
+  window.__setStep = (n) => seek(Number(n) || 0);
+  window.__animateStep = (n) => { idx = Math.max(0, Math.min(Number(n)||0, TRACE.length-1)); render(idx, true); };
+  window.__loadScenario = (name) => loadScenario(name);
+  window.addEventListener('resize', () => {
+    if (view === 'sequence') buildSequence(); else drawStructure();
+    render(idx, false);
+  });
+
+  document.querySelectorAll('.view-switch button').forEach((b) => b.addEventListener('click', () => setView(b.getAttribute('data-view'))));
+
+  const initial = TRACES.dev ? 'dev' : (TRACES.full ? 'full' : 'minimal');
+  TRACE = TRACES[initial] || [];
+  const sel = $('#scenario');
+  if (sel) { sel.value = initial; sel.addEventListener('change', (ev) => loadScenario(ev.target.value)); }
+  buildTimeline(); buildSequence(); seek(0);
+})();
+</script>
+</body>
+</html>
