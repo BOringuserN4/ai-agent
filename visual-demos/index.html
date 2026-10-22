@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5 Visual Demos · Agent Skills</title>
+<style>
+  :root{--paper:#f4efe4;--paper2:#fffdf8;--ink:#211f1b;--muted:#7c7365;--line:#d9cfbd;--orange:#d95f24;--blue:#4f7fd6;--green:#4e9a6a}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC",sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1480px;margin:0 auto;padding:44px 28px 60px}
+  .masthead{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;border-bottom:2px solid var(--ink);padding-bottom:22px}
+  .kicker{font-size:11px;letter-spacing:.24em;font-weight:800;color:var(--muted)}
+  h1{font-family:"Songti SC","STSong","STHeiti",serif;font-size:clamp(38px,5vw,68px);line-height:1.05;margin:8px 0 8px;letter-spacing:-.02em}
+  .lede{font-size:14px;color:var(--muted);line-height:1.7;max-width:640px;margin:0}
+  .meta{text-align:right;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--muted);line-height:1.7;white-space:nowrap}
+  .meta b{display:block;color:var(--ink);font-size:20px;letter-spacing:.02em}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 26px}
+  .chip{font-size:10px;letter-spacing:.06em;border:1px solid var(--line);background:var(--paper2);padding:5px 9px;border-radius:999px;color:#5d5447;font-weight:700}
+  .chip b{font-family:ui-monospace,Menlo,monospace;color:var(--ink)}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+  .card{background:var(--paper2);border:1.5px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 3px 0 rgba(47,43,38,.05);display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s}
+  .card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(47,43,38,.1)}
+  .media{height:330px;background:#f7f3ea;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);overflow:hidden}
+  .media img{width:100%;height:100%;object-fit:contain;display:block}
+  .body{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1}
+  .tag{font-size:9.5px;letter-spacing:.16em;font-weight:900;color:var(--muted)}
+  h2{font-size:21px;line-height:1.25;margin:6px 0 6px;letter-spacing:-.01em}
+  .desc{font-size:12.5px;line-height:1.65;color:#5f574c;margin:0}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:10.5px}
+  .foot a{color:var(--ink);text-decoration:none;font-weight:800;border-bottom:1px solid var(--ink)}
+  .foot a:hover{color:var(--orange);border-color:var(--orange)}
+  .foot .skill{color:var(--muted);font-family:ui-monospace,Menlo,monospace;font-size:9.5px}
+  .card.video{grid-column:span 2;display:grid;grid-template-columns:1fr 430px;gap:0}
+  .card.video .body{order:1;padding:24px 28px}
+  .card.video .media{order:2;height:430px;border-left:1px solid var(--line);border-bottom:0;background:#08080a}
+  .card.video .media video{width:100%;height:100%;object-fit:cover;display:block}
+  .card.video h2{font-size:28px}
+  .card.video .desc{max-width:560px;font-size:13px}
+  .card.video .foot{max-width:560px}
+  .note{margin-top:30px;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.45);font-size:11.5px;line-height:1.7;color:var(--muted)}
+  .note b{color:var(--ink)}
+  .footer{margin-top:26px;font-size:10px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;display:flex;justify-content:space-between;gap:20px;border-top:1px solid var(--line);padding-top:14px}
+  @media(max-width:980px){.grid{grid-template-columns:1fr}.card.video{grid-column:span 1;grid-template-columns:1fr}.card.video .media{order:2;border-left:0;border-top:1px solid var(--line);height:360px}.masthead{display:block}.meta{text-align:left;margin-top:16px;white-space:normal}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <div class="kicker">5 VISUAL DEMOS · AGENT SKILLS</div>
+      <h1>把 Agent Skill<br>做成能看的东西</h1>
+      <p class="lede">用 5 个 GitHub 上的可视化 skill 规范，做 5 个可以直接打开的 demo：数据图表、手绘架构图、Mermaid 时序、等距技术插画、暗黑数据视频。</p>
+    </div>
+    <div class="meta">
+      <b>5 / 5</b>
+      built from real trace<br>
+      SVG · MP4 · Mermaid<br>
+      2026-10-22
+    </div>
+  </header>
+
+  <div class="chips">
+    <span class="chip">ANTV <b>512★</b></span>
+    <span class="chip">EXCALIDRAW <b>5.1k★</b></span>
+    <span class="chip">MARKDOWN-VIEWER <b>3.4k★</b></span>
+    <span class="chip">ANATOMY <b>18.3k★</b></span>
+    <span class="chip">DARK INFOGRAPHIC <b>new</b></span>
+  </div>
+
+  <main class="grid">
+    <article class="card">
+      <div class="media"><img src="01-antv-chart/chart.svg" alt="AntV 成本结构图"></div>
+      <div class="body">
+        <div class="tag">01 · ANTV · CHART VISUALIZATION</div>
+        <h2>一次开发任务的成本结构</h2>
+        <p class="desc">3 次 LLM 的 prompt / completion 堆叠，右侧环形 KPI；把“工具结果回填后 prompt 变长”直接标在图上。</p>
+        <div class="foot"><a href="01-antv-chart/chart.svg" target="_blank">打开 SVG</a><span class="skill">antvis/chart-visualization-skills</span></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="media"><img src="02-excalidraw/diagram.svg" alt="Excalidraw Agent Loop"></div>
+      <div class="body">
+        <div class="tag">02 · EXCALIDRAW · DIAGRAM SKILL</div>
+        <h2>Agent Loop / 结构图</h2>
+        <p class="desc">不是卡片墙：Tools 的 call/result 是两条不同箭头，Answer → Extractor → Memory 单独成链，Guard 用 note 提醒收尾。</p>
+        <div class="foot"><a href="02-excalidraw/diagram.svg" target="_blank">打开 SVG</a><span class="skill">coleam00/excalidraw-diagram-skill</span></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="media"><img src="03-mermaid/sequence.svg" alt="Mermaid 时序图"></div>
+      <div class="body">
+        <div class="tag">03 · MERMAID · MARKDOWN-VIEWER</div>
+        <h2>开发任务 · 消息时序</h2>
+        <p class="desc">5 条生命线、9 条消息；实线是请求，虚线是响应。源文件是真 Mermaid `.mmd`，可以直接粘进文档。</p>
+        <div class="foot"><a href="03-mermaid/sequence.mmd" target="_blank">打开 .mmd</a><span class="skill">markdown-viewer/skills</span></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="media"><img src="04-anatomy/anatomy.svg" alt="Anatomy 等距插画"></div>
+      <div class="body">
+        <div class="tag">04 · ANATOMY · ISOMETRIC SVG</div>
+        <h2>Agent 数据流引擎</h2>
+        <p class="desc">把 LLM / Tools / Memory / Answer / Extractor / Guard 做成 6 个可触摸的部件；管线里各有一个 packet。</p>
+        <div class="foot"><a href="04-anatomy/anatomy.svg" target="_blank">打开 SVG</a><span class="skill">wheresryan22/anatomy</span></div>
+      </div>
+    </article>
+
+    <article class="card video">
+      <div class="body">
+        <div class="tag">05 · DARK INFOGRAPHIC · 6S MP4</div>
+        <h2>4596 tokens，<br>数据真的跑出来了</h2>
+        <p class="desc">深黑 + 橙红光晕：标题 → 4,596 数字滚动 → 3 个任务卡片 → A/B/C JSON → 收尾。纯 Python + ffmpeg 渲染，1080×1080。</p>
+        <div class="foot"><a href="05-dark-video/demo.mp4" target="_blank">打开 MP4</a><span class="skill">sixwei2025/dark-infographic-video-skill</span></div>
+      </div>
+      <div class="media">
+        <video src="05-dark-video/demo.mp4" poster="05-dark-video/cover.png" autoplay muted loop playsinline controls></video>
+      </div>
+    </article>
+  </main>
+
+  <div class="note">
+    <b>怎么看：</b>1–4 是 SVG，浏览器里可以无限放大；5 是 6 秒 MP4，直接循环播放。
+    数据来自 <code>visualizer/trace_dev.jsonl</code> 的真实开发 trace；Mermaid、SVG、MP4 的源文件都在对应目录里。
+  </div>
+
+  <div class="footer">
+    <span>visual-demos/ · 5 demos · 5 skills</span>
+    <span>sources & rebuild: SOURCES.md</span>
+  </div>
+</div>
+</body>
+</html>

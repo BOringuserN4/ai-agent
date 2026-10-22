@@ -1,0 +1,14 @@
+{
+  "task": "写一个统计数据的小工具",
+  "total_tokens": 4596,
+  "prompt_tokens": 3528,
+  "completion_tokens": 1068,
+  "llm_calls": 3,
+  "tool_calls": 3,
+  "events": 20,
+  "steps": [
+    {"step": 1, "label": "读 CSV + 写脚本", "prompt": 594, "completion": 726, "total": 1320},
+    {"step": 2, "label": "运行脚本", "prompt": 1374, "completion": 42, "total": 1416},
+    {"step": 3, "label": "总结回答", "prompt": 1560, "completion": 300, "total": 1860}
+  ]
+}

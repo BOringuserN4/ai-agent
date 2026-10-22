@@ -1,0 +1,18 @@
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant L as LLM + Context
+    participant T as Tools
+    participant M as Memory
+    participant E as Extractor
+
+    U->>L: task
+    M-->>L: recall 1 · JSON preference
+    L->>T: read_file(sales.csv)
+    T-->>L: CSV 6 行
+    L->>T: write_file(stats_tool.py)
+    T-->>L: wrote 2130 chars
+    L->>T: run_python(stats_tool.py)
+    T-->>L: exit 0 · JSON stdout
+    L-->>U: answer
+    Note over E: Extractor 待命（本次无写入）
