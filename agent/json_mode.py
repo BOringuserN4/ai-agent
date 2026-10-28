@@ -150,11 +150,11 @@ def run_json_mode(agent, user_input: str, schema_name: str, max_steps=8) -> dict
     start_all = time.time()
 
     for _ in range(max_steps):
-        # 【修复】messages 每轮重建（避免重复调用工具 bug）
+        # 【上下文预算】先裁 json_agent 的 history，再构造 request。
+        # 旧版裁的是外层 agent.history，而且 messages 已经先构建，等于没裁。
+        budget = json_agent.trim_history()
         messages = [{"role": "system", "content": extended_system}]
-        messages.extend(json_agent.history[1:])
-
-        agent.trim_history()
+        messages.extend(budget.messages[1:])
         try:
             response = json_agent.client.chat.completions.create(
                 model="deepseek-flash",

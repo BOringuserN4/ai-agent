@@ -23,6 +23,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from agent.tools import get_tools_spec, get_tool_registry
 from agent.observation import normalize as _normalize_obs, is_observation
+from agent.context_budget import estimate_text, fit_to_budget
 from agent.tracing import Tracer
 load_dotenv()
 
@@ -187,25 +188,29 @@ class Agent:
 
     # ---- 上下文预算控制 ----
     def trim_history(self, max_tokens: int = 6000):
-        """当历史太长时，精简掉旧消息，只保留最近若干条 + 系统提示。
+        """请求级上下文预算：按完整 turn 裁剪，并返回裁剪结果。
 
-        简单策略：若估计 token 超过上限，就丢弃中间较旧的轮次。
-        生产级会用更智能的压缩/摘要，这里先做基础版。
+        2026-10-25：旧实现有两个病：
+        1) 在 messages 构建之后才裁，当前请求仍然超预算；
+        2) 逐条 message pop，会把 assistant.tool_calls 和 tool 拆散。
+
+        现在统一交给 context_budget.fit_to_budget：
+        - 永远保留 system；
+        - 从最旧完整 turn 开始丢；
+        - 至少保留最新 turn（当前问题不丢）；
+        - 最新 turn 自己超预算时返回 overflow，交给上层摘要/截断。
         """
-        # 粗略估计 token 数（中文约 1 字≈1 token，英文约 4 字符≈1 token）
-        def est_tokens(text: str) -> int:
-            return max(1, len(text) // 2)  # 保守估算
-
-        while len(self.history) > 2:  # 至少保留 system + 最近1条
-            total = sum(est_tokens(m.get("content", "") or "") for m in self.history)
-            if total <= max_tokens:
-                break
-            # 删掉最早的一条非 system 消息
-            for i, m in enumerate(self.history):
-                if m["role"] != "system":
-                    self.history.pop(i)
-                    break
-        self.tracer.log(f"上下文已精简（预算 {max_tokens} tokens）")
+        result = fit_to_budget(self.history, max_tokens)
+        self.history = result.messages
+        if result.dropped_turns:
+            self.tracer.log(
+                f"上下文已精简：丢 {result.dropped_turns} 个旧 turn，"
+                f"保留 {result.kept_turns} 个（约 {result.tokens} tokens）")
+        if result.overflow:
+            self.tracer.log(f"上下文仍超预算（约 {result.tokens} tokens）：需要摘要/截断")
+        if result.issues:
+            self.tracer.log(f"上下文配对异常：{result.issues}")
+        return result
 
     # ---- 主循环 ----
     def run(self, user_input: str, max_steps=8, max_tokens: int = 6000):
@@ -230,13 +235,6 @@ class Agent:
         print(f"\n🧑 用户：{user_input}")
         start_all = time.time()
 
-        # 动态构造发给模型的 messages：原始 system + 记忆注入 + 对话历史。
-        # 不在 history[0] 上改，避免记忆残留污染后续轮次。
-        messages = [{"role": "system", "content": self._base_system}]
-        if memory_context:
-            messages[0]["content"] += "\n\n" + memory_context
-        messages.extend(self.history[1:])  # history[0] 是原始 system，跳过
-
         # B 方案（2026/10/03）：在 max_steps 之外**额外给一步「只能作答」的收尾步**。
         # 为什么：实验证明「预算预警」只有在模型**有一个可作答的步**时才有用
         # （否则最后一步被工具调用占用 → 硬停、零答复）。见 docs/03-实战章/约束与收尾.md §12。
@@ -244,16 +242,17 @@ class Agent:
         total_iters = max_steps + (1 if ANSWER_STEP else 0)
 
         for _ in range(total_iters):
-            # 【修复】每轮都重新构建 messages，保证模型能看到最新历史（含上一步工具结果）
-            # 之前 messages 在循环外只构建了一次，导致模型每轮看到的上下文相同，
-            # 看不到工具已返回，于是反复调用同一工具。
+            # 【上下文预算】先裁 history，再构造 request。
+            # 旧版是先构造 messages 再 trim，裁的是下一轮，当前请求仍然超预算。
+            # 记忆注入也算预算，先扣掉它；system/tool schema 的固定开销留到下一课。
+            memory_tokens = estimate_text(memory_context) if memory_context else 0
+            budget = self.trim_history(max(1, max_tokens - memory_tokens))
+
+            # 每轮重新构建 messages，保证模型能看到最新历史（含上一步工具结果）
             messages = [{"role": "system", "content": self._base_system}]
             if memory_context:
                 messages[0]["content"] += "\n\n" + memory_context
-            messages.extend(self.history[1:])  # history[0] 是原始 system，跳过
-
-            # 发送前先控制上下文长度
-            self.trim_history(max_tokens)
+            messages.extend(budget.messages[1:])  # 跳过 history 里的 system
 
             # 【约束与收尾】剩余步数不多 → 注入提醒，让模型**主动收敛**
             # （而不是等撞到 max_steps 被硬停、任务做一半）
