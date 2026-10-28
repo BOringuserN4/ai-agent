@@ -70,6 +70,8 @@
 - 先读 `.dsh/skills/teaching-doc/SKILL.md`（说人话 / 概念解释 / 图 / 实测）；
   画图用 `hand-drawn-diagram`；正式论文才用 `paper-writing`。
 - 六段式；"代价"必须具体；行宽 ≤100；不用"第 N 周"。
+- **架构图 / 流程图 / 状态机图必须画成图片（PNG/SVG）**，不要用代码块、ASCII 或
+  Mermaid 源码直接充当图；统一用 `docs/书/build_figures_v2.py` 的手绘卡片风格，正文只留图 + 图注。
 - 新讲义要在 `docs/README.md` 和大纲里各加一行指引。
 - 收口时同步：`docs/00-索引/学习总结.md`、`docs/00-索引/教学大纲.md`、
   `docs/00-索引/问题清单.md`（如踩新坑）。

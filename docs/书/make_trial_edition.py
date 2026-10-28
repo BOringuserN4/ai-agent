@@ -83,7 +83,7 @@ def inject_nav(seg):
     lines.insert(i, '')
     lines.insert(i+1, nav_card(num, include_prev=('前情' not in head)))
     lines.insert(i+2, '')
-    return '\n'.join(lines)
+    return '\n'.join(lines)+'\n'
 
 def main():
     s=SRC.read_text(encoding='utf-8')
@@ -98,8 +98,8 @@ def main():
 > **本版改了什么**
 > 1. 32 讲统一增加/保留“前情 → 本讲只回答 → 读完后你能 → 下一讲”讲前卡；
 > 2. 第 12 讲按试读方案重写：判据前置、四模式地图、Pipeline 最小例、决策树；
-> 3. 书中 12 张图统一成手绘卡片风格：4 张核心图重绘，6 张保留内容加统一框，
->    第 12 讲决策树用手绘版；
+> 3. 书中全部插图（13 组）统一成手绘卡片风格：4 张核心图重绘，6 张保留内容加统一框，
+>    第 12 讲决策树 + DSH 架构/Step 两张图；
 > 4. 其余讲正文未重写，只做结构入口和图片替换。
 >
 > **读法**：先看第 0 讲地图；再按 6 篇顺序读。每讲先看讲前卡，再看正文。

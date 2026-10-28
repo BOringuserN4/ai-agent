@@ -27,27 +27,9 @@
 
 ## 1. 总体架构
 
-```
-┌────────────────────────────────────────────────────────────┐
-│ UI / Transport：Web GUI、ACP、SDK、headless                 │
-├────────────────────────────────────────────────────────────┤
-│ API / Session Controller：会话列表、投影、控制面             │
-├────────────────────────────────────────────────────────────┤
-│ Agent Registry + AgentLoop：轮次 / 步骤 / 收件箱 / 工具调度  │
-├────────────────────────────────────────────────────────────┤
-│ Session Log（事件溯源）+ Projections + Persistence          │
-├────────────────────────────────────────────────────────────┤
-│ Context Assembly：System Prompt、AGENTS.md、Skills、        │
-│                    Token Meter、Compaction、Spill           │
-├────────────────────────────────────────────────────────────┤
-│ Tool Runtime：fs / bash / web / subagent / workflow / jobs  │
-│               + Permission / Approval / Sandbox             │
-├────────────────────────────────────────────────────────────┤
-│ LLM Runtime：Provider Adapter、Stream、Retry                │
-├────────────────────────────────────────────────────────────┤
-│ Observability：OTel、Session Telemetry、Stats               │
-└────────────────────────────────────────────────────────────┘
-```
+![图 29-1｜DSH 总体架构：事件溯源 + 能力接口 + 插件组合](../diagrams/v2/dsh-architecture-card.png)
+
+> 图 29-1｜分层是职责，不是目录；事件是唯一事实源。
 
 ### 1.1 包的分组（按职责，不按目录）
 
@@ -80,18 +62,9 @@
 
 一个步骤的骨架：
 
-```
-claim inbox（领取输入）
-  → agent/pre-step（可拦截/改写）
-  → agent/request waterfall（模型/参数解析）
-  → prepareCall（适配器校验、默认值）
-  → assemble system prompt + tools
-  → derive messages（从会话日志派生）
-  → stream LLM
-  → 工具调用（独占 or 并行安全）
-  → 结果写回会话日志
-  → 下一步 / 结束
-```
+![图 29-2｜一个 Step 的骨架：从 claim inbox 到写回事件](../diagrams/v2/dsh-step-card.png)
+
+> 图 29-2｜turn/step 是有边界的状态机，不是 `while True`；重试与压缩都在步骤边界发生。
 
 ### 2.2 关键设计
 

@@ -78,7 +78,8 @@ whenToUse: 当任务涉及教学导读、章节讲义、概念解释、学习路
 ## 4. 插图
 
 - 一张图只讲一件事；主盒子 ≤ 7 个。
-- 教学图优先用 `hand-drawn-diagram` skill（Notability 手绘风）。
+- **架构图 / 流程图 / 状态机图必须用图片（PNG/SVG），不要用代码块、ASCII 或 Mermaid 源码占位。**
+- 教学图优先用 `hand-drawn-diagram` skill；书稿统一用 `docs/书/build_figures_v2.py` 的手绘卡片风格。
 - 图后必须有一段“看图说话”，不要只丢图。
 - 图注写“图 N｜一句话”，不要写“如下图所示”。
 
